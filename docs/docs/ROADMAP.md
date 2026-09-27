@@ -17,7 +17,7 @@ Version 0.2 · Working design · September 26, 2026
 | Real-data sandbox plus synthetic stress cases | MVP | Real locations; labeled test offers; smaller verified deal set. |
 | Environment isolation | MVP foundation | Dev, QA/staging and prod kept distinct; provisioning sequence TBD. |
 | Identity/profile/activity separation | MVP design seam | Anonymous/account choice open; Google sign-in later possibility. |
-| Basic deal appeal, intent and next-visit check-in | MVP | Deal appeal, intent, visit and deal outcome remain distinct; local implementation is sufficient initially. |
+| Basic deal appeal, intent and next-visit check-in | MVP | One-tap check-in records tried-and-worked, tried-and-failed, or not-used; it does not independently prove a restaurant visit. Local implementation is sufficient initially. |
 | Event contracts and correlation seams | MVP design seam | Retry, deduplication and attribution details remain open under Q-06. |
 | Richer or automated feedback collection | Planned | GPS triggers, push reminders and other automated follow-up are outside the tester-ready MVP. |
 | Behavioral learning and richer confidence | Planned | Preserve explicit preferences; requires meaningful evidence/events. |

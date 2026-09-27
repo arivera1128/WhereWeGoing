@@ -136,7 +136,6 @@ fun DinnerApp() {
     }
     var pendingCheckInDealId by remember { mutableStateOf(prefs.getString("pending_checkin_deal_id", "") ?: "") }
     var pendingCheckInReady by remember { mutableStateOf(prefs.getBoolean("pending_checkin_ready", false)) }
-    var pendingCheckInStage by remember { mutableStateOf(prefs.getString("pending_checkin_stage", "visit") ?: "visit") }
     var pendingCheckInShows by remember { mutableStateOf(prefs.getInt("pending_checkin_shows", 0)) }
     var checkInMessage by remember { mutableStateOf("") }
 
@@ -157,7 +156,6 @@ fun DinnerApp() {
         }
         pendingCheckInDealId = ""
         pendingCheckInReady = false
-        pendingCheckInStage = "visit"
         pendingCheckInShows = 0
         checkInMessage = message
         prefs.edit()
@@ -223,18 +221,11 @@ fun DinnerApp() {
                         hasFoodProfile = quizRatings.size >= INITIAL_FOOD_QUIZ_SIZE,
                         pendingCheckIn = elkGroveDeals.find { it.id == pendingCheckInDealId },
                         checkInReady = pendingCheckInReady,
-                        checkInStage = pendingCheckInStage,
                         checkInShows = pendingCheckInShows,
                         checkInMessage = checkInMessage,
-                        onVisited = {
-                            pendingCheckInStage = "deal"
-                            prefs.edit().putString("pending_checkin_stage", "deal").apply()
-                        },
-                        onNotYet = { postponeCheckIn() },
-                        onChangedMind = { finishCheckIn("Thanks — we'll close that check-in.", "did_not_visit") },
                         onDealWorked = { finishCheckIn("Thanks! Your confirmation helps us track reliable deals.", "worked") },
-                        onDealFailed = { finishCheckIn("Thanks. We'll keep that deal result separate from your restaurant preferences.", "did_not_work") },
-                        onDealNotTried = { finishCheckIn("Thanks — we recorded the visit without judging the deal.", "not_tried") },
+                        onDealFailed = { finishCheckIn("Thanks. We'll keep that result separate from your restaurant preferences.", "did_not_work") },
+                        onDealNotUsed = { finishCheckIn("Thanks — we'll close that check-in.", "not_used") },
                         onDismissCheckIn = { postponeCheckIn() },
                         onQuiz = {
                             editingQuizPlaceId = null
@@ -257,12 +248,10 @@ fun DinnerApp() {
                         onPlanToTry = { deal ->
                             pendingCheckInDealId = deal.id
                             pendingCheckInReady = false
-                            pendingCheckInStage = "visit"
                             pendingCheckInShows = 0
                             checkInMessage = ""
                             prefs.edit()
                                 .putString("pending_checkin_deal_id", deal.id)
-                                .putString("pending_checkin_stage", "visit")
                                 .putBoolean("pending_checkin_ready", false)
                                 .putInt("pending_checkin_shows", 0)
                                 .apply()
@@ -421,15 +410,11 @@ private fun HomePage(
     hasFoodProfile: Boolean,
     pendingCheckIn: PlaceDeal?,
     checkInReady: Boolean,
-    checkInStage: String,
     checkInShows: Int,
     checkInMessage: String,
-    onVisited: () -> Unit,
-    onNotYet: () -> Unit,
-    onChangedMind: () -> Unit,
     onDealWorked: () -> Unit,
     onDealFailed: () -> Unit,
-    onDealNotTried: () -> Unit,
+    onDealNotUsed: () -> Unit,
     onDismissCheckIn: () -> Unit,
     onQuiz: () -> Unit
 ) {
@@ -440,14 +425,10 @@ private fun HomePage(
         if (pendingCheckIn != null && checkInReady) {
             CheckInCard(
                 deal = pendingCheckIn,
-                stage = checkInStage,
                 showNumber = checkInShows,
-                onVisited = onVisited,
-                onNotYet = onNotYet,
-                onChangedMind = onChangedMind,
                 onDealWorked = onDealWorked,
                 onDealFailed = onDealFailed,
-                onDealNotTried = onDealNotTried,
+                onDealNotUsed = onDealNotUsed,
                 onDismiss = onDismissCheckIn
             )
         }
@@ -476,14 +457,10 @@ private fun HomePage(
 @Composable
 private fun CheckInCard(
     deal: PlaceDeal,
-    stage: String,
     showNumber: Int,
-    onVisited: () -> Unit,
-    onNotYet: () -> Unit,
-    onChangedMind: () -> Unit,
     onDealWorked: () -> Unit,
     onDealFailed: () -> Unit,
-    onDealNotTried: () -> Unit,
+    onDealNotUsed: () -> Unit,
     onDismiss: () -> Unit
 ) {
     Card(
@@ -496,18 +473,11 @@ private fun CheckInCard(
                 TextButton(onClick = onDismiss) { Text("Dismiss") }
             }
             Text(deal.name, style = MaterialTheme.typography.titleMedium)
-            if (stage == "deal") {
-                Text("Did the deal work?")
-                Button(onClick = onDealWorked, modifier = Modifier.fillMaxWidth()) { Text("Yes") }
-                OutlinedButton(onClick = onDealFailed, modifier = Modifier.fillMaxWidth()) { Text("No") }
-                TextButton(onClick = onDealNotTried, modifier = Modifier.fillMaxWidth()) { Text("I didn't try the deal") }
-            } else {
-                Text("Did you visit this restaurant?")
-                Button(onClick = onVisited, modifier = Modifier.fillMaxWidth()) { Text("Yes") }
-                OutlinedButton(onClick = onNotYet, modifier = Modifier.fillMaxWidth()) { Text("Not yet") }
-                TextButton(onClick = onChangedMind, modifier = Modifier.fillMaxWidth()) { Text("No, I changed my mind") }
-                Text("Check-in ${showNumber.coerceAtLeast(1)} of 3", style = MaterialTheme.typography.bodySmall)
-            }
+            Text("Did you try this deal?")
+            Button(onClick = onDealWorked, modifier = Modifier.fillMaxWidth()) { Text("Yes — the deal worked") }
+            OutlinedButton(onClick = onDealFailed, modifier = Modifier.fillMaxWidth()) { Text("Yes — but the deal didn't work") }
+            TextButton(onClick = onDealNotUsed, modifier = Modifier.fillMaxWidth()) { Text("No") }
+            Text("Check-in ${showNumber.coerceAtLeast(1)} of 3", style = MaterialTheme.typography.bodySmall)
         }
     }
 }
@@ -533,34 +503,37 @@ private fun PicksPage(
             if (!hasTonightDeal) {
                 Text("No strong confirmed deal today. Try a place you might like, and check its current offer.")
             }
-            DealTile(recommendation, featured = true, onClick = { onOpen(recommendation) })
-            Text(
-                if (hasTonightDeal) "Why this? This confirmed deal is available today and fits your saved household profile."
-                else "Why this? There is no strong deal today. This is a place to consider while we wait for a better match."
-            )
-            Text("Is this deal useful to you?")
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (dealAppeal == "useful") {
-                    Button(onClick = { onDealAppeal(recommendation, "useful") }) { Text("👍 Useful") }
+            DealTile(recommendation, featured = true, onClick = { onOpen(recommendation) }) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    if (hasTonightDeal) "Why this? This confirmed deal is available today and fits your saved household profile."
+                    else "Why this? There is no strong deal today. This is a place to consider while we wait for a better match."
+                )
+                Spacer(Modifier.height(6.dp))
+                Text("Is this deal useful to you?", style = MaterialTheme.typography.titleMedium)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (dealAppeal == "useful") {
+                        Button(onClick = { onDealAppeal(recommendation, "useful") }) { Text("👍 Useful") }
+                    } else {
+                        OutlinedButton(onClick = { onDealAppeal(recommendation, "useful") }) { Text("👍 Useful") }
+                    }
+                    if (dealAppeal == "not_useful") {
+                        Button(onClick = { onDealAppeal(recommendation, "not_useful") }) { Text("👎 Not useful") }
+                    } else {
+                        OutlinedButton(onClick = { onDealAppeal(recommendation, "not_useful") }) { Text("👎 Not useful") }
+                    }
+                }
+                if (plannedDealId == recommendation.id) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                    ) {
+                        Text("Saved. We'll check in the next time you open the app.", modifier = Modifier.padding(14.dp))
+                    }
                 } else {
-                    OutlinedButton(onClick = { onDealAppeal(recommendation, "useful") }) { Text("👍 Useful") }
-                }
-                if (dealAppeal == "not_useful") {
-                    Button(onClick = { onDealAppeal(recommendation, "not_useful") }) { Text("👎 Not useful") }
-                } else {
-                    OutlinedButton(onClick = { onDealAppeal(recommendation, "not_useful") }) { Text("👎 Not useful") }
-                }
-            }
-            if (plannedDealId == recommendation.id) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-                ) {
-                    Text("Saved. We'll check in the next time you open the app.", modifier = Modifier.padding(16.dp))
-                }
-            } else {
-                Button(onClick = { onPlanToTry(recommendation) }, modifier = Modifier.fillMaxWidth()) {
-                    Text("I'll try this deal")
+                    Button(onClick = { onPlanToTry(recommendation) }, modifier = Modifier.fillMaxWidth()) {
+                        Text("I'll try this deal")
+                    }
                 }
             }
         }
@@ -570,7 +543,12 @@ private fun PicksPage(
 }
 
 @Composable
-private fun DealTile(deal: PlaceDeal, featured: Boolean = false, onClick: () -> Unit) {
+private fun DealTile(
+    deal: PlaceDeal,
+    featured: Boolean = false,
+    onClick: () -> Unit,
+    content: (@Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit)? = null
+) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
@@ -583,6 +561,7 @@ private fun DealTile(deal: PlaceDeal, featured: Boolean = false, onClick: () -> 
             Text(deal.offer)
             Text(if (deal.verified) "Source checked ${deal.checked}" else "Confirm with location", style = MaterialTheme.typography.bodySmall)
             Text("View details →", color = MaterialTheme.colorScheme.primary)
+            content?.invoke(this)
         }
     }
 }

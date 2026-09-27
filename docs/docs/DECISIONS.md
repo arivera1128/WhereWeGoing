@@ -29,6 +29,7 @@ These records summarize the September 2026 discussion and current explicit reque
 | D-19 | AI-assisted development should preserve owner understanding. | AGENTS, ARCHITECTURE: explain choices, alternatives and important behavior in plain language. |
 | D-20 | The tester-ready MVP uses separate deal-appeal, intent, visit and deal-outcome signals. “I’ll try this deal” records intent. The next app visit asks whether the user visited; “Not yet” can return for at most three later visits with a dismiss option. A reported visit separately asks whether the deal worked. GPS triggers, push reminders and native navigation are outside this scope. | PRODUCT, ROADMAP, DATA_MODEL: implement a lightweight local check-in without treating intent as a visit, deal failure as restaurant dislike, or missing feedback as a negative response. |
 | D-21 | A weak-deal result may recommend a preferred place with a clear warning. A true no-result state must explain why no trustworthy candidate is available and offer a relevant recovery action rather than fabricate a recommendation. | PRODUCT, recommendation UI: unsupported areas direct users to update location; an exhausted candidate set directs users to review removed places. |
+| D-22 | The tester-ready next-visit interaction uses one question: “Did you try this deal?” Outcomes are tried-and-worked, tried-and-failed, or no. The card can be dismissed and may return up to three times. This supersedes D-20’s two-screen visit-then-deal sequence for the tester-ready UI; it does not claim an independently verified visit. | PRODUCT, ROADMAP, Android UI: reduce interaction steps while keeping deal failure separate from restaurant preference. |
 
 ## Superseded or unapproved sketches
 
@@ -38,6 +39,7 @@ These records summarize the September 2026 discussion and current explicit reque
 - **Rewards-first two-tab app, savings counters and reminders:** early ideas; later direction centers on a restaurant recommendation engine. Exact manual rewards scope remains open.
 - **ALL_LOCATIONS automatically inherited unless excluded:** proposed optimization, not settled policy. Later discussion explicitly reopened inheritance versus location confirmation.
 - **Capture every event immediately versus Planned event features:** superseded for the tester-ready UI by D-20. Richer automation and the technical event contract remain later work.
+- **Two-screen visit and deal confirmation in D-20:** superseded for the tester-ready UI by D-22’s single check-in question. The broader logical event distinction remains available for later evidence sources.
 - **Specific offer examples, seed counts, seven-mile radii, result counts and notification delays:** illustrative suggestions, not universal constants or verified current facts.
 
 ## Open decision register

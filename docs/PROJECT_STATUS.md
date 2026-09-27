@@ -22,7 +22,7 @@
 | Recommendation engine | 25 | Basic availability, savings rank, direct feedback, and removal rules affect the pick. | Define and implement explainable filtering and scoring using the full profile. |
 | Restaurant and deal data | 30 | Curated Elk Grove examples, sources, and a detailed logical model exist. | Validate model scenarios and define the real-data sandbox. |
 | Backend and infrastructure | 10 | Platform boundaries and environment requirements are documented. | Define access patterns, then compare backend and database options. |
-| Feedback and learning | 65 | Deal appeal, intent, next-visit check-in, visit, and deal outcome are stored locally with separate meanings. | Define durable event contracts and connect accepted signals to recommendations. |
+| Feedback and learning | 65 | Deal appeal, intent, and one-tap next-visit deal outcomes are stored locally without treating deal failure as restaurant dislike. | Define durable event contracts and connect accepted signals to recommendations. |
 | Testing and launch | 25 | The app has been built, installed, and visually checked repeatedly; the two-stage check-in handoff was exercised on the emulator. | Create repeatable end-to-end acceptance cases and a tester distribution plan. |
 
 ## Step 1: Finish defining the MVP demonstration
