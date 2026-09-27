@@ -6,7 +6,7 @@ Version 0.2 · Working design · September 26, 2026
 
 Help people answer **“Where should we eat tonight?”** in approximately **30 seconds**. Reduce dinner decision fatigue and cost resistance by recommending relevant restaurant deals for this person or household, nearby, at the right time.
 
-The product is a personalized decision engine. Savings information is fragmented across websites, restaurant apps, emails, recurring promotions and rewards. The application should do the comparison work and explain its recommendation rather than ask users to interpret a large directory.
+The product is a personalized decision engine. Savings information is fragmented across websites, restaurant apps, emails, recurring promotions and rewards. The application should do the comparison work and present one useful choice rather than ask users to interpret a large directory.
 
 The initial persona is a cost-conscious household with two adults and two children, often deciding after work and school pickup. This is an example, not a fixed household structure: a single adult without children must receive appropriately different recommendations.
 
@@ -18,25 +18,25 @@ The initial persona is a cost-conscious household with two adults and two childr
 | P-02 | Fast decision experience | A prominent “Where should we eat tonight?” action returns a clear winner and a small set of alternatives. Exact count TBD. |
 | P-03 | Lightweight personalization | Household size, children, preferred/excluded restaurants or categories, approximate location and preferred radius inform results. Exact onboarding sequence TBD. |
 | P-04 | Relevant ranking | Consider personal fit, eligibility, savings, timing/urgency, distance and eventually variety/behavior. Formula and tie-breakers TBD. Explicit exclusions must not be mistaken for weak preferences. |
-| P-05 | Explainability | Show why this restaurant, why it fits this user and why now, grounded in actual inputs. |
+| P-05 | Traceable ranking | Keep the factors behind a recommendation available for testing and support. Keep the consumer card concise: show the offer, eligibility terms and verification context rather than narrating the algorithm. |
 | P-06 | Trustworthy deal context | Show applicable terms, location, source and verification context; do not imply unverified participation is confirmed. |
 | P-07 | Real-data foundation | Move beyond hard-coded offers to real restaurant/location data, curated genuine deals and a separate synthetic test set. |
 
-A recommended result should communicate restaurant/location, offer, estimated savings when supportable, distance, explanation and confidence/verification. Savings remain estimates unless supported as realized savings; calculation method is open. Empty-result and missing-location experiences need design rather than fabricated recommendations.
+A recommended result should communicate restaurant/location, offer, eligibility or purchase terms, distance when available and confidence/verification. Savings remain estimates unless supported as realized savings; calculation method is open. Empty-result and missing-location experiences need design rather than fabricated recommendations.
 
 ## Consumer journey and learning
 
-The core journey is open app → request tonight's recommendation → see the winner and alternatives → understand terms and reasoning → choose.
+The core journey is open app → request tonight's recommendation → see the winner and alternatives → understand the deal terms → choose.
 
-Alternatives are selectable rather than passive detail cards. Selecting an alternative promotes it to the featured position, labels it as the user's selection, and provides the same intent and usefulness actions as the original recommendation. The original algorithmic recommendation remains a distinct signal and returns to the alternatives list.
+Alternatives are selectable rather than passive detail cards. Selecting an alternative promotes it to the featured position, labels it as the user's selection, and provides the same intent and restaurant-rating actions as the original recommendation. The original algorithmic recommendation remains a distinct signal and returns to the alternatives list.
 
 Pressing “I'll try this deal” saves a dinner plan and returns Home. The Home plan card supports viewing deal details, changing the plan and canceling it. A changed plan replaces the pending check-in; cancellation creates no meal record. A later launch presents the check-in described below.
 
-The broader learning loop is **Recommendation → Intent → Visit → Deal Confirmation/Verification → Feedback**. Optional detail views are engagement events between recommendation and intent. “Let's go” records intent. A later “Did you go?” answer records a visit outcome. “Did the deal work?” records availability/honoring. Preference feedback records whether the recommendation or restaurant was a good fit. These are separate signals even if one screen collects several answers.
+The broader learning loop is **Recommendation → Intent → Visit → Deal Confirmation/Verification → Feedback**. Optional detail views are engagement events between recommendation and intent. “I'll try this deal” records intent. The later one-question check-in records the person's reported outcome. Preference feedback records whether the restaurant was a good fit. These are separate signals even if one screen collects several answers.
 
 Learning develops from explicit profiles to behavior, then predictive personalization. A “not tonight” action must not silently become a permanent dislike. A failed deal must not automatically become a dislike of the restaurant. Learning weights, decay and conflict handling are TBD.
 
-The tester-ready MVP includes a lightweight feedback loop. Inside the featured deal tile, users can rate whether the deal is useful and separately record intent with “I’ll try this deal.” On the next app visit, one check-in asks “Did you try this deal?” with three one-tap outcomes: “Yes — the deal worked,” “Yes — but the deal didn’t work,” and “No.” The card can be dismissed and may return for up to three later app visits. Deal failure remains separate from restaurant preference. This compact MVP interaction does not separately prove or record a restaurant visit. GPS triggers, push reminders and native navigation are outside this tester-ready scope. Event correlation, retry and deduplication contracts remain open under Q-06 in [DECISIONS](DECISIONS.md).
+The tester-ready MVP includes a lightweight feedback loop. Inside each deal tile, users can add or edit a restaurant rating and separately record intent with “I’ll try this deal.” A 1-star rating asks for confirmation because it immediately removes that place from the featured position and recalculates the picks. On the next app visit, one check-in asks “Did you try this deal?” with three one-tap outcomes: “Yes — the deal worked,” “Yes — but the deal didn’t work,” and “No.” The card can be dismissed and may return for up to three later app visits. Deal failure remains separate from restaurant preference. This compact MVP interaction does not separately prove or record a restaurant visit. GPS triggers, push reminders and native navigation are outside this tester-ready scope. Event correlation, retry and deduplication contracts remain open under Q-06 in [DECISIONS](DECISIONS.md).
 
 Home acts as a personal dinner dashboard. Its history is meal based: a completed check-in with a worked or did-not-work outcome creates a meal record, while selections, usefulness votes and “No” responses do not. The initial dashboard reports meals recorded, deals that worked and unique places visited, followed by recent meal outcomes. Estimated savings is deferred until it can be calculated from dependable data without requiring burdensome user entry.
 
@@ -59,6 +59,6 @@ MVP has no paid ranking. Future sponsored placements should be identified and re
 
 The established UX aspiration is approximately 30 seconds from opening the app to a confident dining decision. Define the measurement population, start/end events, onboarding treatment and success threshold before calling it a measured result. Primary MVP success metric is still TBD.
 
-Working validation scenarios: compare recommendations for family and solo profiles; enforce location/time/eligibility constraints; explain the winning result; distinguish unverified participation; demonstrate data changes without changing hard-coded app offers. Detailed acceptance thresholds require review.
+Working validation scenarios: compare recommendations for family and solo profiles; enforce location/time/eligibility constraints; inspect the internal score components; distinguish unverified participation; demonstrate data changes without changing hard-coded app offers. Detailed acceptance thresholds require review.
 
 Scope is maintained in [ROADMAP](ROADMAP.md); unresolved choices are maintained in [DECISIONS](DECISIONS.md).

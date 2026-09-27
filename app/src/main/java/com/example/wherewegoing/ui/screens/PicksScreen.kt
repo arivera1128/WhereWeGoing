@@ -24,7 +24,8 @@ import java.util.Locale
 fun PicksPage(
     displayedPick: PlaceDeal?, isUserSelected: Boolean, hasTonightDeal: Boolean,
     alternatives: List<PlaceDeal>, zip: String,
-    dealAppeal: String, plannedDealId: String, onDealAppeal: (PlaceDeal, String) -> Unit,
+    ratings: Map<String, Int>, picksMessage: String, plannedDealId: String,
+    onRate: (PlaceDeal, Int) -> Unit,
     onPlanToTry: (PlaceDeal) -> Unit, onUpdateLocation: () -> Unit, onReviewRemoved: () -> Unit,
     onChoose: (PlaceDeal) -> Unit, onOpen: (PlaceDeal) -> Unit
 ) {
@@ -33,19 +34,35 @@ fun PicksPage(
             if (isUserSelected) "Your selected deal" else "Tonight's pick",
             style = MaterialTheme.typography.headlineSmall
         )
+        if (picksMessage.isNotBlank()) {
+            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+                Text(picksMessage, modifier = Modifier.fillMaxWidth().padding(14.dp))
+            }
+        }
         if (displayedPick == null) {
             if (zip !in setOf("95624", "95757", "95758")) {
                 Text("We don't have trustworthy recommendations for this area yet. This prototype currently supports Elk Grove.")
                 Button(onClick = onUpdateLocation, modifier = Modifier.fillMaxWidth()) { Text("Update location") }
             } else {
-                Text("There are no trustworthy places available to recommend right now. We won't invent a match.")
-                Button(onClick = onReviewRemoved, modifier = Modifier.fillMaxWidth()) { Text("Review removed places") }
+                Text(
+                    if (alternatives.isNotEmpty()) "No good match tonight. You can still choose from the other options."
+                    else "There are no trustworthy places available to recommend right now. We won't invent a match."
+                )
+                if (alternatives.isEmpty()) {
+                    Button(onClick = onReviewRemoved, modifier = Modifier.fillMaxWidth()) { Text("Review removed places") }
+                }
             }
         } else {
             if (!hasTonightDeal) {
                 Text("No strong confirmed deal today. Try a place you might like, and check its current offer.")
             }
-            DealTile(displayedPick, featured = true, onOpen = { onOpen(displayedPick) }) {
+            DealTile(
+                deal = displayedPick,
+                featured = true,
+                rating = ratings[displayedPick.id],
+                onRate = { onRate(displayedPick, it) },
+                onOpen = { onOpen(displayedPick) }
+            ) {
                 if (plannedDealId == displayedPick.id) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -58,32 +75,16 @@ fun PicksPage(
                         Text("I'll try this deal")
                     }
                 }
-                Spacer(Modifier.height(4.dp))
-                Text("Is this deal useful?", style = MaterialTheme.typography.bodyMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (dealAppeal == "useful") {
-                        Button(onClick = { onDealAppeal(displayedPick, "useful") }) { Text("👍 Useful") }
-                    } else {
-                        OutlinedButton(onClick = { onDealAppeal(displayedPick, "useful") }) { Text("👍 Useful") }
-                    }
-                    if (dealAppeal == "not_useful") {
-                        Button(onClick = { onDealAppeal(displayedPick, "not_useful") }) { Text("👎 Not useful") }
-                    } else {
-                        OutlinedButton(onClick = { onDealAppeal(displayedPick, "not_useful") }) { Text("👎 Not useful") }
-                    }
-                }
             }
-            Text(
-                if (isUserSelected) "You chose this from tonight's options."
-                else if (hasTonightDeal) "Why this pick? This confirmed deal is available today and fits your saved profile."
-                else "Why this pick? There is no strong deal today, so this is a place you may like while we wait for a better match.",
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(horizontal = 6.dp)
-            )
         }
-        Text("Other options", style = MaterialTheme.typography.titleLarge)
+        if (alternatives.isNotEmpty()) Text("Other options", style = MaterialTheme.typography.titleLarge)
         alternatives.forEach { deal ->
-            DealTile(deal, onOpen = { onOpen(deal) }) {
+            DealTile(
+                deal = deal,
+                rating = ratings[deal.id],
+                onRate = { onRate(deal, it) },
+                onOpen = { onOpen(deal) }
+            ) {
                 Button(onClick = { onChoose(deal) }, modifier = Modifier.fillMaxWidth()) {
                     Text("Choose this deal")
                 }
@@ -96,9 +97,13 @@ fun PicksPage(
 private fun DealTile(
     deal: PlaceDeal,
     featured: Boolean = false,
+    rating: Int?,
+    onRate: (Int) -> Unit,
     onOpen: () -> Unit,
     content: (@Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit)? = null
 ) {
+    var ratingExpanded by remember(deal.id) { mutableStateOf(false) }
+    var confirmOneStar by remember(deal.id) { mutableStateOf(false) }
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -109,10 +114,52 @@ private fun DealTile(
             Text(deal.name, style = MaterialTheme.typography.titleLarge)
             Text(deal.category, style = MaterialTheme.typography.bodySmall)
             Text(deal.offer)
+            Text(deal.terms, style = MaterialTheme.typography.bodySmall)
             Text(if (deal.verified) "Source checked ${deal.checked}" else "Confirm with location", style = MaterialTheme.typography.bodySmall)
+            TextButton(onClick = { ratingExpanded = !ratingExpanded }) {
+                Text(if (rating in 1..5) "Your rating: $rating/5 · Edit" else "Rate this place")
+            }
+            if (ratingExpanded) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    (1..5).forEach { value ->
+                        OutlinedButton(
+                            onClick = {
+                                if (value == 1) confirmOneStar = true
+                                else {
+                                    onRate(value)
+                                    ratingExpanded = false
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) { Text(value.toString()) }
+                    }
+                }
+                TextButton(
+                    onClick = { onRate(0); ratingExpanded = false },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("I haven't tried this place") }
+            }
             TextButton(onClick = onOpen) { Text("View details →") }
             content?.invoke(this)
         }
+    }
+
+    if (confirmOneStar) {
+        AlertDialog(
+            onDismissRequest = { confirmOneStar = false },
+            title = { Text("Find a different pick?") },
+            text = { Text("Since you rated this place 1 star, we'll remove it from Tonight's Pick and recalculate your options.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onRate(1)
+                    confirmOneStar = false
+                    ratingExpanded = false
+                }) { Text("Keep 1 and update picks") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmOneStar = false }) { Text("Choose another rating") }
+            }
+        )
     }
 }
 

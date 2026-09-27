@@ -56,6 +56,7 @@ import com.example.wherewegoing.data.readMealHistory
 import com.example.wherewegoing.data.writeMealHistory
 import com.example.wherewegoing.data.SharedPreferencesHouseholdProfileRepository
 import com.example.wherewegoing.domain.isDealEligibleForHousehold
+import com.example.wherewegoing.domain.RecommendationEngine
 import com.example.wherewegoing.model.HouseholdProfile
 import com.example.wherewegoing.model.MealRecord
 import com.example.wherewegoing.model.PlaceDeal
@@ -112,6 +113,7 @@ fun DinnerApp() {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val householdRepository = remember(prefs) { SharedPreferencesHouseholdProfileRepository(prefs) }
+    val recommendationEngine = remember { RecommendationEngine() }
     var page by remember { mutableStateOf("Home") }
     var selectedDeal by remember { mutableStateOf<PlaceDeal?>(null) }
     var detailBackPage by remember { mutableStateOf("Tonight's picks") }
@@ -147,9 +149,7 @@ fun DinnerApp() {
     var previewRemoved by remember { mutableStateOf<Set<String>>(emptySet()) }
     var removeInfoSuppressed by remember { mutableStateOf(prefs.getBoolean("hide_remove_info", false)) }
     var removed by remember { mutableStateOf(prefs.getStringSet("removed", emptySet())?.toSet() ?: emptySet()) }
-    var dealAppeal by remember {
-        mutableStateOf(elkGroveDeals.associate { it.id to (prefs.getString("deal_appeal_${it.id}", "") ?: "") })
-    }
+    var picksMessage by remember { mutableStateOf("") }
     var pendingCheckInDealId by remember { mutableStateOf(prefs.getString("pending_checkin_deal_id", "") ?: "") }
     var pendingCheckInReady by remember { mutableStateOf(prefs.getBoolean("pending_checkin_ready", false)) }
     var pendingCheckInShows by remember { mutableStateOf(prefs.getInt("pending_checkin_shows", 0)) }
@@ -207,16 +207,25 @@ fun DinnerApp() {
     val supportedZip = savedHousehold.zip in setOf("95624", "95757", "95758")
     val visibleDeals = if (supportedZip) elkGroveDeals.filter { it.id !in removed } else emptyList()
     val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
-    val activeDeals = visibleDeals.filter {
-        today in it.days && it.verified &&
-            isDealEligibleForHousehold(it, savedHousehold)
-    }
-    val recommendation = activeDeals.maxByOrNull {
-        it.savingsRank + if (votes[it.id] == "like") 2 else if (votes[it.id] == "dislike") -2 else 0
-    } ?: visibleDeals.firstOrNull { votes[it.id] == "like" } ?: visibleDeals.firstOrNull()
+    val recommendationResult = recommendationEngine.recommend(
+        deals = visibleDeals,
+        quizPlaces = foodQuizPlaces,
+        ratings = quizRatings,
+        household = savedHousehold,
+        today = today
+    )
+    val recommendation = recommendationResult.featured
     val selectedTonightDeal = visibleDeals.find { it.id == selectedTonightDealId }
     val displayedPick = selectedTonightDeal ?: recommendation
-    val hasTonightDeal = displayedPick in activeDeals
+    val hasTonightDeal = displayedPick?.let {
+        today in it.days && it.verified && isDealEligibleForHousehold(it, savedHousehold)
+    } == true
+    val displayedAlternatives = if (selectedTonightDeal != null) {
+        (listOfNotNull(recommendation) + recommendationResult.alternatives)
+            .distinctBy { it.id }
+            .filter { it.id != selectedTonightDeal.id }
+            .take(3)
+    } else recommendationResult.alternatives
 
     if (!onboardingComplete) {
         OnboardingScreen { onboardingZip, adultCount, childAges, onboardingRatings ->
@@ -326,13 +335,30 @@ fun DinnerApp() {
                         displayedPick = displayedPick,
                         isUserSelected = selectedTonightDeal != null,
                         hasTonightDeal = hasTonightDeal,
-                        alternatives = visibleDeals.filter { it != displayedPick },
+                        alternatives = displayedAlternatives,
                         zip = savedHousehold.zip,
-                        dealAppeal = displayedPick?.let { dealAppeal[it.id] }.orEmpty(),
+                        ratings = quizRatings,
+                        picksMessage = picksMessage,
                         plannedDealId = pendingCheckInDealId,
-                        onDealAppeal = { deal, appeal ->
-                            dealAppeal = dealAppeal + (deal.id to appeal)
-                            prefs.edit().putString("deal_appeal_${deal.id}", appeal).apply()
+                        onRate = { deal, rating ->
+                            quizRatings = quizRatings + (deal.id to rating)
+                            prefs.edit().putInt("quiz_rating_${deal.id}", rating).apply()
+                            val vote = when (rating) {
+                                1, 2 -> "dislike"
+                                4, 5 -> "like"
+                                else -> "neutral"
+                            }
+                            votes = votes + (deal.id to vote)
+                            prefs.edit().putString("vote_${deal.id}", vote).apply()
+                            if (rating == 1) {
+                                if (selectedTonightDealId == deal.id) {
+                                    selectedTonightDealId = null
+                                    prefs.edit().remove("selected_tonight_deal_id").apply()
+                                }
+                                picksMessage = "Your picks were updated."
+                            } else {
+                                picksMessage = ""
+                            }
                         },
                         onPlanToTry = { deal ->
                             selectedTonightDealId = deal.id

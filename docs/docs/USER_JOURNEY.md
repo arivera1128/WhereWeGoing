@@ -50,7 +50,9 @@ After five prompts, a completion state explains that the app will use location, 
 
 Tonight's Picks presents one algorithmic recommendation plus selectable alternatives. Choosing an alternative promotes it to **Your selected deal** and returns the original recommendation to the alternatives. The app preserves which result it recommended and which result the user selected.
 
-The featured deal provides terms/details, **I'll try this deal**, and secondary usefulness feedback. Why-this text sits outside the colored deal tile. A verified strong deal is preferred; weak and true no-result states use the established honest recovery behavior.
+The featured deal provides terms/details, verification context, **I'll try this deal**, and the person's current restaurant rating. Rating controls expand inside the tile and save after one tap. Selecting 1 shows a confirmation that the app will find something else; confirming recalculates the complete result and reports that the picks were updated. The consumer screen does not show algorithm narration or deal-usefulness voting.
+
+The page shows up to three alternatives: the next two acceptable scores plus a different cuisine or dining style when available. Each alternative can be promoted and provides the same deal and restaurant-rating controls. A verified strong deal is preferred; weak and true no-result states use the established honest recovery behavior.
 
 ## 5. Dinner plan
 
@@ -77,7 +79,7 @@ A worked or did-not-work answer creates a meal-history record. No closes the pla
 
 ## 7. Home and meal history
 
-Home is a personal dinner dashboard as well as the entry point to Tonight's Picks. It summarizes meals recorded, deals that worked and unique places visited. Recent activity is meal based; selections, usefulness votes and profile edits do not appear as meals.
+Home is a personal dinner dashboard as well as the entry point to Tonight's Picks. It summarizes meals recorded, deals that worked and unique places visited. Recent activity is meal based; selections, restaurant ratings and profile edits do not appear as meals.
 
 Estimated savings is deferred because the prototype cannot reliably derive actual order totals, percentage savings or eligibility usage without burdensome user input or dependable transaction data.
 

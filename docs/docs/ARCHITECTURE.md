@@ -9,7 +9,7 @@ Version 0.2 · Working design · September 26, 2026
 | System | Responsibility | Initial direction |
 |---|---|---|
 | Consumer app | Profile input, recommendation and deal presentation, eventual feedback capture | Android/Kotlin/Jetpack Compose; future clients use the same platform. |
-| Recommendation engine | Geographic candidate selection, applicability/time/eligibility filtering, ranking and explanations | Basic personalized rules first; scoring formula TBD. |
+| Recommendation engine | Geographic candidate selection, applicability/time/eligibility filtering, ranking and internal score traceability | Basic personalized rules first; version 1 local scoring is implemented. |
 | Data platform | Restaurant/deal, consumer and event domains, relationships and history | Logical design first; storage technology not finalized. |
 | Deal lifecycle engine | Moves evidence/candidates through review, publication, monitoring and retirement | Manual/simple transitions initially; automation later. |
 | Internal ops/admin tool | Views and controlled interventions across the platform | Manual operations first; dedicated tool Planned. |
@@ -97,8 +97,8 @@ The prototype now uses a small package structure without changing its runtime be
 | `ui/screens` | Onboarding, Home, recommendations/details, Food Profile, Profile/removed places and shared Compose components. |
 | `model` | Plain Kotlin records such as `PlaceDeal`, `QuizPlace` and `MealRecord`. |
 | `data` | A household profile repository plus meal-history encoding for the current local preference store. |
-| `domain` | Plain Kotlin deal-eligibility rules that do not depend on Compose or Android UI. |
+| `domain` | Plain Kotlin deal-eligibility and recommendation-scoring rules that do not depend on Compose or Android UI. |
 | `PrototypeData.kt` | Curated prototype places/deals and current Food Profile selection helpers. |
 | `ui/theme` | Compose colors, typography and theme. |
 
-This is an intermediate modularization. Household persistence now sits behind a repository interface shared by onboarding and Profile. Top-level app state, food-preference persistence and the remaining recommendation rules still need their own boundaries before shared storage grows substantially.
+This is an intermediate modularization. Household persistence sits behind a repository interface shared by onboarding and Profile, and recommendation version 1 is isolated as plain Kotlin domain logic with unit tests. Top-level app state, food-preference persistence and restaurant/deal persistence still need their own boundaries before shared storage grows substantially.

@@ -19,7 +19,7 @@
 |---|---:|---|---|
 | Product and UX | 80 | Core promise, implemented first-launch journey, profiles, Food Profile, selectable alternatives, manageable dinner plans, a meal-based Home dashboard, and tester-ready feedback flow are established. | Complete the remaining account-prompt and measurement decisions. |
 | Android client | 60 | A modularized Compose prototype covers onboarding, major screens, a shared household repository, local preferences, deal intent, check-ins, and meal history. | Move top-level state and remaining persistence behind clear boundaries. |
-| Recommendation engine | 30 | Basic availability, exact-age child eligibility, savings rank, direct feedback, and removal rules affect the pick. | Define and implement explainable filtering and scoring using the full profile and structured deal terms. |
+| Recommendation engine | 65 | Plain Kotlin scoring uses deal strength, direct ratings, learned food traits, exact-age eligibility, exclusions and deliberate fallback rules; internal score details are testable. | Add geography, distance, structured deal validity and production-data inputs. |
 | Restaurant and deal data | 30 | Curated Elk Grove examples, sources, and a detailed logical model exist. | Validate model scenarios and define the real-data sandbox. |
 | Backend and infrastructure | 10 | Platform boundaries and environment requirements are documented. | Define access patterns, then compare backend and database options. |
 | Feedback and learning | 65 | Deal appeal, intent, and one-tap next-visit deal outcomes are stored locally without treating deal failure as restaurant dislike. | Define durable event contracts and connect accepted signals to recommendations. |
@@ -42,7 +42,7 @@
 - [x] Support both household and solo-user contexts.
 - [x] Establish one winner plus a small set of alternatives.
 - [x] Include lightweight household and food preference profiles.
-- [x] Require an explanation for the recommendation.
+- [x] Require traceable recommendation factors while keeping consumer deal cards concise.
 - [x] Decide the exact intent, visit, verification, and preference-feedback subset for the MVP.
 - [x] Define no-result and weak-result behavior.
 - [ ] Define how the 30-second aspiration and MVP success will be measured.
@@ -66,9 +66,9 @@
 - [x] Introduce a household profile repository interface.
 - [ ] Introduce a food-preference repository interface.
 - [ ] Introduce a restaurant/deal repository interface.
-- [ ] Move recommendation rules into plain Kotlin.
-- [ ] Preserve all current flows during the refactor.
-- [ ] Document the resulting package responsibilities for the owner.
+- [x] Move recommendation rules into plain Kotlin.
+- [x] Preserve all current flows during the refactor.
+- [x] Document the resulting package responsibilities for the owner.
 
 ## Step 3: Build recommendation scoring version 1
 
@@ -77,18 +77,18 @@
 - **Phase:** Core product engine
 - **Summary:** Replace the limited prototype selection rule with a transparent, testable recommendation method.
 - **Depends on:** Steps 1 and 2
-- **Next result:** One explainable winner and meaningful alternatives for contrasting profiles
+- **Next result:** One traceable winner and meaningful alternatives for contrasting profiles
 
 ### Checklist
 
 - [x] Filter removed restaurants from recommendations.
 - [x] Consider basic deal availability and direct thumbs feedback.
 - [ ] Define hard filters for geography, validity, applicability, and eligibility.
-- [ ] Define soft scores for preference, savings, urgency, distance, and variety.
-- [ ] Connect Food Profile ratings and inferred themes to ranking.
-- [ ] Define tie-breakers and weak-match behavior.
-- [ ] Generate grounded “why this,” “why you,” and “why now” explanations.
-- [ ] Verify materially different results for family and solo profiles.
+- [x] Define version 1 soft scores for preference and deal strength; leave urgency, distance, and history-based variety for production data.
+- [x] Connect Food Profile ratings and inferred themes to ranking.
+- [x] Define tie-breakers and weak-match behavior.
+- [x] Retain internal score details and show eligibility/verification without algorithm narration.
+- [x] Verify materially different results for family and solo profiles.
 
 ## Step 4: Validate the logical data model
 
@@ -194,8 +194,8 @@
 - [x] Build the local next-visit card with a three-visit limit and dismiss option.
 - [ ] Define event correlation, retries, duplication, and missing responses.
 - [x] Keep deal failure separate from restaurant preference.
-- [ ] Feed accepted signals into future recommendations.
-- [ ] Explain and test how users edit or reverse prior feedback.
+- [x] Feed restaurant ratings and learned food traits into future recommendations.
+- [x] Explain and test how users edit or reverse prior restaurant ratings.
 
 ## Step 9: Validate the complete tester-ready journey
 
@@ -211,7 +211,7 @@
 - [x] Build and install the prototype successfully on the Android emulator.
 - [x] Visually inspect major screens and selected interaction states.
 - [x] Define repeatable first-time and returning-user test scripts.
-- [ ] Test family and solo profiles against the same candidate supply.
+- [x] Test family and solo profiles against the same candidate supply.
 - [ ] Test strong match, weak match, and no-result cases.
 - [ ] Test excluded, expired, unknown, and conflicting deals.
 - [ ] Measure the agreed decision-time experience.
