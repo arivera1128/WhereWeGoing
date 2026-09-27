@@ -214,6 +214,47 @@
     .phase-no { color: var(--brown); font-weight: 850; }
 
     .doc-list a { font-weight: 750; }
+    .dashboard-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding: 1.2rem;
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      background: linear-gradient(135deg, #fff4d9, var(--panel));
+      box-shadow: var(--shadow);
+    }
+    .dashboard-head h3 { margin: .55rem 0 .2rem; font-size: 1.55rem; }
+    .overall-ring {
+      --value: 0;
+      display: grid;
+      flex: 0 0 112px;
+      place-items: center;
+      width: 112px;
+      height: 112px;
+      border-radius: 50%;
+      background: conic-gradient(var(--brown) calc(var(--value) * 1%), var(--soft) 0);
+    }
+    .overall-ring::before {
+      content: "";
+      grid-area: 1 / 1;
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      background: var(--panel);
+    }
+    .overall-ring span { z-index: 1; grid-area: 1 / 1; font-size: 1.35rem; font-weight: 850; }
+    .progress-line { margin: .7rem 0; }
+    .progress-label { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: .25rem; font-size: .9rem; }
+    .progress-label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .progress-track { height: 12px; overflow: hidden; border-radius: 999px; background: #eadfce; }
+    .progress-value { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--gold), var(--brown)); }
+    .milestone-grid { margin-top: 1.2rem; }
+    .complete-list { list-style: none; padding-left: 0; }
+    .complete-list li { margin: .35rem 0; }
+    .complete-list li::before { content: "✓"; margin-right: .55rem; color: var(--green); font-weight: 900; }
+    .evidence-grid > div { padding: .2rem .7rem; }
     footer { padding: 2rem; color: var(--muted); text-align: center; }
 
     @media (max-width: 900px) {
@@ -221,6 +262,9 @@
       aside { position: static; height: auto; }
       aside nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .grid.two, .grid.three, .session-meta { grid-template-columns: 1fr; }
+      .dashboard-head { align-items: flex-start; }
+      .overall-ring { flex-basis: 90px; width: 90px; height: 90px; }
+      .overall-ring::before { width: 62px; height: 62px; }
     }
     @media print {
       aside { display: none; }
@@ -239,6 +283,7 @@
       </div>
       <nav aria-label="Table of contents">
         <a href="#use">How to use this hub</a>
+        <a href="#progress">Progress dashboard</a>
         <a href="#north-star">Product north star</a>
         <a href="#current">Current application</a>
         <a href="#roadmap">Roadmap phases</a>
@@ -259,7 +304,7 @@
         <p class="eyebrow">Local planning dashboard</p>
         <h1>Dinner, decided.</h1>
         <p class="lead">A navigable roadmap for turning the Android prototype into a trustworthy, personalized restaurant recommendation product—one bounded work session at a time.</p>
-        <p class="meta">Working hub · September 26, 2026 · Product name remains TBD</p>
+        <p class="meta">Generated dashboard · Last reviewed September 27, 2026 · Product name remains TBD</p>
       </header>
 
       <div class="content">
@@ -293,7 +338,102 @@
           </div>
         </section>
 
-        <section id="north-star">
+        <section id="progress" data-generated="PROJECT_STATUS.md">
+  <p class="eyebrow">Generated from PROJECT_STATUS.md</p>
+  <h2>Path to live</h2>
+  <div class="dashboard-head">
+    <div>
+      <span class="badge progress">Primary target</span>
+      <h3>Tester-ready MVP</h3>
+      <p>Overall weighted progress toward the current roadmap: <strong>32%</strong></p>
+    </div>
+    <div class="overall-ring" style="--value: 32"><span>32%</span></div>
+  </div>
+  <p class="meta">Last reviewed: September 27, 2026. Percentages reflect checked evidence in the tracker and should be revised when scope changes.</p>
+  <div class="callout proposed" style="margin:1rem 0">
+    <strong>Updating progress:</strong> edit <a href="PROJECT_STATUS.md">PROJECT_STATUS.md</a>, then run <code>.\tools\build_project_hub.ps1</code> from the project root. Progress sections on this page are regenerated automatically.
+  </div>
+  <div class="grid three milestone-grid"><article class="card"><h3>Prototype ready</h3><div class="progress-line">
+  <div class="progress-label"><span>Prototype ready</span><strong>90%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Prototype ready" aria-valuemin="0" aria-valuemax="100" aria-valuenow="90">
+    <span class="progress-value" style="width: 90%"></span>
+  </div>
+</div><p>The owner can run and evaluate the major product flows locally.</p><p class="meta"><strong>Exit:</strong> Complete the remaining end-to-end prototype review and correct blocking UX defects.</p></article>
+<article class="card"><h3>Tester ready</h3><div class="progress-line">
+  <div class="progress-label"><span>Tester ready</span><strong>32%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Tester ready" aria-valuemin="0" aria-valuemax="100" aria-valuenow="32">
+    <span class="progress-value" style="width: 32%"></span>
+  </div>
+</div><p>Another person can install the app, use realistic data, and provide useful feedback safely.</p><p class="meta"><strong>Exit:</strong> Complete Steps 1–9 at the agreed tester-ready scope.</p></article>
+<article class="card"><h3>Public MVP ready</h3><div class="progress-line">
+  <div class="progress-label"><span>Public MVP ready</span><strong>8%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Public MVP ready" aria-valuemin="0" aria-valuemax="100" aria-valuenow="8">
+    <span class="progress-value" style="width: 8%"></span>
+  </div>
+</div><p>The app can serve real users with production data and operational safeguards.</p><p class="meta"><strong>Exit:</strong> Complete the public release requirements in Step 10 plus all required earlier gates.</p></article></div>
+  <h3 style="margin-top:1.5rem">Roadmap progress</h3>
+  <div class="card"><div class="progress-line">
+  <div class="progress-label"><span>Step 1: Finish defining the MVP demonstration</span><strong>70%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 1: Finish defining the MVP demonstration" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70">
+    <span class="progress-value" style="width: 70%"></span>
+  </div>
+</div>
+<div class="progress-line">
+  <div class="progress-label"><span>Step 2: Modularize the Android prototype</span><strong>20%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 2: Modularize the Android prototype" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20">
+    <span class="progress-value" style="width: 20%"></span>
+  </div>
+</div>
+<div class="progress-line">
+  <div class="progress-label"><span>Step 3: Build recommendation scoring version 1</span><strong>25%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 3: Build recommendation scoring version 1" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25">
+    <span class="progress-value" style="width: 25%"></span>
+  </div>
+</div>
+<div class="progress-line">
+  <div class="progress-label"><span>Step 4: Validate the logical data model</span><strong>60%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 4: Validate the logical data model" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60">
+    <span class="progress-value" style="width: 60%"></span>
+  </div>
+</div>
+<div class="progress-line">
+  <div class="progress-label"><span>Step 5: Define access patterns and expected scale</span><strong>38%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 5: Define access patterns and expected scale" aria-valuemin="0" aria-valuemax="100" aria-valuenow="38">
+    <span class="progress-value" style="width: 38%"></span>
+  </div>
+</div>
+<div class="progress-line">
+  <div class="progress-label"><span>Step 6: Select the backend, database, and API boundary</span><strong>10%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 6: Select the backend, database, and API boundary" aria-valuemin="0" aria-valuemax="100" aria-valuenow="10">
+    <span class="progress-value" style="width: 10%"></span>
+  </div>
+</div>
+<div class="progress-line">
+  <div class="progress-label"><span>Step 7: Build the real-data sandbox and deal lifecycle</span><strong>20%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 7: Build the real-data sandbox and deal lifecycle" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20">
+    <span class="progress-value" style="width: 20%"></span>
+  </div>
+</div>
+<div class="progress-line">
+  <div class="progress-label"><span>Step 8: Complete the MVP feedback loop</span><strong>38%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 8: Complete the MVP feedback loop" aria-valuemin="0" aria-valuemax="100" aria-valuenow="38">
+    <span class="progress-value" style="width: 38%"></span>
+  </div>
+</div>
+<div class="progress-line">
+  <div class="progress-label"><span>Step 9: Validate the complete tester-ready journey</span><strong>25%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 9: Validate the complete tester-ready journey" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25">
+    <span class="progress-value" style="width: 25%"></span>
+  </div>
+</div>
+<div class="progress-line">
+  <div class="progress-label"><span>Step 10: Prepare the public MVP release</span><strong>0%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 10: Prepare the public MVP release" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <span class="progress-value" style="width: 0%"></span>
+  </div>
+</div></div>
+</section>
+<section id="north-star">
           <p class="eyebrow">Accepted direction</p>
           <h2>Product north star</h2>
           <div class="callout">
@@ -359,201 +499,490 @@
           </div>
         </section>
 
-        <section id="roadmap">
-          <p class="eyebrow">Proposed sequence</p>
-          <h2>Roadmap phases</h2>
-          <p>Phases express dependency order, not calendar promises. A later phase may be discussed early, but implementation should respect unresolved gates.</p>
+        <section id="roadmap" data-generated="PROJECT_STATUS.md">
+  <p class="eyebrow">Generated roadmap</p>
+  <h2>Steps to a live app</h2>
+  <p>Progress is calculated from the evidence checklist in <a href="PROJECT_STATUS.md">PROJECT_STATUS.md</a>. Step weights affect the overall percentage; they do not represent calendar estimates.</p>
+  <div class="phase">
+  <div class="phase-no">Step 1<br><span class="badge progress">In progress</span></div>
+  <div>
+    <h3>Finish defining the MVP demonstration</h3>
+    <div class="progress-line">
+  <div class="progress-label"><span>Finish defining the MVP demonstration complete</span><strong>70%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Finish defining the MVP demonstration complete" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70">
+    <span class="progress-value" style="width: 70%"></span>
+  </div>
+</div>
+    <p>Turn the strong product direction and working prototype into an explicit, testable MVP contract.</p>
+    <p class="meta"><strong>Next result:</strong> Accepted MVP journey, feedback subset, edge-case behavior, and success criteria</p>
+  </div>
+</div>
+<div class="phase">
+  <div class="phase-no">Step 2<br><span class="badge progress">In progress</span></div>
+  <div>
+    <h3>Modularize the Android prototype</h3>
+    <div class="progress-line">
+  <div class="progress-label"><span>Modularize the Android prototype complete</span><strong>20%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Modularize the Android prototype complete" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20">
+    <span class="progress-value" style="width: 20%"></span>
+  </div>
+</div>
+    <p>Make the code understandable and replaceable without changing the working user experience.</p>
+    <p class="meta"><strong>Next result:</strong> Separate UI, application state, domain logic, and local data boundaries</p>
+  </div>
+</div>
+<div class="phase">
+  <div class="phase-no">Step 3<br><span class="badge progress">In progress</span></div>
+  <div>
+    <h3>Build recommendation scoring version 1</h3>
+    <div class="progress-line">
+  <div class="progress-label"><span>Build recommendation scoring version 1 complete</span><strong>25%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Build recommendation scoring version 1 complete" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25">
+    <span class="progress-value" style="width: 25%"></span>
+  </div>
+</div>
+    <p>Replace the limited prototype selection rule with a transparent, testable recommendation method.</p>
+    <p class="meta"><strong>Next result:</strong> One explainable winner and meaningful alternatives for contrasting profiles</p>
+  </div>
+</div>
+<div class="phase">
+  <div class="phase-no">Step 4<br><span class="badge progress">In progress</span></div>
+  <div>
+    <h3>Validate the logical data model</h3>
+    <div class="progress-line">
+  <div class="progress-label"><span>Validate the logical data model complete</span><strong>60%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Validate the logical data model complete" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60">
+    <span class="progress-value" style="width: 60%"></span>
+  </div>
+</div>
+    <p>Confirm that the documented business concepts hold up under realistic and difficult cases.</p>
+    <p class="meta"><strong>Next result:</strong> Accepted logical relationships and an explicit list of unresolved product rules</p>
+  </div>
+</div>
+<div class="phase">
+  <div class="phase-no">Step 5<br><span class="badge progress">In progress</span></div>
+  <div>
+    <h3>Define access patterns and expected scale</h3>
+    <div class="progress-line">
+  <div class="progress-label"><span>Define access patterns and expected scale complete</span><strong>38%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Define access patterns and expected scale complete" aria-valuemin="0" aria-valuemax="100" aria-valuenow="38">
+    <span class="progress-value" style="width: 38%"></span>
+  </div>
+</div>
+    <p>Describe the reads, writes, volume, latency, and authorization needs before selecting storage.</p>
+    <p class="meta"><strong>Next result:</strong> Reviewed query and event catalogue suitable for backend comparison</p>
+  </div>
+</div>
+<div class="phase">
+  <div class="phase-no">Step 6<br><span class="badge proposed">Proposed</span></div>
+  <div>
+    <h3>Select the backend, database, and API boundary</h3>
+    <div class="progress-line">
+  <div class="progress-label"><span>Select the backend, database, and API boundary complete</span><strong>10%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Select the backend, database, and API boundary complete" aria-valuemin="0" aria-valuemax="100" aria-valuenow="10">
+    <span class="progress-value" style="width: 10%"></span>
+  </div>
+</div>
+    <p>Choose technology based on validated access patterns rather than translating the logical model directly into storage.</p>
+    <p class="meta"><strong>Next result:</strong> Accepted technology decision, physical design, and environment plan</p>
+  </div>
+</div>
+<div class="phase">
+  <div class="phase-no">Step 7<br><span class="badge proposed">Proposed</span></div>
+  <div>
+    <h3>Build the real-data sandbox and deal lifecycle</h3>
+    <div class="progress-line">
+  <div class="progress-label"><span>Build the real-data sandbox and deal lifecycle complete</span><strong>20%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Build the real-data sandbox and deal lifecycle complete" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20">
+    <span class="progress-value" style="width: 20%"></span>
+  </div>
+</div>
+    <p>Replace hard-coded supply with safe, traceable data at a useful Elk Grove scale.</p>
+    <p class="meta"><strong>Next result:</strong> Repeatable sandbox containing real locations, synthetic edge cases, and verified genuine deals</p>
+  </div>
+</div>
+<div class="phase">
+  <div class="phase-no">Step 8<br><span class="badge progress">In progress</span></div>
+  <div>
+    <h3>Complete the MVP feedback loop</h3>
+    <div class="progress-line">
+  <div class="progress-label"><span>Complete the MVP feedback loop complete</span><strong>38%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Complete the MVP feedback loop complete" aria-valuemin="0" aria-valuemax="100" aria-valuenow="38">
+    <span class="progress-value" style="width: 38%"></span>
+  </div>
+</div>
+    <p>Preserve the meaning of user actions while collecting only the feedback needed for the MVP.</p>
+    <p class="meta"><strong>Next result:</strong> Accepted and implemented recommendation-to-feedback workflow</p>
+  </div>
+</div>
+<div class="phase">
+  <div class="phase-no">Step 9<br><span class="badge progress">In progress</span></div>
+  <div>
+    <h3>Validate the complete tester-ready journey</h3>
+    <div class="progress-line">
+  <div class="progress-label"><span>Validate the complete tester-ready journey complete</span><strong>25%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Validate the complete tester-ready journey complete" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25">
+    <span class="progress-value" style="width: 25%"></span>
+  </div>
+</div>
+    <p>Test the complete experience systematically rather than validating only individual screens.</p>
+    <p class="meta"><strong>Next result:</strong> Test evidence, known limitations, and prioritized corrections</p>
+  </div>
+</div>
+<div class="phase">
+  <div class="phase-no">Step 10<br><span class="badge parked">Parked</span></div>
+  <div>
+    <h3>Prepare the public MVP release</h3>
+    <div class="progress-line">
+  <div class="progress-label"><span>Prepare the public MVP release complete</span><strong>0%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Prepare the public MVP release complete" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <span class="progress-value" style="width: 0%"></span>
+  </div>
+</div>
+    <p>Add the production safeguards, policies, monitoring, and distribution required for real users.</p>
+    <p class="meta"><strong>Next result:</strong> Reviewed Google Play release candidate</p>
+  </div>
+</div>
+</section>
 
-          <div class="phase">
-            <div class="phase-no">Phase 1<br><span class="badge progress">Now</span></div>
-            <div><h3>Baseline and modular prototype</h3><p>Confirm the MVP journey, inventory existing behavior, split the Android code into understandable UI, domain, and data responsibilities, and preserve the working experience.</p></div>
-          </div>
-          <div class="phase">
-            <div class="phase-no">Phase 2<br><span class="badge proposed">Proposed</span></div>
-            <div><h3>Recommendation engine version 1</h3><p>Define an explainable rules-based score using location, timing, eligibility, explicit preferences, exclusions, household context, savings, and deal confidence.</p></div>
-          </div>
-          <div class="phase">
-            <div class="phase-no">Phase 3<br><span class="badge proposed">Proposed</span></div>
-            <div><h3>Logical model and access patterns</h3><p>Pressure-test Restaurant, Location, Deal, DealLocation, evidence, profiles, preferences, and events. Define the actual reads and writes before selecting physical storage.</p></div>
-          </div>
-          <div class="phase">
-            <div class="phase-no">Phase 4<br><span class="badge open">Decision gate</span></div>
-            <div><h3>Backend and physical data design</h3><p>Compare backend and database options against access patterns, security, geography, cost, environment isolation, and owner learning needs. Define an API boundary.</p></div>
-          </div>
-          <div class="phase">
-            <div class="phase-no">Phase 5<br><span class="badge proposed">Proposed</span></div>
-            <div><h3>Real-data sandbox and deal trust</h3><p>Load real Elk Grove restaurant/location records, clearly labeled synthetic deals, and a smaller verified deal set. Exercise evidence, publication, applicability, and retirement.</p></div>
-          </div>
-          <div class="phase">
-            <div class="phase-no">Phase 6<br><span class="badge parked">Later</span></div>
-            <div><h3>Feedback, learning, and operations</h3><p>Implement the accepted subset of intent, visit, deal confirmation, and preference feedback. Add only the internal controls required to maintain trustworthy data.</p></div>
-          </div>
-          <div class="phase">
-            <div class="phase-no">Phase 7<br><span class="badge parked">Later</span></div>
-            <div><h3>MVP validation and release readiness</h3><p>Test family and solo contexts, exclusions, expired and uncertain deals, no-result cases, environment isolation, and the 30-second decision aspiration.</p></div>
-          </div>
-        </section>
+        <section id="sessions" data-generated="PROJECT_STATUS.md">
+  <p class="eyebrow">One bounded step at a time</p>
+  <h2>Progress details</h2>
+  <p>Each percentage is calculated from the completed and remaining items below. Update the Markdown tracker, then regenerate this page.</p>
+  <div class="session-list"><details open>
+  <summary>Step 1 · Finish defining the MVP demonstration <span class="badge progress">70%</span></summary>
+  <div class="session-body">
+    <div class="progress-line">
+  <div class="progress-label"><span>Step 1 progress</span><strong>70%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 1 progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70">
+    <span class="progress-value" style="width: 70%"></span>
+  </div>
+</div>
+    <div class="session-meta">
+      <div><strong>Phase</strong>Product foundation</div>
+      <div><strong>Depends on</strong>Existing product documents and prototype review</div>
+      <div><strong>Next result</strong>Accepted MVP journey, feedback subset, edge-case behavior, and success criteria</div>
+    </div>
+    <p>Turn the strong product direction and working prototype into an explicit, testable MVP contract.</p>
+    <div class="grid two evidence-grid">
+      <div><h3>Completed</h3><ul class="complete-list"><li>Define the core promise: answer “Where should we eat tonight?” quickly.</li>
+<li>Keep the MVP focused on food and restaurants.</li>
+<li>Select Elk Grove as the initial supported market.</li>
+<li>Support both household and solo-user contexts.</li>
+<li>Establish one winner plus a small set of alternatives.</li>
+<li>Include lightweight household and food preference profiles.</li>
+<li>Require an explanation for the recommendation.</li></ul></div>
+      <div><h3>Still needed</h3><ul class="checklist"><li>Decide the exact intent, visit, verification, and preference-feedback subset for the MVP.</li>
+<li>Define no-result and weak-result behavior.</li>
+<li>Define how the 30-second aspiration and MVP success will be measured.</li></ul></div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>Step 2 · Modularize the Android prototype <span class="badge progress">20%</span></summary>
+  <div class="session-body">
+    <div class="progress-line">
+  <div class="progress-label"><span>Step 2 progress</span><strong>20%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 2 progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20">
+    <span class="progress-value" style="width: 20%"></span>
+  </div>
+</div>
+    <div class="session-meta">
+      <div><strong>Phase</strong>Application foundation</div>
+      <div><strong>Depends on</strong>Current Android prototype</div>
+      <div><strong>Next result</strong>Separate UI, application state, domain logic, and local data boundaries</div>
+    </div>
+    <p>Make the code understandable and replaceable without changing the working user experience.</p>
+    <div class="grid two evidence-grid">
+      <div><h3>Completed</h3><ul class="complete-list"><li>Separate the visual theme into dedicated files.</li>
+<li>Separate prototype restaurant and deal data from the main activity.</li></ul></div>
+      <div><h3>Still needed</h3><ul class="checklist"><li>Move each major screen into its own file or feature package.</li>
+<li>Extract reusable UI components.</li>
+<li>Move top-level app state out of the screen-rendering function.</li>
+<li>Introduce profile and preference repository interfaces.</li>
+<li>Introduce a restaurant/deal repository interface.</li>
+<li>Move recommendation rules into plain Kotlin.</li>
+<li>Preserve all current flows during the refactor.</li>
+<li>Document the resulting package responsibilities for the owner.</li></ul></div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>Step 3 · Build recommendation scoring version 1 <span class="badge progress">25%</span></summary>
+  <div class="session-body">
+    <div class="progress-line">
+  <div class="progress-label"><span>Step 3 progress</span><strong>25%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 3 progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25">
+    <span class="progress-value" style="width: 25%"></span>
+  </div>
+</div>
+    <div class="session-meta">
+      <div><strong>Phase</strong>Core product engine</div>
+      <div><strong>Depends on</strong>Steps 1 and 2</div>
+      <div><strong>Next result</strong>One explainable winner and meaningful alternatives for contrasting profiles</div>
+    </div>
+    <p>Replace the limited prototype selection rule with a transparent, testable recommendation method.</p>
+    <div class="grid two evidence-grid">
+      <div><h3>Completed</h3><ul class="complete-list"><li>Filter removed restaurants from recommendations.</li>
+<li>Consider basic deal availability and direct thumbs feedback.</li></ul></div>
+      <div><h3>Still needed</h3><ul class="checklist"><li>Define hard filters for geography, validity, applicability, and eligibility.</li>
+<li>Define soft scores for preference, savings, urgency, distance, and variety.</li>
+<li>Connect Food Profile ratings and inferred themes to ranking.</li>
+<li>Define tie-breakers and weak-match behavior.</li>
+<li>Generate grounded “why this,” “why you,” and “why now” explanations.</li>
+<li>Verify materially different results for family and solo profiles.</li></ul></div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>Step 4 · Validate the logical data model <span class="badge progress">60%</span></summary>
+  <div class="session-body">
+    <div class="progress-line">
+  <div class="progress-label"><span>Step 4 progress</span><strong>60%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 4 progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60">
+    <span class="progress-value" style="width: 60%"></span>
+  </div>
+</div>
+    <div class="session-meta">
+      <div><strong>Phase</strong>Data foundation</div>
+      <div><strong>Depends on</strong>Product requirements</div>
+      <div><strong>Next result</strong>Accepted logical relationships and an explicit list of unresolved product rules</div>
+    </div>
+    <p>Confirm that the documented business concepts hold up under realistic and difficult cases.</p>
+    <div class="grid two evidence-grid">
+      <div><h3>Completed</h3><ul class="complete-list"><li>Separate Restaurant from physical Location.</li>
+<li>Model one Restaurant with one or many Locations.</li>
+<li>Separate Deal from Location.</li>
+<li>Represent per-location deal applicability.</li>
+<li>Separate explicit preferences from permanent exclusions.</li>
+<li>Keep recommendation, intent, visit, deal outcome, and preference feedback distinct.</li></ul></div>
+      <div><h3>Still needed</h3><ul class="checklist"><li>Review a single-location independent restaurant scenario.</li>
+<li>Review a chain offer with included, excluded, and unknown locations.</li>
+<li>Review recurring, overnight, expired, and eligibility-restricted offers.</li>
+<li>Formally accept or revise the logical model after scenario review.</li></ul></div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>Step 5 · Define access patterns and expected scale <span class="badge progress">38%</span></summary>
+  <div class="session-body">
+    <div class="progress-line">
+  <div class="progress-label"><span>Step 5 progress</span><strong>38%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 5 progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="38">
+    <span class="progress-value" style="width: 38%"></span>
+  </div>
+</div>
+    <div class="session-meta">
+      <div><strong>Phase</strong>Data foundation</div>
+      <div><strong>Depends on</strong>Steps 3 and 4</div>
+      <div><strong>Next result</strong>Reviewed query and event catalogue suitable for backend comparison</div>
+    </div>
+    <p>Describe the reads, writes, volume, latency, and authorization needs before selecting storage.</p>
+    <div class="grid two evidence-grid">
+      <div><h3>Completed</h3><ul class="complete-list"><li>Identify nearby-location lookup as a core query.</li>
+<li>Identify current applicable-deal lookup as a core query.</li>
+<li>Identify profile, preference, lifecycle, and event access areas.</li></ul></div>
+      <div><h3>Still needed</h3><ul class="checklist"><li>Define each MVP screen’s exact data requirements.</li>
+<li>Estimate initial restaurant, location, deal, user, and event volumes.</li>
+<li>Define expected read/write frequency and latency needs.</li>
+<li>Define geographic, time-zone, pagination, and indexing needs.</li>
+<li>Define authorization and operational access patterns.</li></ul></div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>Step 6 · Select the backend, database, and API boundary <span class="badge proposed">10%</span></summary>
+  <div class="session-body">
+    <div class="progress-line">
+  <div class="progress-label"><span>Step 6 progress</span><strong>10%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 6 progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="10">
+    <span class="progress-value" style="width: 10%"></span>
+  </div>
+</div>
+    <div class="session-meta">
+      <div><strong>Phase</strong>Shared platform</div>
+      <div><strong>Depends on</strong>Steps 4 and 5</div>
+      <div><strong>Next result</strong>Accepted technology decision, physical design, and environment plan</div>
+    </div>
+    <p>Choose technology based on validated access patterns rather than translating the logical model directly into storage.</p>
+    <div class="grid two evidence-grid">
+      <div><h3>Completed</h3><ul class="complete-list"><li>Establish that the Android client should use platform-agnostic data and business boundaries.</li></ul></div>
+      <div><h3>Still needed</h3><ul class="checklist"><li>Compare Firebase/Firestore with a relational database and API.</li>
+<li>Compare Kotlin server, TypeScript, and other practical backend choices.</li>
+<li>Decide anonymous versus authenticated MVP use.</li>
+<li>Define the initial API or repository contracts.</li>
+<li>Design the physical data layout and justified denormalization.</li>
+<li>Define dev, QA/staging, and production isolation.</li>
+<li>Define authorization and secret management.</li>
+<li>Define backup, recovery, retention, and deletion responsibilities.</li>
+<li>Record the accepted choice, alternatives, cost, and owner learning needs.</li></ul></div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>Step 7 · Build the real-data sandbox and deal lifecycle <span class="badge proposed">20%</span></summary>
+  <div class="session-body">
+    <div class="progress-line">
+  <div class="progress-label"><span>Step 7 progress</span><strong>20%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 7 progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20">
+    <span class="progress-value" style="width: 20%"></span>
+  </div>
+</div>
+    <div class="session-meta">
+      <div><strong>Phase</strong>Data implementation</div>
+      <div><strong>Depends on</strong>Steps 4–6</div>
+      <div><strong>Next result</strong>Repeatable sandbox containing real locations, synthetic edge cases, and verified genuine deals</div>
+    </div>
+    <p>Replace hard-coded supply with safe, traceable data at a useful Elk Grove scale.</p>
+    <div class="grid two evidence-grid">
+      <div><h3>Completed</h3><ul class="complete-list"><li>Research an initial set of real Elk Grove restaurants and official sources.</li>
+<li>Document the evidence-to-publication lifecycle and trust boundary.</li></ul></div>
+      <div><h3>Still needed</h3><ul class="checklist"><li>Select a restaurant/location data provider or permitted curation method.</li>
+<li>Review storage, caching, cost, and refresh terms.</li>
+<li>Define the exact initial market and seed sizes.</li>
+<li>Load real restaurant and location records outside Kotlin constants.</li>
+<li>Create clearly labeled synthetic deals for edge cases.</li>
+<li>Create a smaller source-verified genuine deal set.</li>
+<li>Exercise validation, publication, monitoring, and retirement.</li>
+<li>Prove synthetic data cannot enter production flows.</li></ul></div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>Step 8 · Complete the MVP feedback loop <span class="badge progress">38%</span></summary>
+  <div class="session-body">
+    <div class="progress-line">
+  <div class="progress-label"><span>Step 8 progress</span><strong>38%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 8 progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="38">
+    <span class="progress-value" style="width: 38%"></span>
+  </div>
+</div>
+    <div class="session-meta">
+      <div><strong>Phase</strong>Product learning</div>
+      <div><strong>Depends on</strong>Steps 1 and 3</div>
+      <div><strong>Next result</strong>Accepted and implemented recommendation-to-feedback workflow</div>
+    </div>
+    <p>Preserve the meaning of user actions while collecting only the feedback needed for the MVP.</p>
+    <div class="grid two evidence-grid">
+      <div><h3>Completed</h3><ul class="complete-list"><li>Collect restaurant ratings and “haven’t tried” responses.</li>
+<li>Support light thumbs feedback and permanent restaurant removal.</li>
+<li>Present a basic “Did you try the recommendation?” question.</li></ul></div>
+      <div><h3>Still needed</h3><ul class="checklist"><li>Decide which intent, visit, deal outcome, and preference events ship in the MVP.</li>
+<li>Define event correlation, retries, duplication, and missing responses.</li>
+<li>Keep deal failure separate from restaurant preference.</li>
+<li>Feed accepted signals into future recommendations.</li>
+<li>Explain and test how users edit or reverse prior feedback.</li></ul></div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>Step 9 · Validate the complete tester-ready journey <span class="badge progress">25%</span></summary>
+  <div class="session-body">
+    <div class="progress-line">
+  <div class="progress-label"><span>Step 9 progress</span><strong>25%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 9 progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25">
+    <span class="progress-value" style="width: 25%"></span>
+  </div>
+</div>
+    <div class="session-meta">
+      <div><strong>Phase</strong>Validation</div>
+      <div><strong>Depends on</strong>Steps 1–8 at tester-ready scope</div>
+      <div><strong>Next result</strong>Test evidence, known limitations, and prioritized corrections</div>
+    </div>
+    <p>Test the complete experience systematically rather than validating only individual screens.</p>
+    <div class="grid two evidence-grid">
+      <div><h3>Completed</h3><ul class="complete-list"><li>Build and install the prototype successfully on the Android emulator.</li>
+<li>Visually inspect major screens and selected interaction states.</li></ul></div>
+      <div><h3>Still needed</h3><ul class="checklist"><li>Define repeatable first-time and returning-user test scripts.</li>
+<li>Test family and solo profiles against the same candidate supply.</li>
+<li>Test strong match, weak match, and no-result cases.</li>
+<li>Test excluded, expired, unknown, and conflicting deals.</li>
+<li>Measure the agreed decision-time experience.</li>
+<li>Conduct an external tester session and prioritize findings.</li></ul></div>
+    </div>
+  </div>
+</details>
+<details>
+  <summary>Step 10 · Prepare the public MVP release <span class="badge parked">0%</span></summary>
+  <div class="session-body">
+    <div class="progress-line">
+  <div class="progress-label"><span>Step 10 progress</span><strong>0%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 10 progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <span class="progress-value" style="width: 0%"></span>
+  </div>
+</div>
+    <div class="session-meta">
+      <div><strong>Phase</strong>Release</div>
+      <div><strong>Depends on</strong>Tester-ready MVP validation</div>
+      <div><strong>Next result</strong>Reviewed Google Play release candidate</div>
+    </div>
+    <p>Add the production safeguards, policies, monitoring, and distribution required for real users.</p>
+    <div class="grid two evidence-grid">
+      <div><h3>Completed</h3><ul class="complete-list"><li>Nothing is credited yet.</li></ul></div>
+      <div><h3>Still needed</h3><ul class="checklist"><li>Confirm production privacy and location-consent behavior.</li>
+<li>Complete production authentication or anonymous-user policy.</li>
+<li>Configure production environments, secrets, and release controls.</li>
+<li>Add crash reporting and essential operational monitoring.</li>
+<li>Define support, data correction, and deal incident processes.</li>
+<li>Complete accessibility and supported-device review.</li>
+<li>Prepare store listing, screenshots, disclosures, and privacy materials.</li>
+<li>Run a closed Google Play test.</li>
+<li>Resolve launch-blocking tester findings.</li>
+<li>Approve and publish the production MVP.</li></ul></div>
+    </div>
+  </div>
+</details></div>
+</section>
 
-        <section id="sessions">
-          <p class="eyebrow">Pick one per sitting</p>
-          <h2>Session menu</h2>
-          <div class="session-list">
-            <details open>
-              <summary>Session 1 · Confirm the exact MVP demonstration <span class="badge proposed">Recommended</span></summary>
-              <div class="session-body">
-                <div class="session-meta">
-                  <div><strong>Goal</strong>Define what the first meaningful prototype must prove.</div>
-                  <div><strong>Prerequisite</strong>Read Product and Roadmap.</div>
-                  <div><strong>Output</strong>Accepted journey and completion criteria.</div>
-                </div>
-                <h3>Questions</h3>
-                <ul><li>What begins and ends the 30-second journey?</li><li>What must the recommendation show?</li><li>Which feedback actions ship in the MVP?</li><li>What happens when no trustworthy match exists?</li></ul>
-                <h3>Done when</h3>
-                <ul class="checklist"><li>Core journey is accepted</li><li>MVP feedback subset is decided</li><li>Initial market boundary is stated</li><li>Success evidence is defined</li></ul>
-              </div>
-            </details>
-
-            <details>
-              <summary>Session 2 · Modularize the Android prototype</summary>
-              <div class="session-body">
-                <div class="session-meta">
-                  <div><strong>Goal</strong>Reduce the growing MainActivity without changing product behavior.</div>
-                  <div><strong>Prerequisite</strong>Inventory existing screens and state.</div>
-                  <div><strong>Output</strong>Separate UI, domain, and data files with a clean state boundary.</div>
-                </div>
-                <h3>Suggested scope</h3>
-                <ul><li>One file or package per screen</li><li>Reusable UI components</li><li>Plain Kotlin domain models</li><li>Local repository interfaces</li><li>Top-level app/navigation state separated from screen rendering</li></ul>
-                <h3>Done when</h3>
-                <ul class="checklist"><li>Existing prototype builds</li><li>Primary flows behave the same</li><li>Recommendation logic can be tested without Compose</li><li>Storage can later be replaced behind interfaces</li></ul>
-              </div>
-            </details>
-
-            <details>
-              <summary>Session 3 · Design recommendation scoring version 1</summary>
-              <div class="session-body">
-                <div class="session-meta">
-                  <div><strong>Goal</strong>Define a simple, explainable selection method.</div>
-                  <div><strong>Prerequisite</strong>Confirmed MVP inputs and basic domain boundary.</div>
-                  <div><strong>Output</strong>Scoring table, filters, tie-breakers, and explanation rules.</div>
-                </div>
-                <h3>Questions</h3>
-                <ul><li>Which conditions exclude a candidate?</li><li>Which inputs add or subtract score?</li><li>How do explicit ratings affect inferred category preferences?</li><li>When is a deal too uncertain to recommend?</li><li>How is “no strong deal” handled?</li></ul>
-                <h3>Done when</h3>
-                <ul class="checklist"><li>Hard filters and soft preferences are distinct</li><li>Every score component can produce a user-facing reason</li><li>Family and solo examples produce sensible differences</li><li>No unsupported savings or confidence is invented</li></ul>
-              </div>
-            </details>
-
-            <details>
-              <summary>Session 4 · Validate the logical data model</summary>
-              <div class="session-body">
-                <div class="session-meta">
-                  <div><strong>Goal</strong>Test business concepts before thinking in tables or collections.</div>
-                  <div><strong>Prerequisite</strong>Review the existing Data Model and Deal Lifecycle.</div>
-                  <div><strong>Output</strong>Accepted relationships and a short unresolved-rules list.</div>
-                </div>
-                <h3>Scenarios</h3>
-                <ul><li>Independent restaurant with one location</li><li>Chain deal with participating and unknown locations</li><li>Recurring and overnight offer</li><li>Expired offer and conflicting evidence</li><li>User exclusion versus mild preference</li><li>Intent without visit and failed deal without restaurant dislike</li></ul>
-                <h3>Done when</h3>
-                <ul class="checklist"><li>Restaurant, Location, Deal, and applicability relationships hold</li><li>Unknown is not treated as confirmed or excluded</li><li>Evidence survives rejection, merge, correction, and retirement</li><li>Remaining product rules are explicit</li></ul>
-              </div>
-            </details>
-
-            <details>
-              <summary>Session 5 · Define access patterns and expected scale</summary>
-              <div class="session-body">
-                <div class="session-meta">
-                  <div><strong>Goal</strong>Describe what each application area must read and write.</div>
-                  <div><strong>Prerequisite</strong>Validated logical model and recommendation inputs.</div>
-                  <div><strong>Output</strong>Query/write catalogue and volume assumptions.</div>
-                </div>
-                <h3>Key access patterns</h3>
-                <ul><li>Find supported locations within a radius</li><li>Find currently valid deals and resolve location applicability</li><li>Load profile and explicit preferences</li><li>Write recommendation and selected feedback events</li><li>Review evidence and lifecycle queues</li></ul>
-                <h3>Done when</h3>
-                <ul class="checklist"><li>Every MVP screen has known data needs</li><li>Geographic, time, pagination, and authorization needs are listed</li><li>Read/write frequency assumptions are recorded</li><li>Physical design can be compared objectively</li></ul>
-              </div>
-            </details>
-
-            <details>
-              <summary>Session 6 · Select backend, database, and API boundary</summary>
-              <div class="session-body">
-                <div class="session-meta">
-                  <div><strong>Goal</strong>Choose technology based on known requirements.</div>
-                  <div><strong>Prerequisite</strong>Access patterns, scale, privacy, and environment needs.</div>
-                  <div><strong>Output</strong>Decision record and reviewed physical design.</div>
-                </div>
-                <h3>Compare</h3>
-                <ul><li>Firebase/Firestore</li><li>Relational database plus an API</li><li>Kotlin server versus TypeScript or another supported backend</li><li>Managed identity and anonymous-user migration choices</li></ul>
-                <h3>Done when</h3>
-                <ul class="checklist"><li>Choice, alternatives, costs, and tradeoffs are documented</li><li>Dev, QA/staging, and production isolation is designed</li><li>Authorization and backup/recovery responsibilities are identified</li><li>The Android app depends on an API/repository boundary rather than storage details</li></ul>
-              </div>
-            </details>
-
-            <details>
-              <summary>Session 7 · Design the real-data sandbox</summary>
-              <div class="session-body">
-                <div class="session-meta">
-                  <div><strong>Goal</strong>Create safe, useful data for end-to-end testing.</div>
-                  <div><strong>Prerequisite</strong>Provider/legal review and physical design.</div>
-                  <div><strong>Output</strong>Seed plan, labels, provenance rules, and test cases.</div>
-                </div>
-                <h3>Dataset layers</h3>
-                <ul><li>Real Elk Grove restaurant and location records</li><li>Clearly marked synthetic offers for edge cases</li><li>Smaller source-verified genuine deal set</li></ul>
-                <h3>Done when</h3>
-                <ul class="checklist"><li>Provider storage and caching terms are understood</li><li>Every deal has provenance and environment</li><li>Synthetic data cannot enter production</li><li>App data can change without changing Kotlin constants</li></ul>
-              </div>
-            </details>
-
-            <details>
-              <summary>Session 8 · Decide the MVP feedback loop</summary>
-              <div class="session-body">
-                <div class="session-meta">
-                  <div><strong>Goal</strong>Select the smallest meaningful learning loop.</div>
-                  <div><strong>Prerequisite</strong>Core recommendation journey is stable.</div>
-                  <div><strong>Output</strong>Accepted events, screens, and meanings.</div>
-                </div>
-                <h3>Keep distinct</h3>
-                <ul><li>Recommendation shown</li><li>Intent or “Let’s go”</li><li>Visit reported</li><li>Deal available and honored</li><li>Restaurant or recommendation preference</li></ul>
-                <h3>Done when</h3>
-                <ul class="checklist"><li>Missing feedback remains unknown</li><li>A failed deal does not become a restaurant dislike</li><li>Retries and duplicate events have a policy</li><li>Only approved MVP events are implemented</li></ul>
-              </div>
-            </details>
-
-            <details>
-              <summary>Session 9 · Validate the complete MVP journey</summary>
-              <div class="session-body">
-                <div class="session-meta">
-                  <div><strong>Goal</strong>Evaluate whether the product promise works end to end.</div>
-                  <div><strong>Prerequisite</strong>Connected recommendation, data, and selected feedback flow.</div>
-                  <div><strong>Output</strong>Evidence, limitations, and prioritized corrections.</div>
-                </div>
-                <h3>Validation cases</h3>
-                <ul><li>Family and solo profiles</li><li>Strong match, weak match, and no result</li><li>Explicit restaurant exclusion</li><li>Expired, unknown, and conflicting deals</li><li>Eligibility differences</li><li>First-time and returning-user paths</li></ul>
-                <h3>Done when</h3>
-                <ul class="checklist"><li>Measurement definition for 30 seconds is agreed</li><li>Incorrect recommendations are traceable</li><li>Trust disclosures are accurate</li><li>Next changes are based on observed problems</li></ul>
-              </div>
-            </details>
-          </div>
-        </section>
-
-        <section id="workstreams">
-          <p class="eyebrow">Parallel view</p>
-          <h2>Workstreams</h2>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Workstream</th><th>Current state</th><th>Next useful result</th><th>Guardrail</th></tr></thead>
-              <tbody>
-                <tr><td>Product &amp; UX</td><td>Prototype flows available</td><td>Accepted MVP journey and no-result behavior</td><td>Optimize for a decision, not a directory</td></tr>
-                <tr><td>Android client</td><td>Working Compose prototype; concentrated file structure</td><td>Modular screens, app state, domain boundary, repositories</td><td>Preserve behavior during refactoring</td></tr>
-                <tr><td>Recommendation engine</td><td>Basic deal and vote selection</td><td>Explainable rules-based scorer</td><td>Exclusions and eligibility are not weak preferences</td></tr>
-                <tr><td>Restaurant &amp; deal data</td><td>Prototype Kotlin constants</td><td>Reviewed logical model and sandbox plan</td><td>Unknown is not confirmed</td></tr>
-                <tr><td>Backend &amp; database</td><td>Not selected</td><td>Access patterns, comparison, decision record</td><td>Do not convert the logical ERD directly into collections</td></tr>
-                <tr><td>Deal lifecycle &amp; operations</td><td>Documented working design</td><td>Minimum manual workflow and audit needs</td><td>Discovery creates evidence, not truth</td></tr>
-                <tr><td>Feedback &amp; learning</td><td>Lightweight local feedback</td><td>Accepted MVP event subset</td><td>Intent, visit, deal outcome, and preference stay distinct</td></tr>
-                <tr><td>Testing &amp; release</td><td>Local emulator builds</td><td>Scenario tests and environment strategy</td><td>Test data must not cross into production</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <section id="workstreams" data-generated="PROJECT_STATUS.md">
+  <p class="eyebrow">Parallel view</p>
+  <h2>Workstream health</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Workstream</th><th>Progress</th><th>Current evidence</th><th>Next useful result</th></tr></thead>
+    <tbody><tr><td><strong>Product and UX</strong></td><td><div class="progress-line">
+  <div class="progress-label"><span>Product and UX</span><strong>70%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Product and UX" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70">
+    <span class="progress-value" style="width: 70%"></span>
+  </div>
+</div></td><td>Core promise, target audience, Elk Grove focus, profiles, Food Profile, recommendation screens, and returning-user flows exist.</td><td>Close the MVP feedback, uncertainty, no-result, and measurement decisions.</td></tr>
+<tr><td><strong>Android client</strong></td><td><div class="progress-line">
+  <div class="progress-label"><span>Android client</span><strong>45%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Android client" aria-valuemin="0" aria-valuemax="100" aria-valuenow="45">
+    <span class="progress-value" style="width: 45%"></span>
+  </div>
+</div></td><td>A working Compose prototype covers the major screens and persists local preferences.</td><td>Separate screens, state, domain logic, and repositories without changing behavior.</td></tr>
+<tr><td><strong>Recommendation engine</strong></td><td><div class="progress-line">
+  <div class="progress-label"><span>Recommendation engine</span><strong>25%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Recommendation engine" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25">
+    <span class="progress-value" style="width: 25%"></span>
+  </div>
+</div></td><td>Basic availability, savings rank, direct feedback, and removal rules affect the pick.</td><td>Define and implement explainable filtering and scoring using the full profile.</td></tr>
+<tr><td><strong>Restaurant and deal data</strong></td><td><div class="progress-line">
+  <div class="progress-label"><span>Restaurant and deal data</span><strong>30%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Restaurant and deal data" aria-valuemin="0" aria-valuemax="100" aria-valuenow="30">
+    <span class="progress-value" style="width: 30%"></span>
+  </div>
+</div></td><td>Curated Elk Grove examples, sources, and a detailed logical model exist.</td><td>Validate model scenarios and define the real-data sandbox.</td></tr>
+<tr><td><strong>Backend and infrastructure</strong></td><td><div class="progress-line">
+  <div class="progress-label"><span>Backend and infrastructure</span><strong>10%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Backend and infrastructure" aria-valuemin="0" aria-valuemax="100" aria-valuenow="10">
+    <span class="progress-value" style="width: 10%"></span>
+  </div>
+</div></td><td>Platform boundaries and environment requirements are documented.</td><td>Define access patterns, then compare backend and database options.</td></tr>
+<tr><td><strong>Feedback and learning</strong></td><td><div class="progress-line">
+  <div class="progress-label"><span>Feedback and learning</span><strong>35%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Feedback and learning" aria-valuemin="0" aria-valuemax="100" aria-valuenow="35">
+    <span class="progress-value" style="width: 35%"></span>
+  </div>
+</div></td><td>Ratings, thumbs feedback, removal, and a basic visit question exist locally.</td><td>Decide the MVP event meanings and connect feedback without conflating outcomes.</td></tr>
+<tr><td><strong>Testing and launch</strong></td><td><div class="progress-line">
+  <div class="progress-label"><span>Testing and launch</span><strong>20%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Testing and launch" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20">
+    <span class="progress-value" style="width: 20%"></span>
+  </div>
+</div></td><td>The app has been built, installed, and visually checked repeatedly on an emulator.</td><td>Create repeatable end-to-end acceptance cases and a tester distribution plan.</td></tr></tbody>
+  </table></div>
+</section>
 
         <section id="decisions">
           <p class="eyebrow">Do not silently resolve</p>
