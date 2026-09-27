@@ -17,7 +17,7 @@
 
 | Workstream | Progress | Current evidence | Next useful result |
 |---|---:|---|---|
-| Product and UX | 75 | Core promise, target audience, Elk Grove focus, profiles, Food Profile, recommendation screens, and tester-ready feedback flow are established. | Close the uncertainty, no-result, and measurement decisions. |
+| Product and UX | 75 | Core promise, target audience, Elk Grove focus, profiles, Food Profile, selectable alternatives, and tester-ready feedback flow are established. | Close the uncertainty, no-result, and measurement decisions. |
 | Android client | 50 | A working Compose prototype covers the major screens, local preferences, deal intent, and next-visit check-ins. | Separate screens, state, domain logic, and repositories without changing behavior. |
 | Recommendation engine | 25 | Basic availability, savings rank, direct feedback, and removal rules affect the pick. | Define and implement explainable filtering and scoring using the full profile. |
 | Restaurant and deal data | 30 | Curated Elk Grove examples, sources, and a detailed logical model exist. | Validate model scenarios and define the real-data sandbox. |

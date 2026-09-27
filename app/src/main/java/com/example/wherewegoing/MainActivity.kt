@@ -99,6 +99,9 @@ fun DinnerApp() {
     val scope = rememberCoroutineScope()
     var page by remember { mutableStateOf("Home") }
     var selectedDeal by remember { mutableStateOf<PlaceDeal?>(null) }
+    var selectedTonightDealId by remember {
+        mutableStateOf(prefs.getString("selected_tonight_deal_id", null))
+    }
     var familySize by remember { mutableStateOf(prefs.getString("family_size", "") ?: "") }
     var kids by remember { mutableStateOf(prefs.getString("kids", "") ?: "") }
     var savedKids by remember { mutableStateOf(kids) }
@@ -176,7 +179,9 @@ fun DinnerApp() {
     val recommendation = activeDeals.maxByOrNull {
         it.savingsRank + if (votes[it.id] == "like") 2 else if (votes[it.id] == "dislike") -2 else 0
     } ?: visibleDeals.firstOrNull { votes[it.id] == "like" } ?: visibleDeals.firstOrNull()
-    val hasTonightDeal = recommendation in activeDeals
+    val selectedTonightDeal = visibleDeals.find { it.id == selectedTonightDealId }
+    val displayedPick = selectedTonightDeal ?: recommendation
+    val hasTonightDeal = displayedPick in activeDeals
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -235,11 +240,12 @@ fun DinnerApp() {
                         }
                     )
                     "Tonight's picks" -> PicksPage(
-                        recommendation = recommendation,
+                        displayedPick = displayedPick,
+                        isUserSelected = selectedTonightDeal != null,
                         hasTonightDeal = hasTonightDeal,
-                        alternatives = visibleDeals.filter { it != recommendation },
+                        alternatives = visibleDeals.filter { it != displayedPick },
                         zip = savedZip,
-                        dealAppeal = recommendation?.let { dealAppeal[it.id] }.orEmpty(),
+                        dealAppeal = displayedPick?.let { dealAppeal[it.id] }.orEmpty(),
                         plannedDealId = pendingCheckInDealId,
                         onDealAppeal = { deal, appeal ->
                             dealAppeal = dealAppeal + (deal.id to appeal)
@@ -258,6 +264,10 @@ fun DinnerApp() {
                         },
                         onUpdateLocation = { page = "Profile" },
                         onReviewRemoved = { page = "Removed places" },
+                        onChoose = {
+                            selectedTonightDealId = it.id
+                            prefs.edit().putString("selected_tonight_deal_id", it.id).apply()
+                        },
                         onOpen = { selectedDeal = it; page = "Deal details" }
                     )
                     "Deal details" -> selectedDeal?.let { deal ->
@@ -484,14 +494,18 @@ private fun CheckInCard(
 
 @Composable
 private fun PicksPage(
-    recommendation: PlaceDeal?, hasTonightDeal: Boolean, alternatives: List<PlaceDeal>, zip: String,
+    displayedPick: PlaceDeal?, isUserSelected: Boolean, hasTonightDeal: Boolean,
+    alternatives: List<PlaceDeal>, zip: String,
     dealAppeal: String, plannedDealId: String, onDealAppeal: (PlaceDeal, String) -> Unit,
     onPlanToTry: (PlaceDeal) -> Unit, onUpdateLocation: () -> Unit, onReviewRemoved: () -> Unit,
-    onOpen: (PlaceDeal) -> Unit
+    onChoose: (PlaceDeal) -> Unit, onOpen: (PlaceDeal) -> Unit
 ) {
     PageColumn {
-        Text("Tonight's pick", style = MaterialTheme.typography.headlineSmall)
-        if (recommendation == null) {
+        Text(
+            if (isUserSelected) "Your selected deal" else "Tonight's pick",
+            style = MaterialTheme.typography.headlineSmall
+        )
+        if (displayedPick == null) {
             if (zip !in setOf("95624", "95757", "95758")) {
                 Text("We don't have trustworthy recommendations for this area yet. This prototype currently supports Elk Grove.")
                 Button(onClick = onUpdateLocation, modifier = Modifier.fillMaxWidth()) { Text("Update location") }
@@ -503,27 +517,8 @@ private fun PicksPage(
             if (!hasTonightDeal) {
                 Text("No strong confirmed deal today. Try a place you might like, and check its current offer.")
             }
-            DealTile(recommendation, featured = true, onClick = { onOpen(recommendation) }) {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    if (hasTonightDeal) "Why this? This confirmed deal is available today and fits your saved household profile."
-                    else "Why this? There is no strong deal today. This is a place to consider while we wait for a better match."
-                )
-                Spacer(Modifier.height(6.dp))
-                Text("Is this deal useful to you?", style = MaterialTheme.typography.titleMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (dealAppeal == "useful") {
-                        Button(onClick = { onDealAppeal(recommendation, "useful") }) { Text("👍 Useful") }
-                    } else {
-                        OutlinedButton(onClick = { onDealAppeal(recommendation, "useful") }) { Text("👍 Useful") }
-                    }
-                    if (dealAppeal == "not_useful") {
-                        Button(onClick = { onDealAppeal(recommendation, "not_useful") }) { Text("👎 Not useful") }
-                    } else {
-                        OutlinedButton(onClick = { onDealAppeal(recommendation, "not_useful") }) { Text("👎 Not useful") }
-                    }
-                }
-                if (plannedDealId == recommendation.id) {
+            DealTile(displayedPick, featured = true, onOpen = { onOpen(displayedPick) }) {
+                if (plannedDealId == displayedPick.id) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
@@ -531,14 +526,41 @@ private fun PicksPage(
                         Text("Saved. We'll check in the next time you open the app.", modifier = Modifier.padding(14.dp))
                     }
                 } else {
-                    Button(onClick = { onPlanToTry(recommendation) }, modifier = Modifier.fillMaxWidth()) {
+                    Button(onClick = { onPlanToTry(displayedPick) }, modifier = Modifier.fillMaxWidth()) {
                         Text("I'll try this deal")
                     }
                 }
+                Spacer(Modifier.height(4.dp))
+                Text("Is this deal useful?", style = MaterialTheme.typography.bodyMedium)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (dealAppeal == "useful") {
+                        Button(onClick = { onDealAppeal(displayedPick, "useful") }) { Text("👍 Useful") }
+                    } else {
+                        OutlinedButton(onClick = { onDealAppeal(displayedPick, "useful") }) { Text("👍 Useful") }
+                    }
+                    if (dealAppeal == "not_useful") {
+                        Button(onClick = { onDealAppeal(displayedPick, "not_useful") }) { Text("👎 Not useful") }
+                    } else {
+                        OutlinedButton(onClick = { onDealAppeal(displayedPick, "not_useful") }) { Text("👎 Not useful") }
+                    }
+                }
             }
+            Text(
+                if (isUserSelected) "You chose this from tonight's options."
+                else if (hasTonightDeal) "Why this pick? This confirmed deal is available today and fits your saved profile."
+                else "Why this pick? There is no strong deal today, so this is a place you may like while we wait for a better match.",
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(horizontal = 6.dp)
+            )
         }
         Text("Other options", style = MaterialTheme.typography.titleLarge)
-        alternatives.forEach { DealTile(it, onClick = { onOpen(it) }) }
+        alternatives.forEach { deal ->
+            DealTile(deal, onOpen = { onOpen(deal) }) {
+                Button(onClick = { onChoose(deal) }, modifier = Modifier.fillMaxWidth()) {
+                    Text("Choose this deal")
+                }
+            }
+        }
     }
 }
 
@@ -546,11 +568,11 @@ private fun PicksPage(
 private fun DealTile(
     deal: PlaceDeal,
     featured: Boolean = false,
-    onClick: () -> Unit,
+    onOpen: () -> Unit,
     content: (@Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit)? = null
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = if (featured) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
         )
@@ -560,7 +582,7 @@ private fun DealTile(
             Text(deal.category, style = MaterialTheme.typography.bodySmall)
             Text(deal.offer)
             Text(if (deal.verified) "Source checked ${deal.checked}" else "Confirm with location", style = MaterialTheme.typography.bodySmall)
-            Text("View details →", color = MaterialTheme.colorScheme.primary)
+            TextButton(onClick = onOpen) { Text("View details →") }
             content?.invoke(this)
         }
     }
