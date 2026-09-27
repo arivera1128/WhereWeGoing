@@ -1,21 +1,8 @@
 package com.example.wherewegoing
 
+import com.example.wherewegoing.model.PlaceDeal
+import com.example.wherewegoing.model.QuizPlace
 import java.util.Calendar
-
-data class PlaceDeal(
-    val id: String,
-    val name: String,
-    val category: String,
-    val offer: String,
-    val days: Set<Int>,
-    val forKids: Boolean,
-    val savingsRank: Int,
-    val verified: Boolean,
-    val address: String,
-    val terms: String,
-    val source: String,
-    val checked: String
-)
 
 // Curated prototype data. Check each offer with the location before visiting.
 val elkGroveDeals = listOf(
@@ -54,13 +41,6 @@ val elkGroveDeals = listOf(
         "Offers change. Check the location's current coupons before visiting.",
         "https://www.chuckecheese.com/elk-grove-ca/coupons-and-deals/", "September 2026"
     )
-)
-
-data class QuizPlace(
-    val id: String,
-    val name: String,
-    val description: String,
-    val traits: Set<String>
 )
 
 val foodQuizPlaces = listOf(

@@ -60,8 +60,8 @@
 
 - [x] Separate the visual theme into dedicated files.
 - [x] Separate prototype restaurant and deal data from the main activity.
-- [ ] Move each major screen into its own file or feature package.
-- [ ] Extract reusable UI components.
+- [x] Move each major screen into its own file or feature package.
+- [x] Extract reusable UI components.
 - [ ] Move top-level app state out of the screen-rendering function.
 - [ ] Introduce profile and preference repository interfaces.
 - [ ] Introduce a restaurant/deal repository interface.

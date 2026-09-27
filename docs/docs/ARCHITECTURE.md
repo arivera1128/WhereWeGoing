@@ -86,3 +86,18 @@ Open technical choices include API contracts, geographic indexing, time-zone sem
 ## Technology learning notes
 
 Kotlin is the initial Android programming language; Compose builds its UI; Android Studio builds/runs/debugs the client. Git records changes and GitHub can host the repository. A backend serves shared data and business logic; a database persists it; an API defines how components communicate. VS Code is optional for editing notes/code and Figma is optional for design. The discussion reports a working prototype, but this pack has not inspected it. Record rationale, alternatives and owner learning needs as new technologies are selected.
+
+## Current Android source boundaries
+
+The prototype now uses a small package structure without changing its runtime behavior:
+
+| Area | Current responsibility |
+|---|---|
+| `MainActivity.kt` | App entry point, screen coordination and current top-level prototype state. |
+| `ui/screens` | Home, recommendations/details, Food Profile, Profile/removed places and shared Compose components. |
+| `model` | Plain Kotlin records such as `PlaceDeal`, `QuizPlace` and `MealRecord`. |
+| `data` | Meal-history encoding for the current local preference store. |
+| `PrototypeData.kt` | Curated prototype places/deals and current Food Profile selection helpers. |
+| `ui/theme` | Compose colors, typography and theme. |
+
+This is an intermediate modularization. Top-level app state, preference persistence and recommendation rules still need their own boundaries before shared storage or onboarding state grows substantially.
