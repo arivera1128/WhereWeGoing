@@ -1,0 +1,87 @@
+# User journey
+
+Version 0.1 · Working design · September 27, 2026
+
+This document records the agreed consumer journey separately from implementation status. It describes intended behavior; [PROJECT_STATUS](../PROJECT_STATUS.md) records what is complete.
+
+## Journey principles
+
+- Move a person toward a useful dinner recommendation with minimal typing and few decisions.
+- Keep recommendations, user selections, dinner plans and confirmed meal outcomes distinct.
+- Do not interpret unfamiliarity as dislike or a dinner plan as a completed meal.
+- Use truthful lower-confidence and no-result messages when personalization or deal evidence is weak.
+- Do not require an account before the user receives value.
+
+## 1. First launch and location
+
+Welcome and location share one screen. The message explains that location, household information and food preferences will improve nearby recommendations.
+
+The user can choose **Use my location** or **Enter ZIP code**. The prototype implements ZIP entry and presents an honest message that automatic location is not available yet. It does not request Android location permission or pretend to detect a location. Supported Elk Grove ZIP codes continue; unsupported ZIP codes explain the current service area and allow another entry.
+
+An app installation acts as one guest user for the tester-ready prototype. Account creation and synchronization are deferred. A future account can attach local guest information to a durable identity without making identity, household profile and activity the same concept.
+
+## 2. Household setup
+
+The app asks about the people usually included in dinner plans:
+
+1. Number of adults, using quick numeric choices plus Other.
+2. Number of children, using quick numeric choices plus Other.
+3. Current age of each child, using a selector with no typing.
+
+No child names, birth dates, gender or child accounts are required. Exact current ages support deal eligibility boundaries more accurately than broad ranges. If there are no children, age questions are skipped.
+
+The initial search radius defaults to 10 miles and is editable later from Profile. It is omitted from onboarding. Until a routing provider is added, this represents an approximate geographic radius rather than calculated driving distance.
+
+## 3. Initial food profile
+
+The initial Food Profile asks about five varied places. Each prompt accepts a 1–5 rating or **Haven't tried it**.
+
+- A rating is an explicit opinion about that restaurant and contributes to broader food-theme learning.
+- Haven't tried it records no positive or negative opinion, keeps the restaurant eligible and counts as completing the prompt.
+- Remove this place is a separate deliberate exclusion.
+
+If several places are unfamiliar, later prompts should favor broadly recognizable places while retaining variety. If all five are unfamiliar, onboarding still completes. The app describes the profile as started with low confidence, provides a recommendation using other available signals and offers Rate more places later. It does not claim an untried restaurant was liked.
+
+After five prompts, a completion state explains that the app will use location, household details and food preferences. **See my first pick** opens the first recommendation. Lower-confidence copy is used when there are no direct ratings.
+
+## 4. Recommendation and selection
+
+Tonight's Picks presents one algorithmic recommendation plus selectable alternatives. Choosing an alternative promotes it to **Your selected deal** and returns the original recommendation to the alternatives. The app preserves which result it recommended and which result the user selected.
+
+The featured deal provides terms/details, **I'll try this deal**, and secondary usefulness feedback. Why-this text sits outside the colored deal tile. A verified strong deal is preferred; weak and true no-result states use the established honest recovery behavior.
+
+## 5. Dinner plan
+
+Pressing **I'll try this deal** records intent, saves Tonight's plan and automatically returns Home. It does not record a visit or meal.
+
+Home shows a Tonight's plan card with:
+
+- Restaurant and deal summary
+- View deal details
+- Change my plan
+- Cancel plan
+
+Changing the plan returns to Tonight's Picks with the current choice featured. Confirming a replacement replaces the pending check-in. Canceling removes the pending check-in and creates no meal.
+
+## 6. Return and check-in
+
+On a later app launch, the plan becomes a one-question check-in:
+
+- Yes — the deal worked
+- Yes — but the deal didn't work
+- No
+
+A worked or did-not-work answer creates a meal-history record. No closes the plan without creating a meal. Dismiss postpones the question, subject to the established three-appearance limit. Deal failure remains separate from restaurant preference.
+
+## 7. Home and meal history
+
+Home is a personal dinner dashboard as well as the entry point to Tonight's Picks. It summarizes meals recorded, deals that worked and unique places visited. Recent activity is meal based; selections, usefulness votes and profile edits do not appear as meals.
+
+Estimated savings is deferred because the prototype cannot reliably derive actual order totals, percentage savings or eligibility usage without burdensome user input or dependable transaction data.
+
+## Still to decide
+
+- Returning-user greeting and the placement/timing of an optional Save your profile account prompt.
+- Exact account linking, guest-data migration, synchronization and conflict behavior.
+- Plan/check-in behavior across dates, time zones and plans left unanswered beyond the prototype appearance limit.
+- The exact first-launch visual treatment and accessibility review.

@@ -16,11 +16,12 @@ Read in this order:
 
 1. [AGENTS.md](AGENTS.md) — working rules for Codex.
 2. [PRODUCT.md](docs/PRODUCT.md) — product requirements and experience.
-3. [ARCHITECTURE.md](docs/ARCHITECTURE.md) — system boundaries and environments.
-4. [DATA_MODEL.md](docs/DATA_MODEL.md) — logical entities, relationships and access patterns.
-5. [DEAL_LIFECYCLE.md](docs/DEAL_LIFECYCLE.md) — how observations become published deals.
-6. [ROADMAP.md](docs/ROADMAP.md) — MVP, Planned and Future scope.
-7. [DECISIONS.md](docs/DECISIONS.md) — established decisions, superseded ideas and open questions.
+3. [USER_JOURNEY.md](docs/USER_JOURNEY.md) — agreed first-launch, recommendation, plan and return flows.
+4. [ARCHITECTURE.md](docs/ARCHITECTURE.md) — system boundaries and environments.
+5. [DATA_MODEL.md](docs/DATA_MODEL.md) — logical entities, relationships and access patterns.
+6. [DEAL_LIFECYCLE.md](docs/DEAL_LIFECYCLE.md) — how observations become published deals.
+7. [ROADMAP.md](docs/ROADMAP.md) — MVP, Planned and Future scope.
+8. [DECISIONS.md](docs/DECISIONS.md) — established decisions, superseded ideas and open questions.
 
 ## How to interpret this pack
 

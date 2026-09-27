@@ -30,6 +30,8 @@ The core journey is open app → request tonight's recommendation → see the wi
 
 Alternatives are selectable rather than passive detail cards. Selecting an alternative promotes it to the featured position, labels it as the user's selection, and provides the same intent and usefulness actions as the original recommendation. The original algorithmic recommendation remains a distinct signal and returns to the alternatives list.
 
+Pressing “I'll try this deal” saves a dinner plan and returns Home. The Home plan card supports viewing deal details, changing the plan and canceling it. A changed plan replaces the pending check-in; cancellation creates no meal record. A later launch presents the check-in described below.
+
 The broader learning loop is **Recommendation → Intent → Visit → Deal Confirmation/Verification → Feedback**. Optional detail views are engagement events between recommendation and intent. “Let's go” records intent. A later “Did you go?” answer records a visit outcome. “Did the deal work?” records availability/honoring. Preference feedback records whether the recommendation or restaurant was a good fit. These are separate signals even if one screen collects several answers.
 
 Learning develops from explicit profiles to behavior, then predictive personalization. A “not tonight” action must not silently become a permanent dislike. A failed deal must not automatically become a dislike of the restaurant. Learning weights, decay and conflict handling are TBD.

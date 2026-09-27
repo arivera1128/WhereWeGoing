@@ -125,6 +125,7 @@ fun DinnerApp() {
     val scope = rememberCoroutineScope()
     var page by remember { mutableStateOf("Home") }
     var selectedDeal by remember { mutableStateOf<PlaceDeal?>(null) }
+    var detailBackPage by remember { mutableStateOf("Tonight's picks") }
     var selectedTonightDealId by remember {
         mutableStateOf(prefs.getString("selected_tonight_deal_id", null))
     }
@@ -179,6 +180,19 @@ fun DinnerApp() {
     fun postponeCheckIn() {
         pendingCheckInReady = false
         prefs.edit().putBoolean("pending_checkin_ready", false).apply()
+    }
+
+    fun cancelPlan() {
+        pendingCheckInDealId = ""
+        pendingCheckInReady = false
+        pendingCheckInShows = 0
+        checkInMessage = "Plan canceled."
+        prefs.edit()
+            .remove("pending_checkin_deal_id")
+            .remove("pending_checkin_stage")
+            .remove("pending_checkin_ready")
+            .remove("pending_checkin_shows")
+            .apply()
     }
 
     fun finishCheckIn(message: String, result: String) {
@@ -267,6 +281,16 @@ fun DinnerApp() {
                         onDealFailed = { finishCheckIn("Thanks. We'll keep that result separate from your restaurant preferences.", "did_not_work") },
                         onDealNotUsed = { finishCheckIn("Thanks — we'll close that check-in.", "not_used") },
                         onDismissCheckIn = { postponeCheckIn() },
+                        onViewPlan = { deal ->
+                            selectedDeal = deal
+                            detailBackPage = "Home"
+                            page = "Deal details"
+                        },
+                        onChangePlan = { deal ->
+                            selectedTonightDealId = deal.id
+                            page = "Tonight's picks"
+                        },
+                        onCancelPlan = { cancelPlan() },
                         mealHistory = mealHistory,
                         ratedPlaceCount = quizRatings.count { it.value in 1..5 },
                         onQuiz = {
@@ -289,15 +313,18 @@ fun DinnerApp() {
                             prefs.edit().putString("deal_appeal_${deal.id}", appeal).apply()
                         },
                         onPlanToTry = { deal ->
+                            selectedTonightDealId = deal.id
                             pendingCheckInDealId = deal.id
                             pendingCheckInReady = false
                             pendingCheckInShows = 0
                             checkInMessage = ""
                             prefs.edit()
+                                .putString("selected_tonight_deal_id", deal.id)
                                 .putString("pending_checkin_deal_id", deal.id)
                                 .putBoolean("pending_checkin_ready", false)
                                 .putInt("pending_checkin_shows", 0)
                                 .apply()
+                            page = "Home"
                         },
                         onUpdateLocation = { page = "Profile" },
                         onReviewRemoved = { page = "Removed places" },
@@ -305,15 +332,21 @@ fun DinnerApp() {
                             selectedTonightDealId = it.id
                             prefs.edit().putString("selected_tonight_deal_id", it.id).apply()
                         },
-                        onOpen = { selectedDeal = it; page = "Deal details" }
+                        onOpen = {
+                            selectedDeal = it
+                            detailBackPage = "Tonight's picks"
+                            page = "Deal details"
+                        }
                     )
                     "Deal details" -> selectedDeal?.let { deal ->
                         DetailPage(
                             deal = deal,
                             removed = deal.id in removed,
-                            onBack = { page = "Tonight's picks" },
+                            backLabel = if (detailBackPage == "Home") "← Back to home" else "← Back to picks",
+                            onBack = { page = detailBackPage },
                             onRemove = {
                                 saveRemoved(removed + deal.id)
+                                if (pendingCheckInDealId == deal.id) cancelPlan()
                                 page = "Tonight's picks"
                             },
                             onSource = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(deal.source))) }
@@ -463,6 +496,9 @@ private fun HomePage(
     onDealFailed: () -> Unit,
     onDealNotUsed: () -> Unit,
     onDismissCheckIn: () -> Unit,
+    onViewPlan: (PlaceDeal) -> Unit,
+    onChangePlan: (PlaceDeal) -> Unit,
+    onCancelPlan: () -> Unit,
     mealHistory: List<MealRecord>,
     ratedPlaceCount: Int,
     onQuiz: () -> Unit
@@ -488,6 +524,14 @@ private fun HomePage(
                 onDealFailed = onDealFailed,
                 onDealNotUsed = onDealNotUsed,
                 onDismiss = onDismissCheckIn
+            )
+        } else if (pendingCheckIn != null) {
+            Text("Tonight's plan", style = MaterialTheme.typography.titleLarge)
+            TonightPlanCard(
+                deal = pendingCheckIn,
+                onViewDetails = { onViewPlan(pendingCheckIn) },
+                onChangePlan = { onChangePlan(pendingCheckIn) },
+                onCancelPlan = onCancelPlan
             )
         }
         if (checkInMessage.isNotBlank()) {
@@ -521,6 +565,28 @@ private fun HomePage(
             }
         }
         Text("Deals are curated for this prototype. Check the offer before visiting.", style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+private fun TonightPlanCard(
+    deal: PlaceDeal,
+    onViewDetails: () -> Unit,
+    onChangePlan: () -> Unit,
+    onCancelPlan: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(deal.name, style = MaterialTheme.typography.titleLarge)
+            Text(deal.offer)
+            Text("We'll ask how the deal went the next time you open the app.", style = MaterialTheme.typography.bodySmall)
+            Button(onClick = onViewDetails, modifier = Modifier.fillMaxWidth()) { Text("View deal details") }
+            OutlinedButton(onClick = onChangePlan, modifier = Modifier.fillMaxWidth()) { Text("Change my plan") }
+            TextButton(onClick = onCancelPlan, modifier = Modifier.fillMaxWidth()) { Text("Cancel plan") }
+        }
     }
 }
 
@@ -705,9 +771,16 @@ private fun DealTile(
 }
 
 @Composable
-private fun DetailPage(deal: PlaceDeal, removed: Boolean, onBack: () -> Unit, onRemove: () -> Unit, onSource: () -> Unit) {
+private fun DetailPage(
+    deal: PlaceDeal,
+    removed: Boolean,
+    backLabel: String,
+    onBack: () -> Unit,
+    onRemove: () -> Unit,
+    onSource: () -> Unit
+) {
     PageColumn {
-        TextButton(onClick = onBack) { Text("← Back to picks") }
+        TextButton(onClick = onBack) { Text(backLabel) }
         Text(deal.name, style = MaterialTheme.typography.headlineMedium)
         Text(deal.category)
         Text(deal.offer, style = MaterialTheme.typography.titleLarge)
