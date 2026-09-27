@@ -28,6 +28,7 @@ These records summarize the September 2026 discussion and current explicit reque
 | D-18 | No MVP paid ranking; future sponsorship must remain relevant and disclosed. | PRODUCT, ROADMAP: monetization details remain open. |
 | D-19 | AI-assisted development should preserve owner understanding. | AGENTS, ARCHITECTURE: explain choices, alternatives and important behavior in plain language. |
 | D-20 | The tester-ready MVP uses separate deal-appeal, intent, visit and deal-outcome signals. “I’ll try this deal” records intent. The next app visit asks whether the user visited; “Not yet” can return for at most three later visits with a dismiss option. A reported visit separately asks whether the deal worked. GPS triggers, push reminders and native navigation are outside this scope. | PRODUCT, ROADMAP, DATA_MODEL: implement a lightweight local check-in without treating intent as a visit, deal failure as restaurant dislike, or missing feedback as a negative response. |
+| D-21 | A weak-deal result may recommend a preferred place with a clear warning. A true no-result state must explain why no trustworthy candidate is available and offer a relevant recovery action rather than fabricate a recommendation. | PRODUCT, recommendation UI: unsupported areas direct users to update location; an exhausted candidate set directs users to review removed places. |
 
 ## Superseded or unapproved sketches
 

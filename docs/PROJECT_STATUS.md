@@ -9,8 +9,8 @@
 
 | Milestone | Progress | Meaning | Exit condition |
 |---|---:|---|---|
-| Prototype ready | 90 | The owner can run and evaluate the major product flows locally. | Complete the remaining end-to-end prototype review and correct blocking UX defects. |
-| Tester ready | 34 | Another person can install the app, use realistic data, and provide useful feedback safely. | Complete Steps 1–9 at the agreed tester-ready scope. |
+| Prototype ready | 95 | The owner can run and evaluate the major product flows locally, including the next-visit feedback loop. | Complete the remaining end-to-end prototype review and correct blocking UX defects. |
+| Tester ready | 37 | Another person can install the app, use realistic data, and provide useful feedback safely. | Complete Steps 1–9 at the agreed tester-ready scope. |
 | Public MVP ready | 8 | The app can serve real users with production data and operational safeguards. | Complete the public release requirements in Step 10 plus all required earlier gates. |
 
 ## Workstreams
@@ -18,12 +18,12 @@
 | Workstream | Progress | Current evidence | Next useful result |
 |---|---:|---|---|
 | Product and UX | 75 | Core promise, target audience, Elk Grove focus, profiles, Food Profile, recommendation screens, and tester-ready feedback flow are established. | Close the uncertainty, no-result, and measurement decisions. |
-| Android client | 45 | A working Compose prototype covers the major screens and persists local preferences. | Separate screens, state, domain logic, and repositories without changing behavior. |
+| Android client | 50 | A working Compose prototype covers the major screens, local preferences, deal intent, and next-visit check-ins. | Separate screens, state, domain logic, and repositories without changing behavior. |
 | Recommendation engine | 25 | Basic availability, savings rank, direct feedback, and removal rules affect the pick. | Define and implement explainable filtering and scoring using the full profile. |
 | Restaurant and deal data | 30 | Curated Elk Grove examples, sources, and a detailed logical model exist. | Validate model scenarios and define the real-data sandbox. |
 | Backend and infrastructure | 10 | Platform boundaries and environment requirements are documented. | Define access patterns, then compare backend and database options. |
-| Feedback and learning | 45 | Ratings, thumbs feedback, removal, and a basic visit question exist; the tester-ready check-in meanings are now accepted. | Build the next-visit card and connect signals without conflating outcomes. |
-| Testing and launch | 20 | The app has been built, installed, and visually checked repeatedly on an emulator. | Create repeatable end-to-end acceptance cases and a tester distribution plan. |
+| Feedback and learning | 65 | Deal appeal, intent, next-visit check-in, visit, and deal outcome are stored locally with separate meanings. | Define durable event contracts and connect accepted signals to recommendations. |
+| Testing and launch | 25 | The app has been built, installed, and visually checked repeatedly; the two-stage check-in handoff was exercised on the emulator. | Create repeatable end-to-end acceptance cases and a tester distribution plan. |
 
 ## Step 1: Finish defining the MVP demonstration
 
@@ -44,7 +44,7 @@
 - [x] Include lightweight household and food preference profiles.
 - [x] Require an explanation for the recommendation.
 - [x] Decide the exact intent, visit, verification, and preference-feedback subset for the MVP.
-- [ ] Define no-result and weak-result behavior.
+- [x] Define no-result and weak-result behavior.
 - [ ] Define how the 30-second aspiration and MVP success will be measured.
 
 ## Step 2: Modularize the Android prototype
@@ -190,8 +190,9 @@
 - [x] Support light thumbs feedback and permanent restaurant removal.
 - [x] Present a basic “Did you try the recommendation?” question.
 - [x] Decide which intent, visit, deal outcome, and preference events ship in the MVP.
+- [x] Build the local next-visit card with a three-visit limit and dismiss option.
 - [ ] Define event correlation, retries, duplication, and missing responses.
-- [ ] Keep deal failure separate from restaurant preference.
+- [x] Keep deal failure separate from restaurant preference.
 - [ ] Feed accepted signals into future recommendations.
 - [ ] Explain and test how users edit or reverse prior feedback.
 

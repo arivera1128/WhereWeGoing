@@ -76,6 +76,23 @@ fun DinnerApp() {
                 .putString("kids", previous.getString("numberOfKids", ""))
                 .apply()
         }
+        val pendingId = current.getString("pending_checkin_deal_id", "").orEmpty()
+        if (pendingId.isNotBlank() && !current.getBoolean("pending_checkin_ready", false)) {
+            val previousShows = current.getInt("pending_checkin_shows", 0)
+            if (previousShows >= 3) {
+                current.edit()
+                    .remove("pending_checkin_deal_id")
+                    .remove("pending_checkin_stage")
+                    .remove("pending_checkin_ready")
+                    .remove("pending_checkin_shows")
+                    .apply()
+            } else {
+                current.edit()
+                    .putBoolean("pending_checkin_ready", true)
+                    .putInt("pending_checkin_shows", previousShows + 1)
+                    .apply()
+            }
+        }
         current
     }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -114,16 +131,45 @@ fun DinnerApp() {
     var previewRemoved by remember { mutableStateOf<Set<String>>(emptySet()) }
     var removeInfoSuppressed by remember { mutableStateOf(prefs.getBoolean("hide_remove_info", false)) }
     var removed by remember { mutableStateOf(prefs.getStringSet("removed", emptySet())?.toSet() ?: emptySet()) }
-    var dismissedId by remember { mutableStateOf<String?>(null) }
-    var visitAnswer by remember { mutableStateOf(prefs.getString("visit_answer", "") ?: "") }
+    var dealAppeal by remember {
+        mutableStateOf(elkGroveDeals.associate { it.id to (prefs.getString("deal_appeal_${it.id}", "") ?: "") })
+    }
+    var pendingCheckInDealId by remember { mutableStateOf(prefs.getString("pending_checkin_deal_id", "") ?: "") }
+    var pendingCheckInReady by remember { mutableStateOf(prefs.getBoolean("pending_checkin_ready", false)) }
+    var pendingCheckInStage by remember { mutableStateOf(prefs.getString("pending_checkin_stage", "visit") ?: "visit") }
+    var pendingCheckInShows by remember { mutableStateOf(prefs.getInt("pending_checkin_shows", 0)) }
+    var checkInMessage by remember { mutableStateOf("") }
 
     fun saveRemoved(newValue: Set<String>) {
         removed = newValue
         prefs.edit().putStringSet("removed", newValue).apply()
     }
 
+    fun postponeCheckIn() {
+        pendingCheckInReady = false
+        prefs.edit().putBoolean("pending_checkin_ready", false).apply()
+    }
+
+    fun finishCheckIn(message: String, result: String) {
+        val completedDealId = pendingCheckInDealId
+        if (completedDealId.isNotBlank()) {
+            prefs.edit().putString("deal_checkin_result_$completedDealId", result).apply()
+        }
+        pendingCheckInDealId = ""
+        pendingCheckInReady = false
+        pendingCheckInStage = "visit"
+        pendingCheckInShows = 0
+        checkInMessage = message
+        prefs.edit()
+            .remove("pending_checkin_deal_id")
+            .remove("pending_checkin_stage")
+            .remove("pending_checkin_ready")
+            .remove("pending_checkin_shows")
+            .apply()
+    }
+
     val supportedZip = savedZip in setOf("95624", "95757", "95758")
-    val visibleDeals = if (supportedZip) elkGroveDeals.filter { it.id !in removed && it.id != dismissedId } else emptyList()
+    val visibleDeals = if (supportedZip) elkGroveDeals.filter { it.id !in removed } else emptyList()
     val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
     val activeDeals = visibleDeals.filter {
         today in it.days && it.verified &&
@@ -175,6 +221,21 @@ fun DinnerApp() {
                         onPick = { page = "Tonight's picks" },
                         onProfile = { page = "Profile" },
                         hasFoodProfile = quizRatings.size >= INITIAL_FOOD_QUIZ_SIZE,
+                        pendingCheckIn = elkGroveDeals.find { it.id == pendingCheckInDealId },
+                        checkInReady = pendingCheckInReady,
+                        checkInStage = pendingCheckInStage,
+                        checkInShows = pendingCheckInShows,
+                        checkInMessage = checkInMessage,
+                        onVisited = {
+                            pendingCheckInStage = "deal"
+                            prefs.edit().putString("pending_checkin_stage", "deal").apply()
+                        },
+                        onNotYet = { postponeCheckIn() },
+                        onChangedMind = { finishCheckIn("Thanks — we'll close that check-in.", "did_not_visit") },
+                        onDealWorked = { finishCheckIn("Thanks! Your confirmation helps us track reliable deals.", "worked") },
+                        onDealFailed = { finishCheckIn("Thanks. We'll keep that deal result separate from your restaurant preferences.", "did_not_work") },
+                        onDealNotTried = { finishCheckIn("Thanks — we recorded the visit without judging the deal.", "not_tried") },
+                        onDismissCheckIn = { postponeCheckIn() },
                         onQuiz = {
                             editingQuizPlaceId = null
                             previewingNewUser = false
@@ -187,17 +248,28 @@ fun DinnerApp() {
                         hasTonightDeal = hasTonightDeal,
                         alternatives = visibleDeals.filter { it != recommendation },
                         zip = savedZip,
-                        visitAnswer = visitAnswer,
-                        onVisitAnswer = {
-                            visitAnswer = it
-                            prefs.edit().putString("visit_answer", it).apply()
+                        dealAppeal = recommendation?.let { dealAppeal[it.id] }.orEmpty(),
+                        plannedDealId = pendingCheckInDealId,
+                        onDealAppeal = { deal, appeal ->
+                            dealAppeal = dealAppeal + (deal.id to appeal)
+                            prefs.edit().putString("deal_appeal_${deal.id}", appeal).apply()
                         },
-                        onOpen = { selectedDeal = it; page = "Deal details" },
-                        onThumbUp = {
-                            votes = votes + (it.id to "like")
-                            prefs.edit().putString("vote_${it.id}", "like").apply()
+                        onPlanToTry = { deal ->
+                            pendingCheckInDealId = deal.id
+                            pendingCheckInReady = false
+                            pendingCheckInStage = "visit"
+                            pendingCheckInShows = 0
+                            checkInMessage = ""
+                            prefs.edit()
+                                .putString("pending_checkin_deal_id", deal.id)
+                                .putString("pending_checkin_stage", "visit")
+                                .putBoolean("pending_checkin_ready", false)
+                                .putInt("pending_checkin_shows", 0)
+                                .apply()
                         },
-                        onThumbDown = { dismissedId = it.id }
+                        onUpdateLocation = { page = "Profile" },
+                        onReviewRemoved = { page = "Removed places" },
+                        onOpen = { selectedDeal = it; page = "Deal details" }
                     )
                     "Deal details" -> selectedDeal?.let { deal ->
                         DetailPage(
@@ -347,12 +419,46 @@ private fun HomePage(
     onPick: () -> Unit,
     onProfile: () -> Unit,
     hasFoodProfile: Boolean,
+    pendingCheckIn: PlaceDeal?,
+    checkInReady: Boolean,
+    checkInStage: String,
+    checkInShows: Int,
+    checkInMessage: String,
+    onVisited: () -> Unit,
+    onNotYet: () -> Unit,
+    onChangedMind: () -> Unit,
+    onDealWorked: () -> Unit,
+    onDealFailed: () -> Unit,
+    onDealNotTried: () -> Unit,
+    onDismissCheckIn: () -> Unit,
     onQuiz: () -> Unit
 ) {
     PageColumn {
         ChickLogo()
         Text("What's for dinner?", style = MaterialTheme.typography.headlineMedium)
         Text("A smart little pick for you in Elk Grove.")
+        if (pendingCheckIn != null && checkInReady) {
+            CheckInCard(
+                deal = pendingCheckIn,
+                stage = checkInStage,
+                showNumber = checkInShows,
+                onVisited = onVisited,
+                onNotYet = onNotYet,
+                onChangedMind = onChangedMind,
+                onDealWorked = onDealWorked,
+                onDealFailed = onDealFailed,
+                onDealNotTried = onDealNotTried,
+                onDismiss = onDismissCheckIn
+            )
+        }
+        if (checkInMessage.isNotBlank()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+            ) {
+                Text(checkInMessage, modifier = Modifier.padding(16.dp))
+            }
+        }
         Button(onClick = onPick, modifier = Modifier.fillMaxWidth().height(64.dp)) {
             Text("Where should we eat tonight?")
         }
@@ -368,19 +474,61 @@ private fun HomePage(
 }
 
 @Composable
+private fun CheckInCard(
+    deal: PlaceDeal,
+    stage: String,
+    showNumber: Int,
+    onVisited: () -> Unit,
+    onNotYet: () -> Unit,
+    onChangedMind: () -> Unit,
+    onDealWorked: () -> Unit,
+    onDealFailed: () -> Unit,
+    onDealNotTried: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Quick check-in", style = MaterialTheme.typography.titleLarge)
+                TextButton(onClick = onDismiss) { Text("Dismiss") }
+            }
+            Text(deal.name, style = MaterialTheme.typography.titleMedium)
+            if (stage == "deal") {
+                Text("Did the deal work?")
+                Button(onClick = onDealWorked, modifier = Modifier.fillMaxWidth()) { Text("Yes") }
+                OutlinedButton(onClick = onDealFailed, modifier = Modifier.fillMaxWidth()) { Text("No") }
+                TextButton(onClick = onDealNotTried, modifier = Modifier.fillMaxWidth()) { Text("I didn't try the deal") }
+            } else {
+                Text("Did you visit this restaurant?")
+                Button(onClick = onVisited, modifier = Modifier.fillMaxWidth()) { Text("Yes") }
+                OutlinedButton(onClick = onNotYet, modifier = Modifier.fillMaxWidth()) { Text("Not yet") }
+                TextButton(onClick = onChangedMind, modifier = Modifier.fillMaxWidth()) { Text("No, I changed my mind") }
+                Text("Check-in ${showNumber.coerceAtLeast(1)} of 3", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
 private fun PicksPage(
     recommendation: PlaceDeal?, hasTonightDeal: Boolean, alternatives: List<PlaceDeal>, zip: String,
-    visitAnswer: String, onVisitAnswer: (String) -> Unit, onOpen: (PlaceDeal) -> Unit,
-    onThumbUp: (PlaceDeal) -> Unit, onThumbDown: (PlaceDeal) -> Unit
+    dealAppeal: String, plannedDealId: String, onDealAppeal: (PlaceDeal, String) -> Unit,
+    onPlanToTry: (PlaceDeal) -> Unit, onUpdateLocation: () -> Unit, onReviewRemoved: () -> Unit,
+    onOpen: (PlaceDeal) -> Unit
 ) {
     PageColumn {
         Text("Tonight's pick", style = MaterialTheme.typography.headlineSmall)
         if (recommendation == null) {
-            Text(
-                if (zip !in setOf("95624", "95757", "95758"))
-                    "This prototype only has Elk Grove places. Change your ZIP in Profile."
-                else "No places left to show. Restore one from Removed places."
-            )
+            if (zip !in setOf("95624", "95757", "95758")) {
+                Text("We don't have trustworthy recommendations for this area yet. This prototype currently supports Elk Grove.")
+                Button(onClick = onUpdateLocation, modifier = Modifier.fillMaxWidth()) { Text("Update location") }
+            } else {
+                Text("There are no trustworthy places available to recommend right now. We won't invent a match.")
+                Button(onClick = onReviewRemoved, modifier = Modifier.fillMaxWidth()) { Text("Review removed places") }
+            }
         } else {
             if (!hasTonightDeal) {
                 Text("No strong confirmed deal today. Try a place you might like, and check its current offer.")
@@ -390,16 +538,31 @@ private fun PicksPage(
                 if (hasTonightDeal) "Why this? This confirmed deal is available today and fits your saved household profile."
                 else "Why this? There is no strong deal today. This is a place to consider while we wait for a better match."
             )
+            Text("Is this deal useful to you?")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { onThumbUp(recommendation) }) { Text("👍 Like") }
-                OutlinedButton(onClick = { onThumbDown(recommendation) }) { Text("👎 Not tonight") }
+                if (dealAppeal == "useful") {
+                    Button(onClick = { onDealAppeal(recommendation, "useful") }) { Text("👍 Useful") }
+                } else {
+                    OutlinedButton(onClick = { onDealAppeal(recommendation, "useful") }) { Text("👍 Useful") }
+                }
+                if (dealAppeal == "not_useful") {
+                    Button(onClick = { onDealAppeal(recommendation, "not_useful") }) { Text("👎 Not useful") }
+                } else {
+                    OutlinedButton(onClick = { onDealAppeal(recommendation, "not_useful") }) { Text("👎 Not useful") }
+                }
             }
-            Text("Did you try this recommendation?")
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { onVisitAnswer("Yes") }) { Text("Yes") }
-                OutlinedButton(onClick = { onVisitAnswer("No") }) { Text("No") }
+            if (plannedDealId == recommendation.id) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                ) {
+                    Text("Saved. We'll check in the next time you open the app.", modifier = Modifier.padding(16.dp))
+                }
+            } else {
+                Button(onClick = { onPlanToTry(recommendation) }, modifier = Modifier.fillMaxWidth()) {
+                    Text("I'll try this deal")
+                }
             }
-            if (visitAnswer.isNotBlank()) Text("Your answer: $visitAnswer")
         }
         Text("Other options", style = MaterialTheme.typography.titleLarge)
         alternatives.forEach { DealTile(it, onClick = { onOpen(it) }) }
