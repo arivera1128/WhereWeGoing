@@ -32,7 +32,7 @@ The broader learning loop is **Recommendation → Intent → Visit → Deal Conf
 
 Learning develops from explicit profiles to behavior, then predictive personalization. A “not tonight” action must not silently become a permanent dislike. A failed deal must not automatically become a dislike of the restaurant. Learning weights, decay and conflict handling are TBD.
 
-User verification and feedback are established requirements for the broader product. Their exact MVP UI and event-capture scope are unresolved because earlier discussion described an immediate lightweight loop while later modeling placed full event features in Planned scope. See Q-06 in [DECISIONS](DECISIONS.md).
+The tester-ready MVP includes a lightweight feedback loop. On the recommendation, users can rate whether the deal is useful and separately record intent with “I’ll try this deal.” On the next app visit, a check-in asks whether they visited: Yes, Not yet, or No, I changed my mind. “Not yet” may return for up to three later app visits and each card can be dismissed. A reported visit leads to a separate “Did the deal work?” question: Yes, No, or I didn’t try the deal. These answers retain their distinct meanings; deal failure does not become restaurant dislike. GPS triggers, push reminders and native navigation are outside this tester-ready scope. Event correlation, retry and deduplication contracts remain open under Q-06 in [DECISIONS](DECISIONS.md).
 
 ## Planned and future experiences
 

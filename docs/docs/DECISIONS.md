@@ -27,6 +27,7 @@ These records summarize the September 2026 discussion and current explicit reque
 | D-17 | Consumer value first, with future merchant lead-generation analytics. | PRODUCT, DATA_MODEL: retain truthful funnel meanings; merchant product outside MVP. |
 | D-18 | No MVP paid ranking; future sponsorship must remain relevant and disclosed. | PRODUCT, ROADMAP: monetization details remain open. |
 | D-19 | AI-assisted development should preserve owner understanding. | AGENTS, ARCHITECTURE: explain choices, alternatives and important behavior in plain language. |
+| D-20 | The tester-ready MVP uses separate deal-appeal, intent, visit and deal-outcome signals. “I’ll try this deal” records intent. The next app visit asks whether the user visited; “Not yet” can return for at most three later visits with a dismiss option. A reported visit separately asks whether the deal worked. GPS triggers, push reminders and native navigation are outside this scope. | PRODUCT, ROADMAP, DATA_MODEL: implement a lightweight local check-in without treating intent as a visit, deal failure as restaurant dislike, or missing feedback as a negative response. |
 
 ## Superseded or unapproved sketches
 
@@ -35,7 +36,7 @@ These records summarize the September 2026 discussion and current explicit reque
 - **Firestore collection snippets:** illustrative earlier drafts, not approved physical design. D-16 governs implementation.
 - **Rewards-first two-tab app, savings counters and reminders:** early ideas; later direction centers on a restaurant recommendation engine. Exact manual rewards scope remains open.
 - **ALL_LOCATIONS automatically inherited unless excluded:** proposed optimization, not settled policy. Later discussion explicitly reopened inheritance versus location confirmation.
-- **Capture every event immediately versus Planned event features:** inconsistent release guidance in the conversation. Preserve the event model; resolve Q-06 before assigning launch requirements.
+- **Capture every event immediately versus Planned event features:** superseded for the tester-ready UI by D-20. Richer automation and the technical event contract remain later work.
 - **Specific offer examples, seed counts, seven-mile radii, result counts and notification delays:** illustrative suggestions, not universal constants or verified current facts.
 
 ## Open decision register
@@ -49,7 +50,7 @@ Owner for all questions: product owner with implementation review; no named team
 | Q-03 | Publication minimum evidence; recommending unknown locations; confidence formula, freshness/decay and recheck cadence? | Consumer trust rules and lifecycle gates; DEAL_LIFECYCLE. |
 | Q-04 | Eligibility representation and unknown handling; time zones, overnight recurrence and expiration semantics; savings calculation? | Filtering/ranking and presentation; PRODUCT, DATA_MODEL. |
 | Q-05 | Restaurant provider, allowed storage/caching, ingestion budget and refresh; exact market and seed counts; curated deal sourcing? | Real-data ingestion; ARCHITECTURE, ROADMAP. |
-| Q-06 | Which recommendation/intent/visit/verification/feedback events and UI ship in MVP? How are impression, attribution, retries and deduplication defined? | Event implementation and analytics claims; PRODUCT, DATA_MODEL, ROADMAP. |
+| Q-06 | D-20 resolves the tester-ready UI subset. How are event identity, correlation, attribution, retries and deduplication defined before shared persistence and analytics? | Event implementation and analytics claims; PRODUCT, DATA_MODEL, ROADMAP. |
 | Q-07 | Anonymous versus authenticated MVP users; account migration; household ownership/membership and required profile fields? | Persistent user design; ARCHITECTURE, DATA_MODEL. |
 | Q-08 | Ranking formula, fit gates versus soft preferences, tie-breakers, behavioral learning and explicit/learned conflict handling? | Recommendation implementation; PRODUCT. |
 | Q-09 | Operational roles, action permissions, approval requirements, merge/version/reactivation semantics and minimum tool scope? | Operational workflow implementation; ARCHITECTURE, DEAL_LIFECYCLE. |

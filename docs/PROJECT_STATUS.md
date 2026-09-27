@@ -10,19 +10,19 @@
 | Milestone | Progress | Meaning | Exit condition |
 |---|---:|---|---|
 | Prototype ready | 90 | The owner can run and evaluate the major product flows locally. | Complete the remaining end-to-end prototype review and correct blocking UX defects. |
-| Tester ready | 32 | Another person can install the app, use realistic data, and provide useful feedback safely. | Complete Steps 1–9 at the agreed tester-ready scope. |
+| Tester ready | 34 | Another person can install the app, use realistic data, and provide useful feedback safely. | Complete Steps 1–9 at the agreed tester-ready scope. |
 | Public MVP ready | 8 | The app can serve real users with production data and operational safeguards. | Complete the public release requirements in Step 10 plus all required earlier gates. |
 
 ## Workstreams
 
 | Workstream | Progress | Current evidence | Next useful result |
 |---|---:|---|---|
-| Product and UX | 70 | Core promise, target audience, Elk Grove focus, profiles, Food Profile, recommendation screens, and returning-user flows exist. | Close the MVP feedback, uncertainty, no-result, and measurement decisions. |
+| Product and UX | 75 | Core promise, target audience, Elk Grove focus, profiles, Food Profile, recommendation screens, and tester-ready feedback flow are established. | Close the uncertainty, no-result, and measurement decisions. |
 | Android client | 45 | A working Compose prototype covers the major screens and persists local preferences. | Separate screens, state, domain logic, and repositories without changing behavior. |
 | Recommendation engine | 25 | Basic availability, savings rank, direct feedback, and removal rules affect the pick. | Define and implement explainable filtering and scoring using the full profile. |
 | Restaurant and deal data | 30 | Curated Elk Grove examples, sources, and a detailed logical model exist. | Validate model scenarios and define the real-data sandbox. |
 | Backend and infrastructure | 10 | Platform boundaries and environment requirements are documented. | Define access patterns, then compare backend and database options. |
-| Feedback and learning | 35 | Ratings, thumbs feedback, removal, and a basic visit question exist locally. | Decide the MVP event meanings and connect feedback without conflating outcomes. |
+| Feedback and learning | 45 | Ratings, thumbs feedback, removal, and a basic visit question exist; the tester-ready check-in meanings are now accepted. | Build the next-visit card and connect signals without conflating outcomes. |
 | Testing and launch | 20 | The app has been built, installed, and visually checked repeatedly on an emulator. | Create repeatable end-to-end acceptance cases and a tester distribution plan. |
 
 ## Step 1: Finish defining the MVP demonstration
@@ -43,7 +43,7 @@
 - [x] Establish one winner plus a small set of alternatives.
 - [x] Include lightweight household and food preference profiles.
 - [x] Require an explanation for the recommendation.
-- [ ] Decide the exact intent, visit, verification, and preference-feedback subset for the MVP.
+- [x] Decide the exact intent, visit, verification, and preference-feedback subset for the MVP.
 - [ ] Define no-result and weak-result behavior.
 - [ ] Define how the 30-second aspiration and MVP success will be measured.
 
@@ -189,7 +189,7 @@
 - [x] Collect restaurant ratings and “haven’t tried” responses.
 - [x] Support light thumbs feedback and permanent restaurant removal.
 - [x] Present a basic “Did you try the recommendation?” question.
-- [ ] Decide which intent, visit, deal outcome, and preference events ship in the MVP.
+- [x] Decide which intent, visit, deal outcome, and preference events ship in the MVP.
 - [ ] Define event correlation, retries, duplication, and missing responses.
 - [ ] Keep deal failure separate from restaurant preference.
 - [ ] Feed accepted signals into future recommendations.
@@ -244,4 +244,3 @@
 3. Run `./tools/build_project_hub.ps1` from the project root.
 4. Review `docs/PROJECT_HUB.html` in a browser.
 5. Commit the tracker, generated dashboard, and any related source changes together.
-
