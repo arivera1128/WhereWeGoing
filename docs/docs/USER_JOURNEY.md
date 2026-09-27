@@ -2,7 +2,7 @@
 
 Version 0.1 · Working design · September 27, 2026
 
-This document records the agreed consumer journey separately from implementation status. It describes intended behavior; [PROJECT_STATUS](../PROJECT_STATUS.md) records what is complete.
+This document records the agreed consumer journey. The first-launch flow through the first recommendation is implemented locally in the Android prototype; [PROJECT_STATUS](../PROJECT_STATUS.md) records broader delivery status.
 
 ## Journey principles
 
@@ -31,6 +31,8 @@ The app asks about the people usually included in dinner plans:
 No child names, birth dates, gender or child accounts are required. Exact current ages support deal eligibility boundaries more accurately than broad ranges. If there are no children, age questions are skipped.
 
 The initial search radius defaults to 10 miles and is editable later from Profile. It is omitted from onboarding. Until a routing provider is added, this represents an approximate geographic radius rather than calculated driving distance.
+
+The prototype stores each child's exact current age and also derives the older broad age groups used by its current recommendation rule. Exact per-child deal eligibility scoring remains part of the recommendation-engine work.
 
 ## 3. Initial food profile
 
@@ -85,3 +87,22 @@ Estimated savings is deferred because the prototype cannot reliably derive actua
 - Exact account linking, guest-data migration, synchronization and conflict behavior.
 - Plan/check-in behavior across dates, time zones and plans left unanswered beyond the prototype appearance limit.
 - The exact first-launch visual treatment and accessibility review.
+
+## Repeatable prototype review
+
+### First-time user
+
+1. Clear the app's emulator storage and open the app.
+2. Check the Use my location prototype message, then enter a supported Elk Grove ZIP.
+3. Select adult and child counts; when children are included, select each age.
+4. Answer five Food Profile prompts, including Haven't tried it where useful.
+5. Confirm the completion wording matches the amount learned.
+6. Select See my first pick and verify one recommendation plus alternatives.
+7. Select I'll try this deal and verify Home shows Tonight's plan.
+
+### Returning user
+
+1. Close and reopen an installation that completed onboarding.
+2. Verify onboarding is skipped and the saved Food Profile count is retained.
+3. If a dinner plan exists, answer or dismiss the check-in.
+4. Verify a worked or did-not-work answer updates meal history, while No does not create a meal.

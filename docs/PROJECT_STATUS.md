@@ -9,7 +9,7 @@
 
 | Milestone | Progress | Meaning | Exit condition |
 |---|---:|---|---|
-| Prototype ready | 95 | The owner can run and evaluate the major product flows locally, including the next-visit feedback loop. | Complete the remaining end-to-end prototype review and correct blocking UX defects. |
+| Prototype ready | 97 | The owner can run and evaluate first launch, personalization, recommendations, dinner plans, and the next-visit feedback loop locally. | Complete the remaining end-to-end prototype review and correct blocking UX defects. |
 | Tester ready | 37 | Another person can install the app, use realistic data, and provide useful feedback safely. | Complete Steps 1–9 at the agreed tester-ready scope. |
 | Public MVP ready | 8 | The app can serve real users with production data and operational safeguards. | Complete the public release requirements in Step 10 plus all required earlier gates. |
 
@@ -17,8 +17,8 @@
 
 | Workstream | Progress | Current evidence | Next useful result |
 |---|---:|---|---|
-| Product and UX | 75 | Core promise, first-launch journey, profiles, Food Profile, selectable alternatives, manageable dinner plans, a meal-based Home dashboard, and tester-ready feedback flow are established. | Complete the remaining returning-user, account-prompt, and measurement decisions. |
-| Android client | 50 | A working Compose prototype covers the major screens, local preferences, deal intent, next-visit check-ins, and locally derived meal history. | Separate screens, state, domain logic, and repositories without changing behavior. |
+| Product and UX | 80 | Core promise, implemented first-launch journey, profiles, Food Profile, selectable alternatives, manageable dinner plans, a meal-based Home dashboard, and tester-ready feedback flow are established. | Complete the remaining account-prompt and measurement decisions. |
+| Android client | 55 | A modularized Compose prototype covers onboarding, major screens, local preferences, deal intent, next-visit check-ins, and locally derived meal history. | Move top-level state, persistence, and recommendation rules behind clear boundaries. |
 | Recommendation engine | 25 | Basic availability, savings rank, direct feedback, and removal rules affect the pick. | Define and implement explainable filtering and scoring using the full profile. |
 | Restaurant and deal data | 30 | Curated Elk Grove examples, sources, and a detailed logical model exist. | Validate model scenarios and define the real-data sandbox. |
 | Backend and infrastructure | 10 | Platform boundaries and environment requirements are documented. | Define access patterns, then compare backend and database options. |
@@ -209,7 +209,7 @@
 
 - [x] Build and install the prototype successfully on the Android emulator.
 - [x] Visually inspect major screens and selected interaction states.
-- [ ] Define repeatable first-time and returning-user test scripts.
+- [x] Define repeatable first-time and returning-user test scripts.
 - [ ] Test family and solo profiles against the same candidate supply.
 - [ ] Test strong match, weak match, and no-result cases.
 - [ ] Test excluded, expired, unknown, and conflicting deals.

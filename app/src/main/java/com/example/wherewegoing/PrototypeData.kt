@@ -106,7 +106,7 @@ val foodQuizPlaces = listOf(
     )
 )
 
-const val INITIAL_FOOD_QUIZ_SIZE = 8
+const val INITIAL_FOOD_QUIZ_SIZE = 5
 
 fun foodTraitScores(ratings: Map<String, Int>): Map<String, Int> {
     return foodQuizPlaces

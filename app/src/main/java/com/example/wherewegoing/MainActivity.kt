@@ -59,6 +59,7 @@ import com.example.wherewegoing.model.PlaceDeal
 import com.example.wherewegoing.ui.DetailPage
 import com.example.wherewegoing.ui.ChickLogo
 import com.example.wherewegoing.ui.HomePage
+import com.example.wherewegoing.ui.OnboardingScreen
 import com.example.wherewegoing.ui.PicksPage
 import com.example.wherewegoing.ui.ProfilePage
 import com.example.wherewegoing.ui.QuizPage
@@ -122,6 +123,9 @@ fun DinnerApp() {
     var savedZip by remember { mutableStateOf(zip) }
     var radius by remember { mutableStateOf(prefs.getInt("radius", 10)) }
     var profileSaved by remember { mutableStateOf(prefs.contains("family_size")) }
+    var onboardingComplete by remember {
+        mutableStateOf(prefs.getBoolean("onboarding_complete", profileSaved))
+    }
     var editingProfile by remember { mutableStateOf(!profileSaved) }
     var votes by remember {
         mutableStateOf(elkGroveDeals.associate { it.id to (prefs.getString("vote_${it.id}", "neutral") ?: "neutral") })
@@ -215,6 +219,59 @@ fun DinnerApp() {
     val selectedTonightDeal = visibleDeals.find { it.id == selectedTonightDealId }
     val displayedPick = selectedTonightDeal ?: recommendation
     val hasTonightDeal = displayedPick in activeDeals
+
+    if (!onboardingComplete) {
+        OnboardingScreen { onboardingZip, adultCount, childAges, onboardingRatings ->
+            val childCount = childAges.size
+            val householdSize = adultCount + childCount
+            val onboardingAgeGroups = childAges.mapTo(mutableSetOf()) { age ->
+                when (age) {
+                    in 0..4 -> "0–4"
+                    in 5..12 -> "5–12"
+                    else -> "13–17"
+                }
+            }
+            val editor = prefs.edit()
+                .putBoolean("onboarding_complete", true)
+                .putString("zip", onboardingZip)
+                .putInt("radius", 10)
+                .putInt("adult_count", adultCount)
+                .putString("child_ages", childAges.joinToString(","))
+                .putString("family_size", householdSize.toString())
+                .putString("kids", childCount.toString())
+                .putStringSet("ages", onboardingAgeGroups)
+
+            onboardingRatings.forEach { (placeId, rating) ->
+                editor.putInt("quiz_rating_$placeId", rating)
+                if (rating in 1..5 && elkGroveDeals.any { it.id == placeId }) {
+                    val vote = when (rating) {
+                        1, 2 -> "dislike"
+                        4, 5 -> "like"
+                        else -> "neutral"
+                    }
+                    editor.putString("vote_$placeId", vote)
+                    votes = votes + (placeId to vote)
+                }
+            }
+            editor.apply()
+
+            zip = onboardingZip
+            savedZip = onboardingZip
+            familySize = householdSize.toString()
+            kids = childCount.toString()
+            savedKids = childCount.toString()
+            ageGroups = onboardingAgeGroups
+            savedAgeGroups = onboardingAgeGroups
+            radius = 10
+            profileSaved = true
+            editingProfile = false
+            quizRatings = onboardingRatings
+            quizTarget = onboardingRatings.size
+            onboardingComplete = true
+            page = "Tonight's picks"
+        }
+        return
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,

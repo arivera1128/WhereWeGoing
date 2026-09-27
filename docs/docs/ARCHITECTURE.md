@@ -94,7 +94,7 @@ The prototype now uses a small package structure without changing its runtime be
 | Area | Current responsibility |
 |---|---|
 | `MainActivity.kt` | App entry point, screen coordination and current top-level prototype state. |
-| `ui/screens` | Home, recommendations/details, Food Profile, Profile/removed places and shared Compose components. |
+| `ui/screens` | Onboarding, Home, recommendations/details, Food Profile, Profile/removed places and shared Compose components. |
 | `model` | Plain Kotlin records such as `PlaceDeal`, `QuizPlace` and `MealRecord`. |
 | `data` | Meal-history encoding for the current local preference store. |
 | `PrototypeData.kt` | Curated prototype places/deals and current Food Profile selection helpers. |
