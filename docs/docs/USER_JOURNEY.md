@@ -32,7 +32,7 @@ No child names, birth dates, gender or child accounts are required. Exact curren
 
 The initial search radius defaults to 10 miles and is editable later from Profile. It is omitted from onboarding. Until a routing provider is added, this represents an approximate geographic radius rather than calculated driving distance.
 
-The prototype stores each child's exact current age and also derives the older broad age groups used by its current recommendation rule. Exact per-child deal eligibility scoring remains part of the recommendation-engine work.
+The prototype stores each child's exact current age. Onboarding and Profile edit the same household record. Current child deals apply a 12-and-under eligibility check; future offers with different boundaries require structured deal-specific eligibility terms.
 
 ## 3. Initial food profile
 

@@ -18,8 +18,8 @@
 | Workstream | Progress | Current evidence | Next useful result |
 |---|---:|---|---|
 | Product and UX | 80 | Core promise, implemented first-launch journey, profiles, Food Profile, selectable alternatives, manageable dinner plans, a meal-based Home dashboard, and tester-ready feedback flow are established. | Complete the remaining account-prompt and measurement decisions. |
-| Android client | 55 | A modularized Compose prototype covers onboarding, major screens, local preferences, deal intent, next-visit check-ins, and locally derived meal history. | Move top-level state, persistence, and recommendation rules behind clear boundaries. |
-| Recommendation engine | 25 | Basic availability, savings rank, direct feedback, and removal rules affect the pick. | Define and implement explainable filtering and scoring using the full profile. |
+| Android client | 60 | A modularized Compose prototype covers onboarding, major screens, a shared household repository, local preferences, deal intent, check-ins, and meal history. | Move top-level state and remaining persistence behind clear boundaries. |
+| Recommendation engine | 30 | Basic availability, exact-age child eligibility, savings rank, direct feedback, and removal rules affect the pick. | Define and implement explainable filtering and scoring using the full profile and structured deal terms. |
 | Restaurant and deal data | 30 | Curated Elk Grove examples, sources, and a detailed logical model exist. | Validate model scenarios and define the real-data sandbox. |
 | Backend and infrastructure | 10 | Platform boundaries and environment requirements are documented. | Define access patterns, then compare backend and database options. |
 | Feedback and learning | 65 | Deal appeal, intent, and one-tap next-visit deal outcomes are stored locally without treating deal failure as restaurant dislike. | Define durable event contracts and connect accepted signals to recommendations. |
@@ -63,7 +63,8 @@
 - [x] Move each major screen into its own file or feature package.
 - [x] Extract reusable UI components.
 - [ ] Move top-level app state out of the screen-rendering function.
-- [ ] Introduce profile and preference repository interfaces.
+- [x] Introduce a household profile repository interface.
+- [ ] Introduce a food-preference repository interface.
 - [ ] Introduce a restaurant/deal repository interface.
 - [ ] Move recommendation rules into plain Kotlin.
 - [ ] Preserve all current flows during the refactor.

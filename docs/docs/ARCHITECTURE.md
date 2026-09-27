@@ -96,8 +96,9 @@ The prototype now uses a small package structure without changing its runtime be
 | `MainActivity.kt` | App entry point, screen coordination and current top-level prototype state. |
 | `ui/screens` | Onboarding, Home, recommendations/details, Food Profile, Profile/removed places and shared Compose components. |
 | `model` | Plain Kotlin records such as `PlaceDeal`, `QuizPlace` and `MealRecord`. |
-| `data` | Meal-history encoding for the current local preference store. |
+| `data` | A household profile repository plus meal-history encoding for the current local preference store. |
+| `domain` | Plain Kotlin deal-eligibility rules that do not depend on Compose or Android UI. |
 | `PrototypeData.kt` | Curated prototype places/deals and current Food Profile selection helpers. |
 | `ui/theme` | Compose colors, typography and theme. |
 
-This is an intermediate modularization. Top-level app state, preference persistence and recommendation rules still need their own boundaries before shared storage or onboarding state grows substantially.
+This is an intermediate modularization. Household persistence now sits behind a repository interface shared by onboarding and Profile. Top-level app state, food-preference persistence and the remaining recommendation rules still need their own boundaries before shared storage grows substantially.

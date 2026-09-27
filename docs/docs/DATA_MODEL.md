@@ -20,6 +20,8 @@ erDiagram
 
 Restaurant 1:N Location is established. User-to-household multiplicity is a working extension-friendly representation: the MVP needs a basic household context, not multi-user household collaboration. Exact membership and ownership cardinalities are TBD. Funnel references beyond intent are deliberately optional: observations may exist without a complete preceding funnel.
 
+The Android prototype's current `HouseholdProfile` stores adult count, one current age entry per child, ZIP code and radius. It does not store child names or birth dates. Exact ages support the current 12-and-under child-deal check; future deals need structured eligibility terms rather than parsing offer text.
+
 ## Restaurant and offer domain
 
 | Entity | Scope | Logical identity and candidate fields |

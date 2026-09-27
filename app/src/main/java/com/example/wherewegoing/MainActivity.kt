@@ -54,6 +54,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.wherewegoing.data.readMealHistory
 import com.example.wherewegoing.data.writeMealHistory
+import com.example.wherewegoing.data.SharedPreferencesHouseholdProfileRepository
+import com.example.wherewegoing.domain.isDealEligibleForHousehold
+import com.example.wherewegoing.model.HouseholdProfile
 import com.example.wherewegoing.model.MealRecord
 import com.example.wherewegoing.model.PlaceDeal
 import com.example.wherewegoing.ui.DetailPage
@@ -108,21 +111,16 @@ fun DinnerApp() {
     }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val householdRepository = remember(prefs) { SharedPreferencesHouseholdProfileRepository(prefs) }
     var page by remember { mutableStateOf("Home") }
     var selectedDeal by remember { mutableStateOf<PlaceDeal?>(null) }
     var detailBackPage by remember { mutableStateOf("Tonight's picks") }
     var selectedTonightDealId by remember {
         mutableStateOf(prefs.getString("selected_tonight_deal_id", null))
     }
-    var familySize by remember { mutableStateOf(prefs.getString("family_size", "") ?: "") }
-    var kids by remember { mutableStateOf(prefs.getString("kids", "") ?: "") }
-    var savedKids by remember { mutableStateOf(kids) }
-    var ageGroups by remember { mutableStateOf(prefs.getStringSet("ages", emptySet())?.toSet() ?: emptySet()) }
-    var savedAgeGroups by remember { mutableStateOf(ageGroups) }
-    var zip by remember { mutableStateOf(prefs.getString("zip", "95758") ?: "95758") }
-    var savedZip by remember { mutableStateOf(zip) }
-    var radius by remember { mutableStateOf(prefs.getInt("radius", 10)) }
-    var profileSaved by remember { mutableStateOf(prefs.contains("family_size")) }
+    var savedHousehold by remember { mutableStateOf(householdRepository.load()) }
+    var householdDraft by remember { mutableStateOf(savedHousehold) }
+    var profileSaved by remember { mutableStateOf(householdRepository.hasProfile()) }
     var onboardingComplete by remember {
         mutableStateOf(prefs.getBoolean("onboarding_complete", profileSaved))
     }
@@ -206,12 +204,12 @@ fun DinnerApp() {
             .apply()
     }
 
-    val supportedZip = savedZip in setOf("95624", "95757", "95758")
+    val supportedZip = savedHousehold.zip in setOf("95624", "95757", "95758")
     val visibleDeals = if (supportedZip) elkGroveDeals.filter { it.id !in removed } else emptyList()
     val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
     val activeDeals = visibleDeals.filter {
         today in it.days && it.verified &&
-            (!it.forKids || ((savedKids.toIntOrNull() ?: 0) > 0 && savedAgeGroups.any { age -> age == "0–4" || age == "5–12" }))
+            isDealEligibleForHousehold(it, savedHousehold)
     }
     val recommendation = activeDeals.maxByOrNull {
         it.savingsRank + if (votes[it.id] == "like") 2 else if (votes[it.id] == "dislike") -2 else 0
@@ -222,24 +220,13 @@ fun DinnerApp() {
 
     if (!onboardingComplete) {
         OnboardingScreen { onboardingZip, adultCount, childAges, onboardingRatings ->
-            val childCount = childAges.size
-            val householdSize = adultCount + childCount
-            val onboardingAgeGroups = childAges.mapTo(mutableSetOf()) { age ->
-                when (age) {
-                    in 0..4 -> "0–4"
-                    in 5..12 -> "5–12"
-                    else -> "13–17"
-                }
-            }
+            val completedHousehold = HouseholdProfile(
+                adults = adultCount,
+                childAges = childAges,
+                zip = onboardingZip,
+                radiusMiles = 10
+            )
             val editor = prefs.edit()
-                .putBoolean("onboarding_complete", true)
-                .putString("zip", onboardingZip)
-                .putInt("radius", 10)
-                .putInt("adult_count", adultCount)
-                .putString("child_ages", childAges.joinToString(","))
-                .putString("family_size", householdSize.toString())
-                .putString("kids", childCount.toString())
-                .putStringSet("ages", onboardingAgeGroups)
 
             onboardingRatings.forEach { (placeId, rating) ->
                 editor.putInt("quiz_rating_$placeId", rating)
@@ -254,15 +241,9 @@ fun DinnerApp() {
                 }
             }
             editor.apply()
-
-            zip = onboardingZip
-            savedZip = onboardingZip
-            familySize = householdSize.toString()
-            kids = childCount.toString()
-            savedKids = childCount.toString()
-            ageGroups = onboardingAgeGroups
-            savedAgeGroups = onboardingAgeGroups
-            radius = 10
+            householdRepository.save(completedHousehold)
+            savedHousehold = completedHousehold
+            householdDraft = completedHousehold
             profileSaved = true
             editingProfile = false
             quizRatings = onboardingRatings
@@ -310,7 +291,7 @@ fun DinnerApp() {
                 when (page) {
                     "Home" -> HomePage(
                         profileSaved = profileSaved,
-                        zip = savedZip,
+                        zip = savedHousehold.zip,
                         onPick = { page = "Tonight's picks" },
                         onProfile = { page = "Profile" },
                         hasFoodProfile = quizRatings.size >= INITIAL_FOOD_QUIZ_SIZE,
@@ -346,7 +327,7 @@ fun DinnerApp() {
                         isUserSelected = selectedTonightDeal != null,
                         hasTonightDeal = hasTonightDeal,
                         alternatives = visibleDeals.filter { it != displayedPick },
-                        zip = savedZip,
+                        zip = savedHousehold.zip,
                         dealAppeal = displayedPick?.let { dealAppeal[it.id] }.orEmpty(),
                         plannedDealId = pendingCheckInDealId,
                         onDealAppeal = { deal, appeal ->
@@ -470,30 +451,17 @@ fun DinnerApp() {
                         }
                     )
                     "Profile" -> ProfilePage(
-                        familySize = familySize,
-                        onFamilySize = { familySize = it },
-                        kids = kids,
-                        onKids = { kids = it },
-                        ageGroups = ageGroups,
-                        onAgeGroups = { ageGroups = it },
-                        zip = zip,
-                        onZip = { zip = it },
-                        radius = radius,
-                        onRadius = { radius = it },
+                        profile = householdDraft,
+                        onProfileChange = { householdDraft = it },
                         editing = editingProfile,
-                        onEdit = { editingProfile = true },
+                        onEdit = {
+                            householdDraft = savedHousehold
+                            editingProfile = true
+                        },
                         onSave = {
-                            prefs.edit()
-                                .putString("family_size", familySize)
-                                .putString("kids", kids)
-                                .putStringSet("ages", ageGroups)
-                                .putString("zip", zip)
-                                .putInt("radius", radius)
-                                .apply()
+                            householdRepository.save(householdDraft)
+                            savedHousehold = householdDraft
                             profileSaved = true
-                            savedKids = kids
-                            savedAgeGroups = ageGroups
-                            savedZip = zip
                             editingProfile = false
                         }
                     )

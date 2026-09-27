@@ -345,9 +345,9 @@
     <div>
       <span class="badge progress">Primary target</span>
       <h3>Tester-ready MVP</h3>
-      <p>Overall weighted progress toward the current roadmap: <strong>40%</strong></p>
+      <p>Overall weighted progress toward the current roadmap: <strong>41%</strong></p>
     </div>
-    <div class="overall-ring" style="--value: 40"><span>40%</span></div>
+    <div class="overall-ring" style="--value: 41"><span>41%</span></div>
   </div>
   <p class="meta">Last reviewed: September 27, 2026. Percentages reflect checked evidence in the tracker and should be revised when scope changes.</p>
   <div class="callout proposed" style="margin:1rem 0">
@@ -379,9 +379,9 @@
   </div>
 </div>
 <div class="progress-line">
-  <div class="progress-label"><span>Step 2: Modularize the Android prototype</span><strong>40%</strong></div>
-  <div class="progress-track" role="progressbar" aria-label="Step 2: Modularize the Android prototype" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40">
-    <span class="progress-value" style="width: 40%"></span>
+  <div class="progress-label"><span>Step 2: Modularize the Android prototype</span><strong>45%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 2: Modularize the Android prototype" aria-valuemin="0" aria-valuemax="100" aria-valuenow="45">
+    <span class="progress-value" style="width: 45%"></span>
   </div>
 </div>
 <div class="progress-line">
@@ -522,9 +522,9 @@
   <div>
     <h3>Modularize the Android prototype</h3>
     <div class="progress-line">
-  <div class="progress-label"><span>Modularize the Android prototype complete</span><strong>40%</strong></div>
-  <div class="progress-track" role="progressbar" aria-label="Modularize the Android prototype complete" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40">
-    <span class="progress-value" style="width: 40%"></span>
+  <div class="progress-label"><span>Modularize the Android prototype complete</span><strong>45%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Modularize the Android prototype complete" aria-valuemin="0" aria-valuemax="100" aria-valuenow="45">
+    <span class="progress-value" style="width: 45%"></span>
   </div>
 </div>
     <p>Make the code understandable and replaceable without changing the working user experience.</p>
@@ -679,12 +679,12 @@
   </div>
 </details>
 <details>
-  <summary>Step 2 · Modularize the Android prototype <span class="badge progress">40%</span></summary>
+  <summary>Step 2 · Modularize the Android prototype <span class="badge progress">45%</span></summary>
   <div class="session-body">
     <div class="progress-line">
-  <div class="progress-label"><span>Step 2 progress</span><strong>40%</strong></div>
-  <div class="progress-track" role="progressbar" aria-label="Step 2 progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40">
-    <span class="progress-value" style="width: 40%"></span>
+  <div class="progress-label"><span>Step 2 progress</span><strong>45%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Step 2 progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="45">
+    <span class="progress-value" style="width: 45%"></span>
   </div>
 </div>
     <div class="session-meta">
@@ -697,9 +697,10 @@
       <div><h3>Completed</h3><ul class="complete-list"><li>Separate the visual theme into dedicated files.</li>
 <li>Separate prototype restaurant and deal data from the main activity.</li>
 <li>Move each major screen into its own file or feature package.</li>
-<li>Extract reusable UI components.</li></ul></div>
+<li>Extract reusable UI components.</li>
+<li>Introduce a household profile repository interface.</li></ul></div>
       <div><h3>Still needed</h3><ul class="checklist"><li>Move top-level app state out of the screen-rendering function.</li>
-<li>Introduce profile and preference repository interfaces.</li>
+<li>Introduce a food-preference repository interface.</li>
 <li>Introduce a restaurant/deal repository interface.</li>
 <li>Move recommendation rules into plain Kotlin.</li>
 <li>Preserve all current flows during the refactor.</li>
@@ -947,17 +948,17 @@
   </div>
 </div></td><td>Core promise, implemented first-launch journey, profiles, Food Profile, selectable alternatives, manageable dinner plans, a meal-based Home dashboard, and tester-ready feedback flow are established.</td><td>Complete the remaining account-prompt and measurement decisions.</td></tr>
 <tr><td><strong>Android client</strong></td><td><div class="progress-line">
-  <div class="progress-label"><span>Android client</span><strong>55%</strong></div>
-  <div class="progress-track" role="progressbar" aria-label="Android client" aria-valuemin="0" aria-valuemax="100" aria-valuenow="55">
-    <span class="progress-value" style="width: 55%"></span>
+  <div class="progress-label"><span>Android client</span><strong>60%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Android client" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60">
+    <span class="progress-value" style="width: 60%"></span>
   </div>
-</div></td><td>A modularized Compose prototype covers onboarding, major screens, local preferences, deal intent, next-visit check-ins, and locally derived meal history.</td><td>Move top-level state, persistence, and recommendation rules behind clear boundaries.</td></tr>
+</div></td><td>A modularized Compose prototype covers onboarding, major screens, a shared household repository, local preferences, deal intent, check-ins, and meal history.</td><td>Move top-level state and remaining persistence behind clear boundaries.</td></tr>
 <tr><td><strong>Recommendation engine</strong></td><td><div class="progress-line">
-  <div class="progress-label"><span>Recommendation engine</span><strong>25%</strong></div>
-  <div class="progress-track" role="progressbar" aria-label="Recommendation engine" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25">
-    <span class="progress-value" style="width: 25%"></span>
+  <div class="progress-label"><span>Recommendation engine</span><strong>30%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Recommendation engine" aria-valuemin="0" aria-valuemax="100" aria-valuenow="30">
+    <span class="progress-value" style="width: 30%"></span>
   </div>
-</div></td><td>Basic availability, savings rank, direct feedback, and removal rules affect the pick.</td><td>Define and implement explainable filtering and scoring using the full profile.</td></tr>
+</div></td><td>Basic availability, exact-age child eligibility, savings rank, direct feedback, and removal rules affect the pick.</td><td>Define and implement explainable filtering and scoring using the full profile and structured deal terms.</td></tr>
 <tr><td><strong>Restaurant and deal data</strong></td><td><div class="progress-line">
   <div class="progress-label"><span>Restaurant and deal data</span><strong>30%</strong></div>
   <div class="progress-track" role="progressbar" aria-label="Restaurant and deal data" aria-valuemin="0" aria-valuemax="100" aria-valuenow="30">
