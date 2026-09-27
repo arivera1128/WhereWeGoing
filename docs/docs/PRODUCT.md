@@ -36,6 +36,8 @@ Learning develops from explicit profiles to behavior, then predictive personaliz
 
 The tester-ready MVP includes a lightweight feedback loop. Inside the featured deal tile, users can rate whether the deal is useful and separately record intent with “I’ll try this deal.” On the next app visit, one check-in asks “Did you try this deal?” with three one-tap outcomes: “Yes — the deal worked,” “Yes — but the deal didn’t work,” and “No.” The card can be dismissed and may return for up to three later app visits. Deal failure remains separate from restaurant preference. This compact MVP interaction does not separately prove or record a restaurant visit. GPS triggers, push reminders and native navigation are outside this tester-ready scope. Event correlation, retry and deduplication contracts remain open under Q-06 in [DECISIONS](DECISIONS.md).
 
+Home acts as a personal dinner dashboard. Its history is meal based: a completed check-in with a worked or did-not-work outcome creates a meal record, while selections, usefulness votes and “No” responses do not. The initial dashboard reports meals recorded, deals that worked and unique places visited, followed by recent meal outcomes. Estimated savings is deferred until it can be calculated from dependable data without requiring burdensome user entry.
+
 ## Planned and future experiences
 
 - **Planned:** explore/map with nearby active deals, detail views, navigation, lightweight community verification, user submissions subject to validation, and behavioral learning. Launch inclusion of map and navigation is unconfirmed.

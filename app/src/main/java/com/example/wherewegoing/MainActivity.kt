@@ -53,8 +53,34 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.wherewegoing.ui.theme.WhereWeGoingTheme
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.launch
+
+private data class MealRecord(
+    val dealId: String,
+    val result: String,
+    val recordedAt: Long
+)
+
+private fun readMealHistory(value: String): List<MealRecord> = value
+    .split(";")
+    .mapNotNull { entry ->
+        val parts = entry.split("|")
+        val recordedAt = parts.getOrNull(0)?.toLongOrNull()
+        val dealId = parts.getOrNull(1)
+        val result = parts.getOrNull(2)
+        if (recordedAt != null && !dealId.isNullOrBlank() && result in setOf("worked", "did_not_work")) {
+            MealRecord(dealId, result.orEmpty(), recordedAt)
+        } else null
+    }
+    .sortedByDescending { it.recordedAt }
+
+private fun writeMealHistory(records: List<MealRecord>): String = records.joinToString(";") {
+    "${it.recordedAt}|${it.dealId}|${it.result}"
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -141,6 +167,9 @@ fun DinnerApp() {
     var pendingCheckInReady by remember { mutableStateOf(prefs.getBoolean("pending_checkin_ready", false)) }
     var pendingCheckInShows by remember { mutableStateOf(prefs.getInt("pending_checkin_shows", 0)) }
     var checkInMessage by remember { mutableStateOf("") }
+    var mealHistory by remember {
+        mutableStateOf(readMealHistory(prefs.getString("meal_history", "").orEmpty()))
+    }
 
     fun saveRemoved(newValue: Set<String>) {
         removed = newValue
@@ -156,6 +185,12 @@ fun DinnerApp() {
         val completedDealId = pendingCheckInDealId
         if (completedDealId.isNotBlank()) {
             prefs.edit().putString("deal_checkin_result_$completedDealId", result).apply()
+            if (result == "worked" || result == "did_not_work") {
+                val updatedHistory = (listOf(MealRecord(completedDealId, result, System.currentTimeMillis())) + mealHistory)
+                    .take(50)
+                mealHistory = updatedHistory
+                prefs.edit().putString("meal_history", writeMealHistory(updatedHistory)).apply()
+            }
         }
         pendingCheckInDealId = ""
         pendingCheckInReady = false
@@ -232,6 +267,8 @@ fun DinnerApp() {
                         onDealFailed = { finishCheckIn("Thanks. We'll keep that result separate from your restaurant preferences.", "did_not_work") },
                         onDealNotUsed = { finishCheckIn("Thanks — we'll close that check-in.", "not_used") },
                         onDismissCheckIn = { postponeCheckIn() },
+                        mealHistory = mealHistory,
+                        ratedPlaceCount = quizRatings.count { it.value in 1..5 },
                         onQuiz = {
                             editingQuizPlaceId = null
                             previewingNewUser = false
@@ -426,13 +463,24 @@ private fun HomePage(
     onDealFailed: () -> Unit,
     onDealNotUsed: () -> Unit,
     onDismissCheckIn: () -> Unit,
+    mealHistory: List<MealRecord>,
+    ratedPlaceCount: Int,
     onQuiz: () -> Unit
 ) {
     PageColumn {
         ChickLogo()
         Text("What's for dinner?", style = MaterialTheme.typography.headlineMedium)
         Text("A smart little pick for you in Elk Grove.")
+        Button(onClick = onPick, modifier = Modifier.fillMaxWidth().height(64.dp)) {
+            Text("Where should we eat tonight?")
+        }
+        Text("Starting area: Elk Grove • ZIP $zip", style = MaterialTheme.typography.bodySmall)
+
+        Text("Your dinner dashboard", style = MaterialTheme.typography.titleLarge)
+        DinnerSummary(mealHistory)
+
         if (pendingCheckIn != null && checkInReady) {
+            Text("Pending check-in", style = MaterialTheme.typography.titleLarge)
             CheckInCard(
                 deal = pendingCheckIn,
                 showNumber = checkInShows,
@@ -450,17 +498,85 @@ private fun HomePage(
                 Text(checkInMessage, modifier = Modifier.padding(16.dp))
             }
         }
-        Button(onClick = onPick, modifier = Modifier.fillMaxWidth().height(64.dp)) {
-            Text("Where should we eat tonight?")
-        }
-        Text("Starting area: Elk Grove • ZIP $zip")
+
+        Text("Recent meals", style = MaterialTheme.typography.titleLarge)
+        RecentMeals(mealHistory)
+
         if (!profileSaved) {
             OutlinedButton(onClick = onProfile, modifier = Modifier.fillMaxWidth()) { Text("Set up your profile") }
         }
-        OutlinedButton(onClick = onQuiz, modifier = Modifier.fillMaxWidth()) {
-            Text(if (hasFoodProfile) "Review food preferences" else "Build your food profile")
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Your food profile", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    if (ratedPlaceCount == 1) "1 place rated" else "$ratedPlaceCount places rated",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                OutlinedButton(onClick = onQuiz, modifier = Modifier.fillMaxWidth()) {
+                    Text(if (hasFoodProfile) "Improve recommendations" else "Build your food profile")
+                }
+            }
         }
         Text("Deals are curated for this prototype. Check the offer before visiting.", style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+private fun DinnerSummary(mealHistory: List<MealRecord>) {
+    val workedCount = mealHistory.count { it.result == "worked" }
+    val placesVisited = mealHistory.map { it.dealId }.distinct().size
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        SummaryMetric(mealHistory.size.toString(), "Meals recorded", Modifier.weight(1f))
+        SummaryMetric(workedCount.toString(), "Deals worked", Modifier.weight(1f))
+        SummaryMetric(placesVisited.toString(), "Places visited", Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun SummaryMetric(value: String, label: String, modifier: Modifier = Modifier) {
+    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(value, style = MaterialTheme.typography.headlineSmall)
+            Text(label, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
+private fun RecentMeals(mealHistory: List<MealRecord>) {
+    if (mealHistory.isEmpty()) {
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                "No meals recorded yet. Completed deal check-ins will appear here.",
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+        return
+    }
+
+    val dateFormat = remember { SimpleDateFormat("MMM d", Locale.getDefault()) }
+    mealHistory.take(5).forEach { meal ->
+        val deal = elkGroveDeals.find { it.id == meal.dealId }
+        if (deal != null) {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(deal.name, style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            if (meal.result == "worked") "Deal worked" else "Deal didn't work",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    Text(dateFormat.format(Date(meal.recordedAt)), style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
     }
 }
 
