@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Where We Going — Project Hub</title>
+  <style>
+    :root {
+      --ink: #30251c;
+      --muted: #6f6257;
+      --paper: #fffaf0;
+      --panel: #fffdf8;
+      --soft: #f5ebdd;
+      --gold: #ffc247;
+      --gold-soft: #ffe2a3;
+      --brown: #92511f;
+      --brown-dark: #633412;
+      --rose: #ad5a4a;
+      --green: #39705a;
+      --blue: #3f668c;
+      --line: #dfd1bf;
+      --shadow: 0 12px 30px rgba(73, 45, 19, .09);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font: 16px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--brown); }
+    a:hover { color: var(--brown-dark); }
+    code {
+      padding: .12rem .35rem;
+      border-radius: .35rem;
+      background: var(--soft);
+      font-size: .92em;
+    }
+    h1, h2, h3 { line-height: 1.18; }
+    h2 { margin-top: 0; font-size: clamp(1.55rem, 2.2vw, 2.05rem); }
+    h3 { margin-bottom: .45rem; }
+    p { margin-top: .45rem; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 290px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+    aside {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 1.4rem 1.1rem;
+      color: #fffaf0;
+      background: var(--brown-dark);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: .7rem;
+      margin-bottom: 1.2rem;
+    }
+    .chick {
+      display: grid;
+      place-items: center;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      color: var(--brown-dark);
+      background: var(--gold);
+      font-size: 1.55rem;
+    }
+    .brand strong { display: block; font-size: 1.05rem; }
+    .brand small { color: #efd9bd; }
+    aside nav a {
+      display: block;
+      padding: .56rem .7rem;
+      border-radius: .55rem;
+      color: #fffaf0;
+      text-decoration: none;
+    }
+    aside nav a:hover { background: rgba(255,255,255,.11); }
+    .aside-note {
+      margin-top: 1.3rem;
+      padding: .85rem;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: .7rem;
+      color: #f3e4d1;
+      font-size: .86rem;
+    }
+
+    main { min-width: 0; }
+    .hero {
+      padding: clamp(2rem, 5vw, 5rem);
+      background:
+        radial-gradient(circle at 86% 25%, rgba(255,194,71,.45) 0 7%, transparent 7.5%),
+        linear-gradient(135deg, var(--gold-soft), #fff5dc 58%, var(--paper));
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow {
+      margin: 0 0 .5rem;
+      color: var(--brown);
+      font-size: .78rem;
+      font-weight: 800;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    .hero h1 { margin: 0; font-size: clamp(2.2rem, 5vw, 4.8rem); }
+    .hero .lead { max-width: 780px; font-size: 1.18rem; }
+    .meta { color: var(--muted); font-size: .92rem; }
+    .content { max-width: 1180px; margin: auto; padding: 2rem clamp(1rem, 4vw, 3.5rem) 5rem; }
+    section { scroll-margin-top: 1rem; padding: 2rem 0; border-bottom: 1px solid var(--line); }
+
+    .grid { display: grid; gap: 1rem; }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .card {
+      padding: 1.15rem;
+      border: 1px solid var(--line);
+      border-radius: .9rem;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+    .card h3 { margin-top: 0; }
+    .callout {
+      padding: 1rem 1.2rem;
+      border-left: 5px solid var(--gold);
+      border-radius: .35rem .8rem .8rem .35rem;
+      background: #fff4d9;
+    }
+    .callout.proposed { border-color: var(--blue); background: #eef6ff; }
+    .callout.warning { border-color: var(--rose); background: #fff0ec; }
+
+    .badge {
+      display: inline-block;
+      padding: .2rem .55rem;
+      border-radius: 999px;
+      color: white;
+      background: var(--muted);
+      font-size: .73rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .accepted, .done { background: var(--green); }
+    .proposed { background: var(--blue); }
+    .progress { background: var(--brown); }
+    .open { background: var(--rose); }
+    .parked { background: var(--muted); }
+    .idea { color: var(--brown-dark); background: var(--gold); }
+
+    .status-key { display: flex; flex-wrap: wrap; gap: .55rem; margin: 1rem 0; }
+    .facts { margin: 0; padding-left: 1.2rem; }
+    .facts li { margin: .35rem 0; }
+
+    .journey {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: .55rem;
+      margin-top: 1rem;
+    }
+    .journey span {
+      padding: .7rem .85rem;
+      border: 1px solid var(--line);
+      border-radius: .65rem;
+      background: white;
+      font-weight: 700;
+    }
+    .journey b { color: var(--brown); }
+
+    table { width: 100%; border-collapse: collapse; background: var(--panel); }
+    th, td { padding: .75rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--brown-dark); background: var(--soft); }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: .75rem; }
+
+    .session-list { display: grid; gap: .85rem; }
+    details {
+      border: 1px solid var(--line);
+      border-radius: .85rem;
+      background: var(--panel);
+      box-shadow: 0 5px 18px rgba(73,45,19,.06);
+    }
+    summary {
+      cursor: pointer;
+      padding: 1rem 1.1rem;
+      font-weight: 750;
+    }
+    details[open] summary { border-bottom: 1px solid var(--line); }
+    .session-body { padding: 1rem 1.2rem; }
+    .session-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: .8rem;
+    }
+    .session-meta > div { padding: .75rem; border-radius: .65rem; background: var(--soft); }
+    .session-meta strong { display: block; color: var(--brown-dark); }
+    .checklist { list-style: none; padding-left: 0; }
+    .checklist li { margin: .35rem 0; }
+    .checklist li::before { content: "□"; margin-right: .55rem; color: var(--brown); font-weight: 800; }
+
+    .phase {
+      display: grid;
+      grid-template-columns: 115px minmax(0, 1fr);
+      gap: 1rem;
+      padding: 1rem 0;
+      border-top: 1px solid var(--line);
+    }
+    .phase:first-of-type { border-top: 0; }
+    .phase-no { color: var(--brown); font-weight: 850; }
+
+    .doc-list a { font-weight: 750; }
+    footer { padding: 2rem; color: var(--muted); text-align: center; }
+
+    @media (max-width: 900px) {
+      .layout { display: block; }
+      aside { position: static; height: auto; }
+      aside nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid.two, .grid.three, .session-meta { grid-template-columns: 1fr; }
+    }
+    @media print {
+      aside { display: none; }
+      .layout { display: block; }
+      details { break-inside: avoid; }
+      details > * { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      <div class="brand">
+        <div class="chick" aria-hidden="true">●</div>
+        <div><strong>Where We Going</strong><small>Project hub</small></div>
+      </div>
+      <nav aria-label="Table of contents">
+        <a href="#use">How to use this hub</a>
+        <a href="#north-star">Product north star</a>
+        <a href="#current">Current application</a>
+        <a href="#roadmap">Roadmap phases</a>
+        <a href="#sessions">Session menu</a>
+        <a href="#workstreams">Workstreams</a>
+        <a href="#decisions">Decision gates</a>
+        <a href="#docs">Documentation map</a>
+        <a href="#next">Recommended next session</a>
+      </nav>
+      <div class="aside-note">
+        <strong>Interpretation rule</strong><br>
+        An idea or proposal is not an implementation request. Only an accepted decision or explicit request authorizes work.
+      </div>
+    </aside>
+
+    <main>
+      <header class="hero">
+        <p class="eyebrow">Local planning dashboard</p>
+        <h1>Dinner, decided.</h1>
+        <p class="lead">A navigable roadmap for turning the Android prototype into a trustworthy, personalized restaurant recommendation product—one bounded work session at a time.</p>
+        <p class="meta">Working hub · September 26, 2026 · Product name remains TBD</p>
+      </header>
+
+      <div class="content">
+        <section id="use">
+          <h2>How to use this hub</h2>
+          <div class="grid three">
+            <article class="card">
+              <span class="badge idea">1 · Choose</span>
+              <h3>Select one session</h3>
+              <p>Pick a bounded topic from the session menu. Avoid mixing database design, UX changes, and deal operations into one sitting.</p>
+            </article>
+            <article class="card">
+              <span class="badge proposed">2 · Decide</span>
+              <h3>Produce a reviewable result</h3>
+              <p>End with a decision, model, tested implementation, or clearly documented open question.</p>
+            </article>
+            <article class="card">
+              <span class="badge accepted">3 · Record</span>
+              <h3>Update the sources</h3>
+              <p>Record accepted decisions in the decision log, factual implementation changes in current state, and roadmap progress here.</p>
+            </article>
+          </div>
+          <div class="status-key" aria-label="Status key">
+            <span class="badge idea">Idea</span>
+            <span class="badge proposed">Proposed</span>
+            <span class="badge accepted">Accepted</span>
+            <span class="badge progress">In progress</span>
+            <span class="badge open">Blocked / open</span>
+            <span class="badge done">Done</span>
+            <span class="badge parked">Parked</span>
+          </div>
+        </section>
+
+        <section id="north-star">
+          <p class="eyebrow">Accepted direction</p>
+          <h2>Product north star</h2>
+          <div class="callout">
+            <strong>Help someone answer “Where should we eat tonight?” confidently in about 30 seconds.</strong>
+            <p>Present one clear recommendation, a few useful alternatives, relevant deal context, and an honest explanation grounded in the user’s situation.</p>
+          </div>
+          <div class="journey" aria-label="Core product journey">
+            <span>Open app</span><b>→</b><span>Request a pick</span><b>→</b><span>See winner</span><b>→</b><span>Understand why</span><b>→</b><span>Choose</span>
+          </div>
+          <div class="grid two" style="margin-top:1rem">
+            <article class="card">
+              <h3>MVP boundaries</h3>
+              <ul class="facts">
+                <li>Food and restaurants</li>
+                <li>Lightweight household and preference profile</li>
+                <li>Nearby and currently relevant candidates</li>
+                <li>One winner plus a small set of alternatives</li>
+                <li>Explainable recommendation and trustworthy deal context</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3>Outside the confirmed MVP</h3>
+              <ul class="facts">
+                <li>Merchant platform and paid placement</li>
+                <li>Deep rewards integrations</li>
+                <li>Predictive personalization</li>
+                <li>Other deal categories</li>
+                <li>Nationwide launch and iOS implementation</li>
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="current">
+          <p class="eyebrow">Observed in repository</p>
+          <h2>Current application</h2>
+          <div class="grid two">
+            <article class="card">
+              <h3><span class="badge done">Working prototype</span></h3>
+              <ul class="facts">
+                <li>Android app written in Kotlin with Jetpack Compose</li>
+                <li>Warm chick-themed visual design and drawer navigation</li>
+                <li>Home, Tonight’s picks, Food profile, Profile, deal details, and Removed places</li>
+                <li>First-time Food Profile preview and established-user rating management</li>
+                <li>Local profile, ratings, feedback, and removal storage using SharedPreferences</li>
+                <li>Curated prototype restaurant and deal constants</li>
+              </ul>
+            </article>
+            <article class="card">
+              <h3><span class="badge open">Current limitations</span></h3>
+              <ul class="facts">
+                <li>Most UI and state live in one large <code>MainActivity.kt</code> file</li>
+                <li>No backend, shared API, database, authentication, or environment separation</li>
+                <li>Recommendation logic only uses a limited subset of collected preferences</li>
+                <li>Restaurant, location, deal, and applicability concepts are not yet separated</li>
+                <li>Deals remain embedded in app code</li>
+                <li>No agreed event contracts or real-data sandbox</li>
+              </ul>
+            </article>
+          </div>
+          <div class="callout proposed" style="margin-top:1rem">
+            <strong>Current interpretation:</strong> the prototype validates interaction ideas. It is not yet the architecture described by the forward-looking documents, and it should be evolved rather than discarded.
+          </div>
+        </section>
+
+        <section id="roadmap">
+          <p class="eyebrow">Proposed sequence</p>
+          <h2>Roadmap phases</h2>
+          <p>Phases express dependency order, not calendar promises. A later phase may be discussed early, but implementation should respect unresolved gates.</p>
+
+          <div class="phase">
+            <div class="phase-no">Phase 1<br><span class="badge progress">Now</span></div>
+            <div><h3>Baseline and modular prototype</h3><p>Confirm the MVP journey, inventory existing behavior, split the Android code into understandable UI, domain, and data responsibilities, and preserve the working experience.</p></div>
+          </div>
+          <div class="phase">
+            <div class="phase-no">Phase 2<br><span class="badge proposed">Proposed</span></div>
+            <div><h3>Recommendation engine version 1</h3><p>Define an explainable rules-based score using location, timing, eligibility, explicit preferences, exclusions, household context, savings, and deal confidence.</p></div>
+          </div>
+          <div class="phase">
+            <div class="phase-no">Phase 3<br><span class="badge proposed">Proposed</span></div>
+            <div><h3>Logical model and access patterns</h3><p>Pressure-test Restaurant, Location, Deal, DealLocation, evidence, profiles, preferences, and events. Define the actual reads and writes before selecting physical storage.</p></div>
+          </div>
+          <div class="phase">
+            <div class="phase-no">Phase 4<br><span class="badge open">Decision gate</span></div>
+            <div><h3>Backend and physical data design</h3><p>Compare backend and database options against access patterns, security, geography, cost, environment isolation, and owner learning needs. Define an API boundary.</p></div>
+          </div>
+          <div class="phase">
+            <div class="phase-no">Phase 5<br><span class="badge proposed">Proposed</span></div>
+            <div><h3>Real-data sandbox and deal trust</h3><p>Load real Elk Grove restaurant/location records, clearly labeled synthetic deals, and a smaller verified deal set. Exercise evidence, publication, applicability, and retirement.</p></div>
+          </div>
+          <div class="phase">
+            <div class="phase-no">Phase 6<br><span class="badge parked">Later</span></div>
+            <div><h3>Feedback, learning, and operations</h3><p>Implement the accepted subset of intent, visit, deal confirmation, and preference feedback. Add only the internal controls required to maintain trustworthy data.</p></div>
+          </div>
+          <div class="phase">
+            <div class="phase-no">Phase 7<br><span class="badge parked">Later</span></div>
+            <div><h3>MVP validation and release readiness</h3><p>Test family and solo contexts, exclusions, expired and uncertain deals, no-result cases, environment isolation, and the 30-second decision aspiration.</p></div>
+          </div>
+        </section>
+
+        <section id="sessions">
+          <p class="eyebrow">Pick one per sitting</p>
+          <h2>Session menu</h2>
+          <div class="session-list">
+            <details open>
+              <summary>Session 1 · Confirm the exact MVP demonstration <span class="badge proposed">Recommended</span></summary>
+              <div class="session-body">
+                <div class="session-meta">
+                  <div><strong>Goal</strong>Define what the first meaningful prototype must prove.</div>
+                  <div><strong>Prerequisite</strong>Read Product and Roadmap.</div>
+                  <div><strong>Output</strong>Accepted journey and completion criteria.</div>
+                </div>
+                <h3>Questions</h3>
+                <ul><li>What begins and ends the 30-second journey?</li><li>What must the recommendation show?</li><li>Which feedback actions ship in the MVP?</li><li>What happens when no trustworthy match exists?</li></ul>
+                <h3>Done when</h3>
+                <ul class="checklist"><li>Core journey is accepted</li><li>MVP feedback subset is decided</li><li>Initial market boundary is stated</li><li>Success evidence is defined</li></ul>
+              </div>
+            </details>
+
+            <details>
+              <summary>Session 2 · Modularize the Android prototype</summary>
+              <div class="session-body">
+                <div class="session-meta">
+                  <div><strong>Goal</strong>Reduce the growing MainActivity without changing product behavior.</div>
+                  <div><strong>Prerequisite</strong>Inventory existing screens and state.</div>
+                  <div><strong>Output</strong>Separate UI, domain, and data files with a clean state boundary.</div>
+                </div>
+                <h3>Suggested scope</h3>
+                <ul><li>One file or package per screen</li><li>Reusable UI components</li><li>Plain Kotlin domain models</li><li>Local repository interfaces</li><li>Top-level app/navigation state separated from screen rendering</li></ul>
+                <h3>Done when</h3>
+                <ul class="checklist"><li>Existing prototype builds</li><li>Primary flows behave the same</li><li>Recommendation logic can be tested without Compose</li><li>Storage can later be replaced behind interfaces</li></ul>
+              </div>
+            </details>
+
+            <details>
+              <summary>Session 3 · Design recommendation scoring version 1</summary>
+              <div class="session-body">
+                <div class="session-meta">
+                  <div><strong>Goal</strong>Define a simple, explainable selection method.</div>
+                  <div><strong>Prerequisite</strong>Confirmed MVP inputs and basic domain boundary.</div>
+                  <div><strong>Output</strong>Scoring table, filters, tie-breakers, and explanation rules.</div>
+                </div>
+                <h3>Questions</h3>
+                <ul><li>Which conditions exclude a candidate?</li><li>Which inputs add or subtract score?</li><li>How do explicit ratings affect inferred category preferences?</li><li>When is a deal too uncertain to recommend?</li><li>How is “no strong deal” handled?</li></ul>
+                <h3>Done when</h3>
+                <ul class="checklist"><li>Hard filters and soft preferences are distinct</li><li>Every score component can produce a user-facing reason</li><li>Family and solo examples produce sensible differences</li><li>No unsupported savings or confidence is invented</li></ul>
+              </div>
+            </details>
+
+            <details>
+              <summary>Session 4 · Validate the logical data model</summary>
+              <div class="session-body">
+                <div class="session-meta">
+                  <div><strong>Goal</strong>Test business concepts before thinking in tables or collections.</div>
+                  <div><strong>Prerequisite</strong>Review the existing Data Model and Deal Lifecycle.</div>
+                  <div><strong>Output</strong>Accepted relationships and a short unresolved-rules list.</div>
+                </div>
+                <h3>Scenarios</h3>
+                <ul><li>Independent restaurant with one location</li><li>Chain deal with participating and unknown locations</li><li>Recurring and overnight offer</li><li>Expired offer and conflicting evidence</li><li>User exclusion versus mild preference</li><li>Intent without visit and failed deal without restaurant dislike</li></ul>
+                <h3>Done when</h3>
+                <ul class="checklist"><li>Restaurant, Location, Deal, and applicability relationships hold</li><li>Unknown is not treated as confirmed or excluded</li><li>Evidence survives rejection, merge, correction, and retirement</li><li>Remaining product rules are explicit</li></ul>
+              </div>
+            </details>
+
+            <details>
+              <summary>Session 5 · Define access patterns and expected scale</summary>
+              <div class="session-body">
+                <div class="session-meta">
+                  <div><strong>Goal</strong>Describe what each application area must read and write.</div>
+                  <div><strong>Prerequisite</strong>Validated logical model and recommendation inputs.</div>
+                  <div><strong>Output</strong>Query/write catalogue and volume assumptions.</div>
+                </div>
+                <h3>Key access patterns</h3>
+                <ul><li>Find supported locations within a radius</li><li>Find currently valid deals and resolve location applicability</li><li>Load profile and explicit preferences</li><li>Write recommendation and selected feedback events</li><li>Review evidence and lifecycle queues</li></ul>
+                <h3>Done when</h3>
+                <ul class="checklist"><li>Every MVP screen has known data needs</li><li>Geographic, time, pagination, and authorization needs are listed</li><li>Read/write frequency assumptions are recorded</li><li>Physical design can be compared objectively</li></ul>
+              </div>
+            </details>
+
+            <details>
+              <summary>Session 6 · Select backend, database, and API boundary</summary>
+              <div class="session-body">
+                <div class="session-meta">
+                  <div><strong>Goal</strong>Choose technology based on known requirements.</div>
+                  <div><strong>Prerequisite</strong>Access patterns, scale, privacy, and environment needs.</div>
+                  <div><strong>Output</strong>Decision record and reviewed physical design.</div>
+                </div>
+                <h3>Compare</h3>
+                <ul><li>Firebase/Firestore</li><li>Relational database plus an API</li><li>Kotlin server versus TypeScript or another supported backend</li><li>Managed identity and anonymous-user migration choices</li></ul>
+                <h3>Done when</h3>
+                <ul class="checklist"><li>Choice, alternatives, costs, and tradeoffs are documented</li><li>Dev, QA/staging, and production isolation is designed</li><li>Authorization and backup/recovery responsibilities are identified</li><li>The Android app depends on an API/repository boundary rather than storage details</li></ul>
+              </div>
+            </details>
+
+            <details>
+              <summary>Session 7 · Design the real-data sandbox</summary>
+              <div class="session-body">
+                <div class="session-meta">
+                  <div><strong>Goal</strong>Create safe, useful data for end-to-end testing.</div>
+                  <div><strong>Prerequisite</strong>Provider/legal review and physical design.</div>
+                  <div><strong>Output</strong>Seed plan, labels, provenance rules, and test cases.</div>
+                </div>
+                <h3>Dataset layers</h3>
+                <ul><li>Real Elk Grove restaurant and location records</li><li>Clearly marked synthetic offers for edge cases</li><li>Smaller source-verified genuine deal set</li></ul>
+                <h3>Done when</h3>
+                <ul class="checklist"><li>Provider storage and caching terms are understood</li><li>Every deal has provenance and environment</li><li>Synthetic data cannot enter production</li><li>App data can change without changing Kotlin constants</li></ul>
+              </div>
+            </details>
+
+            <details>
+              <summary>Session 8 · Decide the MVP feedback loop</summary>
+              <div class="session-body">
+                <div class="session-meta">
+                  <div><strong>Goal</strong>Select the smallest meaningful learning loop.</div>
+                  <div><strong>Prerequisite</strong>Core recommendation journey is stable.</div>
+                  <div><strong>Output</strong>Accepted events, screens, and meanings.</div>
+                </div>
+                <h3>Keep distinct</h3>
+                <ul><li>Recommendation shown</li><li>Intent or “Let’s go”</li><li>Visit reported</li><li>Deal available and honored</li><li>Restaurant or recommendation preference</li></ul>
+                <h3>Done when</h3>
+                <ul class="checklist"><li>Missing feedback remains unknown</li><li>A failed deal does not become a restaurant dislike</li><li>Retries and duplicate events have a policy</li><li>Only approved MVP events are implemented</li></ul>
+              </div>
+            </details>
+
+            <details>
+              <summary>Session 9 · Validate the complete MVP journey</summary>
+              <div class="session-body">
+                <div class="session-meta">
+                  <div><strong>Goal</strong>Evaluate whether the product promise works end to end.</div>
+                  <div><strong>Prerequisite</strong>Connected recommendation, data, and selected feedback flow.</div>
+                  <div><strong>Output</strong>Evidence, limitations, and prioritized corrections.</div>
+                </div>
+                <h3>Validation cases</h3>
+                <ul><li>Family and solo profiles</li><li>Strong match, weak match, and no result</li><li>Explicit restaurant exclusion</li><li>Expired, unknown, and conflicting deals</li><li>Eligibility differences</li><li>First-time and returning-user paths</li></ul>
+                <h3>Done when</h3>
+                <ul class="checklist"><li>Measurement definition for 30 seconds is agreed</li><li>Incorrect recommendations are traceable</li><li>Trust disclosures are accurate</li><li>Next changes are based on observed problems</li></ul>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="workstreams">
+          <p class="eyebrow">Parallel view</p>
+          <h2>Workstreams</h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Workstream</th><th>Current state</th><th>Next useful result</th><th>Guardrail</th></tr></thead>
+              <tbody>
+                <tr><td>Product &amp; UX</td><td>Prototype flows available</td><td>Accepted MVP journey and no-result behavior</td><td>Optimize for a decision, not a directory</td></tr>
+                <tr><td>Android client</td><td>Working Compose prototype; concentrated file structure</td><td>Modular screens, app state, domain boundary, repositories</td><td>Preserve behavior during refactoring</td></tr>
+                <tr><td>Recommendation engine</td><td>Basic deal and vote selection</td><td>Explainable rules-based scorer</td><td>Exclusions and eligibility are not weak preferences</td></tr>
+                <tr><td>Restaurant &amp; deal data</td><td>Prototype Kotlin constants</td><td>Reviewed logical model and sandbox plan</td><td>Unknown is not confirmed</td></tr>
+                <tr><td>Backend &amp; database</td><td>Not selected</td><td>Access patterns, comparison, decision record</td><td>Do not convert the logical ERD directly into collections</td></tr>
+                <tr><td>Deal lifecycle &amp; operations</td><td>Documented working design</td><td>Minimum manual workflow and audit needs</td><td>Discovery creates evidence, not truth</td></tr>
+                <tr><td>Feedback &amp; learning</td><td>Lightweight local feedback</td><td>Accepted MVP event subset</td><td>Intent, visit, deal outcome, and preference stay distinct</td></tr>
+                <tr><td>Testing &amp; release</td><td>Local emulator builds</td><td>Scenario tests and environment strategy</td><td>Test data must not cross into production</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="decisions">
+          <p class="eyebrow">Do not silently resolve</p>
+          <h2>Decision gates</h2>
+          <div class="grid two">
+            <article class="card">
+              <h3>Needed before recommendation implementation</h3>
+              <ul><li>Ranking inputs and hard filters</li><li>Unknown deal/location policy</li><li>Eligibility and time semantics</li><li>Savings presentation rules</li></ul>
+            </article>
+            <article class="card">
+              <h3>Needed before database implementation</h3>
+              <ul><li>Validated logical scenarios</li><li>Access patterns and expected volume</li><li>Backend/storage comparison</li><li>Privacy, environments, authorization, retention, and recovery</li></ul>
+            </article>
+            <article class="card">
+              <h3>Needed before real-data ingestion</h3>
+              <ul><li>Provider selection</li><li>Permitted storage and caching</li><li>Budget and refresh approach</li><li>Initial market and seed size</li></ul>
+            </article>
+            <article class="card">
+              <h3>Needed before MVP evaluation</h3>
+              <ul><li>Exact success metric</li><li>Definition of the 30-second interval</li><li>First-time onboarding treatment</li><li>Required event and feedback subset</li></ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="docs">
+          <p class="eyebrow">Source map</p>
+          <h2>Documentation map</h2>
+          <div class="table-wrap doc-list">
+            <table>
+              <thead><tr><th>Document</th><th>Purpose</th><th>Authority</th></tr></thead>
+              <tbody>
+                <tr><td><a href="README.md">README</a></td><td>Explains the documentation package and reading order.</td><td>Orientation</td></tr>
+                <tr><td><a href="docs/PRODUCT.md">Product</a></td><td>Product promise, MVP experience, consumer journey, and validation intent.</td><td>Product requirements</td></tr>
+                <tr><td><a href="docs/ARCHITECTURE.md">Architecture</a></td><td>Logical system boundaries, domains, environments, and physical-design gate.</td><td>Accepted direction plus working design</td></tr>
+                <tr><td><a href="docs/DATA_MODEL.md">Data model</a></td><td>Business entities, relationships, events, and scenarios.</td><td>Logical model, not a database schema</td></tr>
+                <tr><td><a href="docs/DEAL_LIFECYCLE.md">Deal lifecycle</a></td><td>How evidence becomes a published, monitored, and retired deal.</td><td>Established flow plus open rules</td></tr>
+                <tr><td><a href="docs/ROADMAP.md">Roadmap</a></td><td>Capability classification and broad delivery sequence.</td><td>Scope register</td></tr>
+                <tr><td><a href="docs/DECISIONS.md">Decisions</a></td><td>Accepted, superseded, proposed, and unresolved decisions.</td><td>Decision record</td></tr>
+                <tr><td><a href="BRD-v0.1.md">BRD v0.1</a></td><td>Original product framing and historical context.</td><td>Reference; newer documents qualify it</td></tr>
+                <tr><td><a href="AGENTS.md">Codex instructions</a></td><td>Rules for interpreting and changing this project.</td><td>Working instructions when explicitly adopted</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout warning" style="margin-top:1rem">
+            <strong>Maintenance note:</strong> the detailed documents remain in the current nested layout for now. Reorganizing them should be a separate, reviewable documentation task so links and meanings are preserved.
+          </div>
+        </section>
+
+        <section id="next">
+          <p class="eyebrow">Recommended starting point</p>
+          <h2>Next session: confirm the MVP demonstration</h2>
+          <div class="card">
+            <p><span class="badge proposed">Proposed</span></p>
+            <h3>Why this comes first</h3>
+            <p>The prototype already has several screens, while the new documentation introduces a larger product and data vision. A short MVP-definition session gives later architecture, scoring, and database work a stable target.</p>
+            <h3>What we would decide</h3>
+            <ol>
+              <li>The exact first-time and returning-user journey.</li>
+              <li>The minimum information a winning recommendation must show.</li>
+              <li>The MVP feedback actions.</li>
+              <li>The no-result and uncertain-deal behavior.</li>
+              <li>The evidence that tells us the prototype succeeded.</li>
+            </ol>
+            <h3>Expected artifact</h3>
+            <p>A short accepted MVP specification, recorded in the product and decision documents, followed by a bounded modularization plan for the Android app.</p>
+          </div>
+        </section>
+      </div>
+
+      <footer>Where We Going project hub · Local planning artifact · Update after accepted decisions and completed sessions</footer>
+    </main>
+  </div>
+</body>
+</html>
