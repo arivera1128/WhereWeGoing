@@ -98,6 +98,8 @@ Estimated savings is deferred because the prototype cannot reliably derive actua
 
 ## Repeatable prototype review
 
+Debug builds provide **⚙ Prototype tools** at the bottom of the navigation menu. A tester can simulate a weekday, see the active test state, enter the non-destructive new-user Food Profile preview, or confirm a full local reset. Simulated days display a persistent testing banner and can be returned to the actual day without changing the emulator clock.
+
 ### First-time user
 
 1. Clear the app's emulator storage and open the app.

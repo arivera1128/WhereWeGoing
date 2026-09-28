@@ -23,7 +23,7 @@
 | Restaurant and deal data | 30 | Curated Elk Grove examples, sources, and a detailed logical model exist. | Validate model scenarios and define the real-data sandbox. |
 | Backend and infrastructure | 10 | Platform boundaries and environment requirements are documented. | Define access patterns, then compare backend and database options. |
 | Feedback and learning | 65 | Deal appeal, intent, and one-tap next-visit deal outcomes are stored locally without treating deal failure as restaurant dislike. | Define durable event contracts and connect accepted signals to recommendations. |
-| Testing and launch | 25 | The app has been built, installed, and visually checked repeatedly; the two-stage check-in handoff was exercised on the emulator. | Create repeatable end-to-end acceptance cases and a tester distribution plan. |
+| Testing and launch | 35 | The app has been built, installed, and visually checked repeatedly; debug-only tools now provide repeatable weekday simulation, state visibility, onboarding preview and confirmed local reset. | Execute the end-to-end acceptance cases and define a tester distribution plan. |
 
 ## Step 1: Finish defining the MVP demonstration
 

@@ -102,3 +102,5 @@ The prototype now uses a small package structure without changing its runtime be
 | `ui/theme` | Compose colors, typography and theme. |
 
 This is an intermediate modularization. Household persistence sits behind a repository interface shared by onboarding and Profile, and recommendation version 1 is isolated as plain Kotlin domain logic with unit tests. Top-level app state, food-preference persistence and restaurant/deal persistence still need their own boundaries before shared storage grows substantially.
+
+Debuggable Android builds also expose a separated `Prototype tools` screen. Its simulated day is stored only in local prototype preferences and feeds the same recommendation and offer-timing paths as the actual calendar day. A visible banner prevents simulated results from being mistaken for actual-day behavior. Release builds do not show the menu destination.

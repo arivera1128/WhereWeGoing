@@ -2,6 +2,7 @@ package com.example.wherewegoing
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -33,6 +34,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -58,6 +61,7 @@ import com.example.wherewegoing.data.SharedPreferencesHouseholdProfileRepository
 import com.example.wherewegoing.domain.isDealEligibleForHousehold
 import com.example.wherewegoing.domain.RecommendationEngine
 import com.example.wherewegoing.domain.daysUntilNextOffer
+import com.example.wherewegoing.domain.dayName
 import com.example.wherewegoing.model.HouseholdProfile
 import com.example.wherewegoing.model.MealRecord
 import com.example.wherewegoing.model.PlaceDeal
@@ -67,6 +71,7 @@ import com.example.wherewegoing.ui.HomePage
 import com.example.wherewegoing.ui.OnboardingScreen
 import com.example.wherewegoing.ui.PicksPage
 import com.example.wherewegoing.ui.ProfilePage
+import com.example.wherewegoing.ui.PrototypeToolsPage
 import com.example.wherewegoing.ui.QuizPage
 import com.example.wherewegoing.ui.RemovedPage
 import com.example.wherewegoing.ui.theme.WhereWeGoingTheme
@@ -83,6 +88,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DinnerApp() {
     val context = LocalContext.current
+    val isDebugBuild = context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
     val prefs = remember {
         val current = context.getSharedPreferences("dinner_prototype", Context.MODE_PRIVATE)
         val previous = context.getSharedPreferences("profile", Context.MODE_PRIVATE)
@@ -160,6 +166,9 @@ fun DinnerApp() {
     var mealHistory by remember {
         mutableStateOf(readMealHistory(prefs.getString("meal_history", "").orEmpty()))
     }
+    var simulatedDay by remember {
+        mutableStateOf(prefs.getInt("prototype_simulated_day", 0).takeIf { it in 1..7 })
+    }
 
     fun saveRemoved(newValue: Set<String>) {
         removed = newValue
@@ -213,7 +222,7 @@ fun DinnerApp() {
 
     val supportedZip = savedHousehold.zip in setOf("95624", "95757", "95758")
     val visibleDeals = if (supportedZip) elkGroveDeals.filter { it.id !in removed } else emptyList()
-    val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+    val today = simulatedDay ?: Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
     val recommendationResult = remember(
         visibleDeals,
         savedHousehold,
@@ -290,25 +299,45 @@ fun DinnerApp() {
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet {
-                Spacer(Modifier.height(20.dp))
-                Text("  Dinner, decided.", style = MaterialTheme.typography.titleLarge)
-                Spacer(Modifier.height(16.dp))
-                listOf("Home", "Tonight's picks", "Food profile", "Profile", "Removed places").forEach { item ->
-                    NavigationDrawerItem(
-                        label = { Text(item) },
-                        selected = page == item,
-                        onClick = {
-                            editingQuizPlaceId = null
-                            previewingNewUser = false
-                            quizTarget = if (quizRatings.size < INITIAL_FOOD_QUIZ_SIZE) {
-                                INITIAL_FOOD_QUIZ_SIZE
-                            } else {
-                                quizRatings.size
+                Column(Modifier.fillMaxSize()) {
+                    Spacer(Modifier.height(20.dp))
+                    Text("  Dinner, decided.", style = MaterialTheme.typography.titleLarge)
+                    Spacer(Modifier.height(16.dp))
+                    listOf("Home", "Tonight's picks", "Food profile", "Profile", "Removed places").forEach { item ->
+                        NavigationDrawerItem(
+                            label = { Text(item) },
+                            selected = page == item,
+                            onClick = {
+                                editingQuizPlaceId = null
+                                previewingNewUser = false
+                                quizTarget = if (quizRatings.size < INITIAL_FOOD_QUIZ_SIZE) {
+                                    INITIAL_FOOD_QUIZ_SIZE
+                                } else {
+                                    quizRatings.size
+                                }
+                                page = item
+                                scope.launch { drawerState.close() }
                             }
-                            page = item
-                            scope.launch { drawerState.close() }
-                        }
-                    )
+                        )
+                    }
+                    Spacer(Modifier.weight(1f))
+                    if (isDebugBuild) {
+                        HorizontalDivider()
+                        NavigationDrawerItem(
+                            label = { Text("⚙ Prototype tools") },
+                            selected = page == "Prototype tools",
+                            colors = NavigationDrawerItemDefaults.colors(
+                                unselectedTextColor = MaterialTheme.colorScheme.tertiary,
+                                selectedTextColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer
+                            ),
+                            onClick = {
+                                page = "Prototype tools"
+                                scope.launch { drawerState.close() }
+                            }
+                        )
+                        Spacer(Modifier.height(16.dp))
+                    }
                 }
             }
         }
@@ -319,6 +348,18 @@ fun DinnerApp() {
                     IconButton(onClick = { scope.launch { drawerState.open() } }) { Text("☰", fontSize = 26.sp) }
                     ChickLogo()
                     Text("  $page", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 8.dp))
+                }
+                if (isDebugBuild && simulatedDay != null) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                    ) {
+                        Text(
+                            "TESTING ${dayName(simulatedDay!!).uppercase()} · Change in Prototype tools",
+                            modifier = Modifier.padding(10.dp),
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    }
                 }
                 when (page) {
                     "Home" -> HomePage(
@@ -529,6 +570,57 @@ fun DinnerApp() {
                         }
                     )
                     "Removed places" -> RemovedPage(removed) { id -> saveRemoved(removed - id) }
+                    "Prototype tools" -> if (isDebugBuild) PrototypeToolsPage(
+                        simulatedDay = simulatedDay,
+                        household = savedHousehold,
+                        ratedPlaceCount = quizRatings.count { it.value in 1..5 },
+                        onSelectDay = { selectedDay ->
+                            simulatedDay = selectedDay
+                            if (selectedDay == null) {
+                                prefs.edit().remove("prototype_simulated_day").apply()
+                            } else {
+                                prefs.edit().putInt("prototype_simulated_day", selectedDay).apply()
+                            }
+                            recommendationRefreshVersion += 1
+                        },
+                        onPreviewNewUser = {
+                            previewRatings = emptyMap()
+                            previewRemoved = emptySet()
+                            editingQuizPlaceId = null
+                            previewingNewUser = true
+                            page = "Food profile"
+                        },
+                        onReset = {
+                            prefs.edit().clear().apply()
+                            val freshHousehold = HouseholdProfile()
+                            savedHousehold = freshHousehold
+                            householdDraft = freshHousehold
+                            profileSaved = false
+                            onboardingComplete = false
+                            editingProfile = true
+                            votes = elkGroveDeals.associate { it.id to "neutral" }
+                            quizRatings = emptyMap()
+                            quizTarget = INITIAL_FOOD_QUIZ_SIZE
+                            editingQuizPlaceId = null
+                            previewingNewUser = false
+                            previewRatings = emptyMap()
+                            previewRemoved = emptySet()
+                            removeInfoSuppressed = false
+                            removed = emptySet()
+                            picksMessage = ""
+                            pendingCheckInDealId = ""
+                            pendingCheckInHadOffer = true
+                            pendingCheckInReady = false
+                            pendingCheckInShows = 0
+                            checkInMessage = ""
+                            mealHistory = emptyList()
+                            selectedTonightDealId = null
+                            selectedDeal = null
+                            simulatedDay = null
+                            recommendationRefreshVersion += 1
+                            page = "Home"
+                        }
+                    )
                 }
             }
         }
