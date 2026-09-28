@@ -150,6 +150,7 @@ fun DinnerApp() {
     var removeInfoSuppressed by remember { mutableStateOf(prefs.getBoolean("hide_remove_info", false)) }
     var removed by remember { mutableStateOf(prefs.getStringSet("removed", emptySet())?.toSet() ?: emptySet()) }
     var picksMessage by remember { mutableStateOf("") }
+    var recommendationRefreshVersion by remember { mutableStateOf(0) }
     var pendingCheckInDealId by remember { mutableStateOf(prefs.getString("pending_checkin_deal_id", "") ?: "") }
     var pendingCheckInReady by remember { mutableStateOf(prefs.getBoolean("pending_checkin_ready", false)) }
     var pendingCheckInShows by remember { mutableStateOf(prefs.getInt("pending_checkin_shows", 0)) }
@@ -207,13 +208,21 @@ fun DinnerApp() {
     val supportedZip = savedHousehold.zip in setOf("95624", "95757", "95758")
     val visibleDeals = if (supportedZip) elkGroveDeals.filter { it.id !in removed } else emptyList()
     val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
-    val recommendationResult = recommendationEngine.recommend(
-        deals = visibleDeals,
-        quizPlaces = foodQuizPlaces,
-        ratings = quizRatings,
-        household = savedHousehold,
-        today = today
-    )
+    val recommendationResult = remember(
+        visibleDeals,
+        savedHousehold,
+        today,
+        page == "Tonight's picks",
+        recommendationRefreshVersion
+    ) {
+        recommendationEngine.recommend(
+            deals = visibleDeals,
+            quizPlaces = foodQuizPlaces,
+            ratings = quizRatings,
+            household = savedHousehold,
+            today = today
+        )
+    }
     val recommendation = recommendationResult.featured
     val selectedTonightDeal = visibleDeals.find { it.id == selectedTonightDealId }
     val displayedPick = selectedTonightDeal ?: recommendation
@@ -355,6 +364,7 @@ fun DinnerApp() {
                                     selectedTonightDealId = null
                                     prefs.edit().remove("selected_tonight_deal_id").apply()
                                 }
+                                recommendationRefreshVersion += 1
                                 picksMessage = "Your picks were updated."
                             } else {
                                 picksMessage = ""
