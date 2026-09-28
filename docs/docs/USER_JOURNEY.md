@@ -79,6 +79,8 @@ On a later app launch, the plan becomes a one-question check-in:
 
 A worked or did-not-work answer creates a meal-history record. No closes the plan without creating a meal. Dismiss postpones the question, subject to the established three-appearance limit. Deal failure remains separate from restaurant preference.
 
+After one of the three answers is selected, the check-in card changes in place to a short result message. The Home dashboard updates immediately, and the result message clears automatically after about four seconds. This gives confirmation without adding another screen or requiring another tap.
+
 ## 7. Home and meal history
 
 Home is a personal dinner dashboard as well as the entry point to Tonight's Picks. It summarizes meals recorded, deals that worked and unique places visited. Recent activity is meal based; selections, restaurant ratings and profile edits do not appear as meals.

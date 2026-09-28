@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -20,9 +21,9 @@ import com.example.wherewegoing.model.PlaceDeal
 import com.example.wherewegoing.domain.dayName
 import com.example.wherewegoing.domain.nextOfferDay
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.delay
 @Composable
 fun HomePage(
     profileSaved: Boolean,
@@ -35,6 +36,8 @@ fun HomePage(
     pendingCheckInHadOffer: Boolean,
     checkInShows: Int,
     checkInMessage: String,
+    checkInResult: String,
+    onClearCheckInMessage: () -> Unit,
     onDealWorked: () -> Unit,
     onDealFailed: () -> Unit,
     onDealNotUsed: () -> Unit,
@@ -47,6 +50,7 @@ fun HomePage(
     ratedPlaceCount: Int,
     upcomingDeal: PlaceDeal?,
     upcomingDaysAway: Int?,
+    currentDay: Int,
     onViewUpcoming: (PlaceDeal) -> Unit,
     onQuiz: () -> Unit
 ) {
@@ -84,24 +88,25 @@ fun HomePage(
             )
         }
 
+        if (checkInMessage.isNotBlank()) {
+            CheckInResultCard(checkInMessage, checkInResult)
+            LaunchedEffect(checkInMessage) {
+                delay(4_000)
+                onClearCheckInMessage()
+            }
+        }
+
         if (upcomingDeal != null && upcomingDaysAway != null) {
             UpcomingOfferCard(
                 deal = upcomingDeal,
                 daysAway = upcomingDaysAway,
+                currentDay = currentDay,
                 onView = { onViewUpcoming(upcomingDeal) }
             )
         }
 
         Text("Your dinner dashboard", style = MaterialTheme.typography.titleLarge)
         DinnerSummary(mealHistory)
-        if (checkInMessage.isNotBlank()) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-            ) {
-                Text(checkInMessage, modifier = Modifier.padding(16.dp))
-            }
-        }
 
         Text("Recent meals", style = MaterialTheme.typography.titleLarge)
         RecentMeals(mealHistory)
@@ -129,9 +134,40 @@ fun HomePage(
 }
 
 @Composable
-private fun UpcomingOfferCard(deal: PlaceDeal, daysAway: Int, onView: () -> Unit) {
-    val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
-    val offerDay = nextOfferDay(deal, today)
+private fun CheckInResultCard(message: String, result: String) {
+    val (title, background, foreground) = when (result) {
+        "worked" -> Triple("✓ Deal confirmed!", Color(0xFFE1F3E5), Color(0xFF245C35))
+        "visited" -> Triple("✓ Meal recorded!", Color(0xFFE1F3E5), Color(0xFF245C35))
+        "did_not_work" -> Triple(
+            "Thanks for the heads-up",
+            MaterialTheme.colorScheme.tertiaryContainer,
+            MaterialTheme.colorScheme.onTertiaryContainer
+        )
+        "not_used" -> Triple(
+            "Got it",
+            MaterialTheme.colorScheme.surfaceVariant,
+            MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        else -> Triple(
+            "Plan updated",
+            MaterialTheme.colorScheme.surfaceVariant,
+            MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = background)
+    ) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(title, style = MaterialTheme.typography.titleLarge, color = foreground)
+            Text(message, color = foreground)
+        }
+    }
+}
+
+@Composable
+private fun UpcomingOfferCard(deal: PlaceDeal, daysAway: Int, currentDay: Int, onView: () -> Unit) {
+    val offerDay = nextOfferDay(deal, currentDay)
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)

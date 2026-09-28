@@ -163,6 +163,7 @@ fun DinnerApp() {
     var pendingCheckInReady by remember { mutableStateOf(prefs.getBoolean("pending_checkin_ready", false)) }
     var pendingCheckInShows by remember { mutableStateOf(prefs.getInt("pending_checkin_shows", 0)) }
     var checkInMessage by remember { mutableStateOf("") }
+    var checkInResult by remember { mutableStateOf("") }
     var mealHistory by remember {
         mutableStateOf(readMealHistory(prefs.getString("meal_history", "").orEmpty()))
     }
@@ -186,6 +187,7 @@ fun DinnerApp() {
         pendingCheckInHadOffer = true
         pendingCheckInShows = 0
         checkInMessage = "Plan canceled."
+        checkInResult = "canceled"
         prefs.edit()
             .remove("pending_checkin_deal_id")
             .remove("pending_checkin_stage")
@@ -211,6 +213,7 @@ fun DinnerApp() {
         pendingCheckInHadOffer = true
         pendingCheckInShows = 0
         checkInMessage = message
+        checkInResult = result
         prefs.edit()
             .remove("pending_checkin_deal_id")
             .remove("pending_checkin_stage")
@@ -373,10 +376,15 @@ fun DinnerApp() {
                         pendingCheckInHadOffer = pendingCheckInHadOffer,
                         checkInShows = pendingCheckInShows,
                         checkInMessage = checkInMessage,
-                        onDealWorked = { finishCheckIn("Thanks! Your confirmation helps us track reliable deals.", "worked") },
-                        onDealFailed = { finishCheckIn("Thanks. We'll keep that result separate from your restaurant preferences.", "did_not_work") },
-                        onDealNotUsed = { finishCheckIn("Thanks — we'll close that check-in.", "not_used") },
-                        onRestaurantVisited = { finishCheckIn("Thanks! That meal was added to your history.", "visited") },
+                        checkInResult = checkInResult,
+                        onClearCheckInMessage = {
+                            checkInMessage = ""
+                            checkInResult = ""
+                        },
+                        onDealWorked = { finishCheckIn("Thanks—this helps keep local deals reliable.", "worked") },
+                        onDealFailed = { finishCheckIn("We'll treat this deal as needing confirmation.", "did_not_work") },
+                        onDealNotUsed = { finishCheckIn("We won't count this as a meal.", "not_used") },
+                        onRestaurantVisited = { finishCheckIn("That meal was added to your history.", "visited") },
                         onDismissCheckIn = { postponeCheckIn() },
                         onViewPlan = { deal ->
                             selectedDeal = deal
@@ -392,6 +400,7 @@ fun DinnerApp() {
                         ratedPlaceCount = quizRatings.count { it.value in 1..5 },
                         upcomingDeal = upcomingDeal?.first,
                         upcomingDaysAway = upcomingDeal?.second,
+                        currentDay = today,
                         onViewUpcoming = { deal ->
                             selectedDeal = deal
                             detailBackPage = "Home"
@@ -443,6 +452,7 @@ fun DinnerApp() {
                             pendingCheckInReady = false
                             pendingCheckInShows = 0
                             checkInMessage = ""
+                            checkInResult = ""
                             prefs.edit()
                                 .putString("selected_tonight_deal_id", deal.id)
                                 .putString("pending_checkin_deal_id", deal.id)
@@ -613,6 +623,7 @@ fun DinnerApp() {
                             pendingCheckInReady = false
                             pendingCheckInShows = 0
                             checkInMessage = ""
+                            checkInResult = ""
                             mealHistory = emptyList()
                             selectedTonightDealId = null
                             selectedDeal = null
