@@ -85,6 +85,8 @@ Home is a personal dinner dashboard as well as the entry point to Tonight's Pick
 
 Home also shows one secondary upcoming-offer card: the nearest eligible offer within seven days. Tomorrow is called out when applicable. The card opens details, does not provide an intent action before the offer day and does not affect tonight's ranking.
 
+When a dinner plan or pending check-in exists, that card replaces the large **Where should we eat tonight?** action and appears above the upcoming-offer card. Completing or closing the plan/check-in restores the main dinner action.
+
 Estimated savings is deferred because the prototype cannot reliably derive actual order totals, percentage savings or eligibility usage without burdensome user input or dependable transaction data.
 
 ## Still to decide

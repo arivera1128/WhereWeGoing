@@ -54,21 +54,12 @@ fun HomePage(
         ChickLogo()
         Text("What's for dinner?", style = MaterialTheme.typography.headlineMedium)
         Text("A smart little pick for you in Elk Grove.")
-        Button(onClick = onPick, modifier = Modifier.fillMaxWidth().height(64.dp)) {
-            Text("Where should we eat tonight?")
+        if (pendingCheckIn == null) {
+            Button(onClick = onPick, modifier = Modifier.fillMaxWidth().height(64.dp)) {
+                Text("Where should we eat tonight?")
+            }
         }
         Text("Starting area: Elk Grove • ZIP $zip", style = MaterialTheme.typography.bodySmall)
-
-        if (upcomingDeal != null && upcomingDaysAway != null) {
-            UpcomingOfferCard(
-                deal = upcomingDeal,
-                daysAway = upcomingDaysAway,
-                onView = { onViewUpcoming(upcomingDeal) }
-            )
-        }
-
-        Text("Your dinner dashboard", style = MaterialTheme.typography.titleLarge)
-        DinnerSummary(mealHistory)
 
         if (pendingCheckIn != null && checkInReady) {
             Text("Pending check-in", style = MaterialTheme.typography.titleLarge)
@@ -92,6 +83,17 @@ fun HomePage(
                 onCancelPlan = onCancelPlan
             )
         }
+
+        if (upcomingDeal != null && upcomingDaysAway != null) {
+            UpcomingOfferCard(
+                deal = upcomingDeal,
+                daysAway = upcomingDaysAway,
+                onView = { onViewUpcoming(upcomingDeal) }
+            )
+        }
+
+        Text("Your dinner dashboard", style = MaterialTheme.typography.titleLarge)
+        DinnerSummary(mealHistory)
         if (checkInMessage.isNotBlank()) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
