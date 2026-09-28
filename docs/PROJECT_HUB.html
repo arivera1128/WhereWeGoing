@@ -954,11 +954,11 @@
   </div>
 </div></td><td>A modularized Compose prototype covers onboarding, major screens, a shared household repository, local preferences, deal intent, check-ins, and meal history.</td><td>Move top-level state and remaining persistence behind clear boundaries.</td></tr>
 <tr><td><strong>Recommendation engine</strong></td><td><div class="progress-line">
-  <div class="progress-label"><span>Recommendation engine</span><strong>65%</strong></div>
-  <div class="progress-track" role="progressbar" aria-label="Recommendation engine" aria-valuemin="0" aria-valuemax="100" aria-valuenow="65">
-    <span class="progress-value" style="width: 65%"></span>
+  <div class="progress-label"><span>Recommendation engine</span><strong>70%</strong></div>
+  <div class="progress-track" role="progressbar" aria-label="Recommendation engine" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70">
+    <span class="progress-value" style="width: 70%"></span>
   </div>
-</div></td><td>Plain Kotlin scoring uses deal strength, direct ratings, learned food traits, exact-age eligibility, exclusions and deliberate fallback rules; internal score details are testable.</td><td>Add geography, distance, structured deal validity and production-data inputs.</td></tr>
+</div></td><td>Plain Kotlin scoring uses deal strength, confidence, current-day availability, direct ratings, learned food traits, exact-age eligibility, exclusions and deliberate fallback rules; future offers cannot boost tonight.</td><td>Add geography, distance, structured date/time validity and production-data inputs.</td></tr>
 <tr><td><strong>Restaurant and deal data</strong></td><td><div class="progress-line">
   <div class="progress-label"><span>Restaurant and deal data</span><strong>30%</strong></div>
   <div class="progress-track" role="progressbar" aria-label="Restaurant and deal data" aria-valuemin="0" aria-valuemax="100" aria-valuenow="30">

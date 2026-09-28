@@ -121,13 +121,44 @@ class RecommendationEngineTest {
         assertEquals("general", soloResult.featured?.id)
     }
 
+    @Test
+    fun possibleDealGetsLessStrengthThanVerifiedDeal() {
+        val verified = deal("verified", 1)
+        val possible = deal("possible", 1, verified = false)
+        val result = engine.recommend(
+            listOf(possible, verified), places("possible", "verified"),
+            emptyMap(), HouseholdProfile(), today
+        )
+
+        assertEquals("verified", result.featured?.id)
+        assertTrue(
+            result.scoreBreakdown.getValue("possible").dealStrength <
+                result.scoreBreakdown.getValue("verified").dealStrength
+        )
+    }
+
+    @Test
+    fun futureOfferDoesNotBoostTonightRecommendation() {
+        val future = deal("future", 2, days = setOf(Calendar.TUESDAY))
+        val preferred = deal("preferred", 0)
+        val result = engine.recommend(
+            listOf(future, preferred), places("future", "preferred"),
+            mapOf("preferred" to 5), HouseholdProfile(), today
+        )
+
+        assertEquals("preferred", result.featured?.id)
+        assertEquals(0.0, result.scoreBreakdown.getValue("future").dealStrength, 0.0)
+    }
+
     private fun deal(
         id: String,
         rank: Int,
         category: String = "Test",
-        forKids: Boolean = false
+        forKids: Boolean = false,
+        verified: Boolean = true,
+        days: Set<Int> = setOf(today)
     ) = PlaceDeal(
-        id, id, category, "Offer", setOf(today), forKids, rank, true,
+        id, id, category, "Offer", days, forKids, rank, verified,
         "Address", "Terms", "Source", "Today"
     )
 

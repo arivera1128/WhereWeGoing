@@ -24,6 +24,8 @@ The initial persona is a cost-conscious household with two adults and two childr
 
 A recommended result should communicate restaurant/location, offer, eligibility or purchase terms, distance when available and confidence/verification. Savings remain estimates unless supported as realized savings; calculation method is open. Empty-result and missing-location experiences need design rather than fabricated recommendations.
 
+When no active deal exists, the app still recommends a restaurant from food fit and labels it as a restaurant pick. Future offers do not affect tonight's score or appear inside tonight's result. Home may show the nearest eligible upcoming offer within seven days. An uncertain current offer is presented as a **Possible deal** with last-checked context and a request to confirm with the location; its ranking boost is lower than a verified offer.
+
 ## Consumer journey and learning
 
 The core journey is open app → request tonight's recommendation → see the winner and alternatives → understand the deal terms → choose.

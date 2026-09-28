@@ -32,10 +32,15 @@ class RecommendationEngine {
             evidence.size >= 4 && evidence.count { it <= 2 }.toDouble() / evidence.size >= 0.75
         }.keys
 
-        val scores = deals.associate { deal ->
+        val eligibleDeals = deals.filter { isDealEligibleForHousehold(it, household) }
+        val scores = eligibleDeals.associate { deal ->
             val traits = traitsByPlace[deal.id].orEmpty()
             val directRating = ratings[deal.id]?.takeIf { it in 1..5 }
-            val dealStrength = deal.savingsRank.coerceIn(0, 2) / 2.0 * 65.0
+            val offerToday = today in deal.days
+            val confidenceMultiplier = if (deal.verified) 1.0 else 0.4
+            val dealStrength = if (offerToday) {
+                deal.savingsRank.coerceIn(0, 2) / 2.0 * 65.0 * confidenceMultiplier
+            } else 0.0
             val directFit = when (directRating) {
                 1 -> -10.0
                 2 -> -6.0
@@ -60,9 +65,7 @@ class RecommendationEngine {
             )
         }
 
-        val active = deals.filter { deal ->
-            today in deal.days && deal.verified && isDealEligibleForHousehold(deal, household)
-        }
+        val active = eligibleDeals.filter { deal -> today in deal.days }
         fun rating(deal: PlaceDeal): Int? = ratings[deal.id]?.takeIf { it in 1..5 }
         fun canFeature(deal: PlaceDeal): Boolean =
             rating(deal) != 1 && scores.getValue(deal.id).blockedFoodTraits.isEmpty()
@@ -70,20 +73,20 @@ class RecommendationEngine {
         val acceptableActive = active.filter { canFeature(it) && rating(it) != 2 }
         val featured = when {
             acceptableActive.isNotEmpty() -> acceptableActive.maxBy { scores.getValue(it.id).total }
-            else -> active.filter { canFeature(it) && rating(it) == 2 && it.savingsRank >= 2 }
+            else -> active.filter { canFeature(it) && rating(it) == 2 && it.savingsRank >= 2 && it.verified }
                 .maxByOrNull { scores.getValue(it.id).total }
-                ?: deals.filter { canFeature(it) && rating(it) != 2 }
+                ?: eligibleDeals.filter { canFeature(it) && rating(it) != 2 }
                     .maxByOrNull { scores.getValue(it.id).foodFit }
         }
 
-        val orderedOthers = deals.filter { it != featured }
+        val orderedOthers = eligibleDeals.filter { it != featured }
             .sortedByDescending { scores.getValue(it.id).total }
         val alternatives = selectAlternatives(featured, orderedOthers)
 
         return RecommendationResult(
             featured = featured,
             alternatives = alternatives,
-            hasActiveVerifiedDeal = featured in active,
+            hasActiveVerifiedDeal = featured in active && featured?.verified == true,
             scoreBreakdown = scores
         )
     }

@@ -57,6 +57,7 @@ import com.example.wherewegoing.data.writeMealHistory
 import com.example.wherewegoing.data.SharedPreferencesHouseholdProfileRepository
 import com.example.wherewegoing.domain.isDealEligibleForHousehold
 import com.example.wherewegoing.domain.RecommendationEngine
+import com.example.wherewegoing.domain.daysUntilNextOffer
 import com.example.wherewegoing.model.HouseholdProfile
 import com.example.wherewegoing.model.MealRecord
 import com.example.wherewegoing.model.PlaceDeal
@@ -152,6 +153,7 @@ fun DinnerApp() {
     var picksMessage by remember { mutableStateOf("") }
     var recommendationRefreshVersion by remember { mutableStateOf(0) }
     var pendingCheckInDealId by remember { mutableStateOf(prefs.getString("pending_checkin_deal_id", "") ?: "") }
+    var pendingCheckInHadOffer by remember { mutableStateOf(prefs.getBoolean("pending_checkin_had_offer", true)) }
     var pendingCheckInReady by remember { mutableStateOf(prefs.getBoolean("pending_checkin_ready", false)) }
     var pendingCheckInShows by remember { mutableStateOf(prefs.getInt("pending_checkin_shows", 0)) }
     var checkInMessage by remember { mutableStateOf("") }
@@ -172,6 +174,7 @@ fun DinnerApp() {
     fun cancelPlan() {
         pendingCheckInDealId = ""
         pendingCheckInReady = false
+        pendingCheckInHadOffer = true
         pendingCheckInShows = 0
         checkInMessage = "Plan canceled."
         prefs.edit()
@@ -179,6 +182,7 @@ fun DinnerApp() {
             .remove("pending_checkin_stage")
             .remove("pending_checkin_ready")
             .remove("pending_checkin_shows")
+            .remove("pending_checkin_had_offer")
             .apply()
     }
 
@@ -186,7 +190,7 @@ fun DinnerApp() {
         val completedDealId = pendingCheckInDealId
         if (completedDealId.isNotBlank()) {
             prefs.edit().putString("deal_checkin_result_$completedDealId", result).apply()
-            if (result == "worked" || result == "did_not_work") {
+            if (result == "worked" || result == "did_not_work" || result == "visited") {
                 val updatedHistory = (listOf(MealRecord(completedDealId, result, System.currentTimeMillis())) + mealHistory)
                     .take(50)
                 mealHistory = updatedHistory
@@ -195,6 +199,7 @@ fun DinnerApp() {
         }
         pendingCheckInDealId = ""
         pendingCheckInReady = false
+        pendingCheckInHadOffer = true
         pendingCheckInShows = 0
         checkInMessage = message
         prefs.edit()
@@ -202,6 +207,7 @@ fun DinnerApp() {
             .remove("pending_checkin_stage")
             .remove("pending_checkin_ready")
             .remove("pending_checkin_shows")
+            .remove("pending_checkin_had_offer")
             .apply()
     }
 
@@ -235,6 +241,14 @@ fun DinnerApp() {
             .filter { it.id != selectedTonightDeal.id }
             .take(3)
     } else recommendationResult.alternatives
+    val upcomingDeal = visibleDeals
+        .filter { isDealEligibleForHousehold(it, savedHousehold) }
+        .mapNotNull { deal -> daysUntilNextOffer(deal, today)?.let { days -> deal to days } }
+        .minWithOrNull(
+            compareBy<Pair<PlaceDeal, Int>> { it.second }
+                .thenByDescending { it.first.verified }
+                .thenByDescending { it.first.savingsRank }
+        )
 
     if (!onboardingComplete) {
         OnboardingScreen { onboardingZip, adultCount, childAges, onboardingRatings ->
@@ -315,11 +329,13 @@ fun DinnerApp() {
                         hasFoodProfile = quizRatings.size >= INITIAL_FOOD_QUIZ_SIZE,
                         pendingCheckIn = elkGroveDeals.find { it.id == pendingCheckInDealId },
                         checkInReady = pendingCheckInReady,
+                        pendingCheckInHadOffer = pendingCheckInHadOffer,
                         checkInShows = pendingCheckInShows,
                         checkInMessage = checkInMessage,
                         onDealWorked = { finishCheckIn("Thanks! Your confirmation helps us track reliable deals.", "worked") },
                         onDealFailed = { finishCheckIn("Thanks. We'll keep that result separate from your restaurant preferences.", "did_not_work") },
                         onDealNotUsed = { finishCheckIn("Thanks — we'll close that check-in.", "not_used") },
+                        onRestaurantVisited = { finishCheckIn("Thanks! That meal was added to your history.", "visited") },
                         onDismissCheckIn = { postponeCheckIn() },
                         onViewPlan = { deal ->
                             selectedDeal = deal
@@ -333,6 +349,13 @@ fun DinnerApp() {
                         onCancelPlan = { cancelPlan() },
                         mealHistory = mealHistory,
                         ratedPlaceCount = quizRatings.count { it.value in 1..5 },
+                        upcomingDeal = upcomingDeal?.first,
+                        upcomingDaysAway = upcomingDeal?.second,
+                        onViewUpcoming = { deal ->
+                            selectedDeal = deal
+                            detailBackPage = "Home"
+                            page = "Deal details"
+                        },
                         onQuiz = {
                             editingQuizPlaceId = null
                             previewingNewUser = false
@@ -345,6 +368,7 @@ fun DinnerApp() {
                         isUserSelected = selectedTonightDeal != null,
                         hasTonightDeal = hasTonightDeal,
                         alternatives = displayedAlternatives,
+                        today = today,
                         zip = savedHousehold.zip,
                         ratings = quizRatings,
                         picksMessage = picksMessage,
@@ -371,14 +395,17 @@ fun DinnerApp() {
                             }
                         },
                         onPlanToTry = { deal ->
+                            val planHasOffer = today in deal.days && isDealEligibleForHousehold(deal, savedHousehold)
                             selectedTonightDealId = deal.id
                             pendingCheckInDealId = deal.id
+                            pendingCheckInHadOffer = planHasOffer
                             pendingCheckInReady = false
                             pendingCheckInShows = 0
                             checkInMessage = ""
                             prefs.edit()
                                 .putString("selected_tonight_deal_id", deal.id)
                                 .putString("pending_checkin_deal_id", deal.id)
+                                .putBoolean("pending_checkin_had_offer", planHasOffer)
                                 .putBoolean("pending_checkin_ready", false)
                                 .putInt("pending_checkin_shows", 0)
                                 .apply()

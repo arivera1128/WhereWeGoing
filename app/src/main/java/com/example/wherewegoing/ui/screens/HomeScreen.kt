@@ -17,7 +17,10 @@ import androidx.compose.ui.unit.sp
 import com.example.wherewegoing.*
 import com.example.wherewegoing.model.MealRecord
 import com.example.wherewegoing.model.PlaceDeal
+import com.example.wherewegoing.domain.dayName
+import com.example.wherewegoing.domain.nextOfferDay
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 @Composable
@@ -29,17 +32,22 @@ fun HomePage(
     hasFoodProfile: Boolean,
     pendingCheckIn: PlaceDeal?,
     checkInReady: Boolean,
+    pendingCheckInHadOffer: Boolean,
     checkInShows: Int,
     checkInMessage: String,
     onDealWorked: () -> Unit,
     onDealFailed: () -> Unit,
     onDealNotUsed: () -> Unit,
+    onRestaurantVisited: () -> Unit,
     onDismissCheckIn: () -> Unit,
     onViewPlan: (PlaceDeal) -> Unit,
     onChangePlan: (PlaceDeal) -> Unit,
     onCancelPlan: () -> Unit,
     mealHistory: List<MealRecord>,
     ratedPlaceCount: Int,
+    upcomingDeal: PlaceDeal?,
+    upcomingDaysAway: Int?,
+    onViewUpcoming: (PlaceDeal) -> Unit,
     onQuiz: () -> Unit
 ) {
     PageColumn {
@@ -51,6 +59,14 @@ fun HomePage(
         }
         Text("Starting area: Elk Grove • ZIP $zip", style = MaterialTheme.typography.bodySmall)
 
+        if (upcomingDeal != null && upcomingDaysAway != null) {
+            UpcomingOfferCard(
+                deal = upcomingDeal,
+                daysAway = upcomingDaysAway,
+                onView = { onViewUpcoming(upcomingDeal) }
+            )
+        }
+
         Text("Your dinner dashboard", style = MaterialTheme.typography.titleLarge)
         DinnerSummary(mealHistory)
 
@@ -59,15 +75,18 @@ fun HomePage(
             CheckInCard(
                 deal = pendingCheckIn,
                 showNumber = checkInShows,
+                hadOffer = pendingCheckInHadOffer,
                 onDealWorked = onDealWorked,
                 onDealFailed = onDealFailed,
                 onDealNotUsed = onDealNotUsed,
+                onRestaurantVisited = onRestaurantVisited,
                 onDismiss = onDismissCheckIn
             )
         } else if (pendingCheckIn != null) {
             Text("Tonight's plan", style = MaterialTheme.typography.titleLarge)
             TonightPlanCard(
                 deal = pendingCheckIn,
+                hadOffer = pendingCheckInHadOffer,
                 onViewDetails = { onViewPlan(pendingCheckIn) },
                 onChangePlan = { onChangePlan(pendingCheckIn) },
                 onCancelPlan = onCancelPlan
@@ -108,8 +127,36 @@ fun HomePage(
 }
 
 @Composable
+private fun UpcomingOfferCard(deal: PlaceDeal, daysAway: Int, onView: () -> Unit) {
+    val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+    val offerDay = nextOfferDay(deal, today)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                if (daysAway == 1) "Coming tomorrow" else "Coming ${offerDay?.let(::dayName) ?: "soon"}",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(deal.name, style = MaterialTheme.typography.titleLarge)
+            Text(deal.offer)
+            Text(
+                if (deal.verified) "Verified ${deal.checked}"
+                else "Possible offer · Last checked ${deal.checked} · Confirm with this location",
+                style = MaterialTheme.typography.bodySmall
+            )
+            OutlinedButton(onClick = onView, modifier = Modifier.fillMaxWidth()) {
+                Text("View upcoming offer")
+            }
+        }
+    }
+}
+
+@Composable
 private fun TonightPlanCard(
     deal: PlaceDeal,
+    hadOffer: Boolean,
     onViewDetails: () -> Unit,
     onChangePlan: () -> Unit,
     onCancelPlan: () -> Unit
@@ -120,9 +167,15 @@ private fun TonightPlanCard(
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(deal.name, style = MaterialTheme.typography.titleLarge)
-            Text(deal.offer)
-            Text("We'll ask how the deal went the next time you open the app.", style = MaterialTheme.typography.bodySmall)
-            Button(onClick = onViewDetails, modifier = Modifier.fillMaxWidth()) { Text("View deal details") }
+            Text(if (hadOffer) deal.offer else deal.category)
+            Text(
+                if (hadOffer) "We'll ask how the deal went the next time you open the app."
+                else "We'll ask whether you ate here the next time you open the app.",
+                style = MaterialTheme.typography.bodySmall
+            )
+            Button(onClick = onViewDetails, modifier = Modifier.fillMaxWidth()) {
+                Text(if (hadOffer) "View deal details" else "View restaurant details")
+            }
             OutlinedButton(onClick = onChangePlan, modifier = Modifier.fillMaxWidth()) { Text("Change my plan") }
             TextButton(onClick = onCancelPlan, modifier = Modifier.fillMaxWidth()) { Text("Cancel plan") }
         }
@@ -174,7 +227,11 @@ private fun RecentMeals(mealHistory: List<MealRecord>) {
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(deal.name, style = MaterialTheme.typography.titleMedium)
                         Text(
-                            if (meal.result == "worked") "Deal worked" else "Deal didn't work",
+                            when (meal.result) {
+                                "worked" -> "Deal worked"
+                                "visited" -> "Restaurant visit"
+                                else -> "Deal didn't work"
+                            },
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -189,9 +246,11 @@ private fun RecentMeals(mealHistory: List<MealRecord>) {
 private fun CheckInCard(
     deal: PlaceDeal,
     showNumber: Int,
+    hadOffer: Boolean,
     onDealWorked: () -> Unit,
     onDealFailed: () -> Unit,
     onDealNotUsed: () -> Unit,
+    onRestaurantVisited: () -> Unit,
     onDismiss: () -> Unit
 ) {
     Card(
@@ -204,9 +263,13 @@ private fun CheckInCard(
                 TextButton(onClick = onDismiss) { Text("Dismiss") }
             }
             Text(deal.name, style = MaterialTheme.typography.titleMedium)
-            Text("Did you try this deal?")
-            Button(onClick = onDealWorked, modifier = Modifier.fillMaxWidth()) { Text("Yes — the deal worked") }
-            OutlinedButton(onClick = onDealFailed, modifier = Modifier.fillMaxWidth()) { Text("Yes — but the deal didn't work") }
+            Text(if (hadOffer) "Did you try this deal?" else "Did you eat here?")
+            if (hadOffer) {
+                Button(onClick = onDealWorked, modifier = Modifier.fillMaxWidth()) { Text("Yes — the deal worked") }
+                OutlinedButton(onClick = onDealFailed, modifier = Modifier.fillMaxWidth()) { Text("Yes — but the deal didn't work") }
+            } else {
+                Button(onClick = onRestaurantVisited, modifier = Modifier.fillMaxWidth()) { Text("Yes") }
+            }
             TextButton(onClick = onDealNotUsed, modifier = Modifier.fillMaxWidth()) { Text("No") }
             Text("Check-in ${showNumber.coerceAtLeast(1)} of 3", style = MaterialTheme.typography.bodySmall)
         }

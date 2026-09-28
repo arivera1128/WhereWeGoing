@@ -17,21 +17,27 @@ import androidx.compose.ui.unit.sp
 import com.example.wherewegoing.*
 import com.example.wherewegoing.model.MealRecord
 import com.example.wherewegoing.model.PlaceDeal
+import com.example.wherewegoing.domain.dayName
+import com.example.wherewegoing.domain.nextOfferDay
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 @Composable
 fun PicksPage(
     displayedPick: PlaceDeal?, isUserSelected: Boolean, hasTonightDeal: Boolean,
-    alternatives: List<PlaceDeal>, zip: String,
+    alternatives: List<PlaceDeal>, zip: String, today: Int,
     ratings: Map<String, Int>, picksMessage: String, plannedDealId: String,
     onRate: (PlaceDeal, Int) -> Unit,
     onPlanToTry: (PlaceDeal) -> Unit, onUpdateLocation: () -> Unit, onReviewRemoved: () -> Unit,
     onChoose: (PlaceDeal) -> Unit, onOpen: (PlaceDeal) -> Unit
 ) {
     PageColumn {
+        val featuredOfferToday = displayedPick?.let { today in it.days } == true
         Text(
-            if (isUserSelected) "Your selected deal" else "Tonight's pick",
+            if (isUserSelected) "Your selected place"
+            else if (displayedPick != null && !featuredOfferToday) "Restaurant pick"
+            else "Tonight's pick",
             style = MaterialTheme.typography.headlineSmall
         )
         if (picksMessage.isNotBlank()) {
@@ -53,13 +59,16 @@ fun PicksPage(
                 }
             }
         } else {
-            if (!hasTonightDeal) {
-                Text("No strong confirmed deal today. Try a place you might like, and check its current offer.")
+            if (!featuredOfferToday) {
+                Text("No confirmed deal today. Here's a restaurant that fits your food profile.")
+            } else if (!hasTonightDeal) {
+                Text("Possible deal today — confirm with this location.")
             }
             DealTile(
                 deal = displayedPick,
                 featured = true,
                 rating = ratings[displayedPick.id],
+                offerToday = featuredOfferToday,
                 onRate = { onRate(displayedPick, it) },
                 onOpen = { onOpen(displayedPick) }
             ) {
@@ -72,7 +81,7 @@ fun PicksPage(
                     }
                 } else {
                     Button(onClick = { onPlanToTry(displayedPick) }, modifier = Modifier.fillMaxWidth()) {
-                        Text("I'll try this deal")
+                        Text(if (featuredOfferToday) "I'll try this deal" else "I'll try this place")
                     }
                 }
             }
@@ -82,11 +91,12 @@ fun PicksPage(
             DealTile(
                 deal = deal,
                 rating = ratings[deal.id],
+                offerToday = today in deal.days,
                 onRate = { onRate(deal, it) },
                 onOpen = { onOpen(deal) }
             ) {
                 Button(onClick = { onChoose(deal) }, modifier = Modifier.fillMaxWidth()) {
-                    Text("Choose this deal")
+                    Text(if (today in deal.days) "Choose this deal" else "Choose this place")
                 }
             }
         }
@@ -98,6 +108,7 @@ private fun DealTile(
     deal: PlaceDeal,
     featured: Boolean = false,
     rating: Int?,
+    offerToday: Boolean,
     onRate: (Int) -> Unit,
     onOpen: () -> Unit,
     content: (@Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit)? = null
@@ -113,9 +124,17 @@ private fun DealTile(
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(deal.name, style = MaterialTheme.typography.titleLarge)
             Text(deal.category, style = MaterialTheme.typography.bodySmall)
-            Text(deal.offer)
-            Text(deal.terms, style = MaterialTheme.typography.bodySmall)
-            Text(if (deal.verified) "Source checked ${deal.checked}" else "Confirm with location", style = MaterialTheme.typography.bodySmall)
+            if (offerToday) {
+                Text(deal.offer)
+                Text(deal.terms, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    if (deal.verified) "Verified ${deal.checked}"
+                    else "Possible deal · Last checked ${deal.checked} · Confirm with this location",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            } else {
+                Text("No confirmed deal today.", style = MaterialTheme.typography.bodySmall)
+            }
             TextButton(onClick = { ratingExpanded = !ratingExpanded }) {
                 Text(if (rating in 1..5) "Your rating: $rating/5 · Edit" else "Rate this place")
             }
@@ -172,14 +191,23 @@ fun DetailPage(
     onRemove: () -> Unit,
     onSource: () -> Unit
 ) {
+    val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+    val offerToday = today in deal.days
+    val upcomingDay = nextOfferDay(deal, today)
     PageColumn {
         TextButton(onClick = onBack) { Text(backLabel) }
         Text(deal.name, style = MaterialTheme.typography.headlineMedium)
         Text(deal.category)
+        if (!offerToday && upcomingDay != null) {
+            Text("Upcoming offer: ${dayName(upcomingDay)}", style = MaterialTheme.typography.titleMedium)
+        }
         Text(deal.offer, style = MaterialTheme.typography.titleLarge)
         Text("Where: ${deal.address}")
         Text("Details: ${deal.terms}")
-        Text(if (deal.verified) "Source checked ${deal.checked}" else "Not confirmed at this location")
+        Text(
+            if (deal.verified) "Verified ${deal.checked}"
+            else "Possible offer · Last checked ${deal.checked} · Confirm with this location"
+        )
         OutlinedButton(onClick = onSource) { Text("View deal source") }
         if (!removed) {
             OutlinedButton(onClick = onRemove) { Text("Remove this place from recommendations") }

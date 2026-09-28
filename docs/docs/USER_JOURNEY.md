@@ -54,6 +54,8 @@ The featured deal provides terms/details, verification context, **I'll try this 
 
 The page shows up to three alternatives: the next two acceptable scores plus a different cuisine or dining style when available. Each alternative can be promoted and provides the same deal and restaurant-rating controls. A verified strong deal is preferred; weak and true no-result states use the established honest recovery behavior.
 
+If no offer is active today, the page labels the result **Restaurant pick**, hides future offer terms from the tonight flow and says there is no confirmed deal today. The action becomes **I'll try this place**. A later check-in asks whether the person ate there rather than whether a deal worked. A possible current deal remains visible with **Confirm with this location** and its last-checked context.
+
 ## 5. Dinner plan
 
 Pressing **I'll try this deal** records intent, saves Tonight's plan and automatically returns Home. It does not record a visit or meal.
@@ -80,6 +82,8 @@ A worked or did-not-work answer creates a meal-history record. No closes the pla
 ## 7. Home and meal history
 
 Home is a personal dinner dashboard as well as the entry point to Tonight's Picks. It summarizes meals recorded, deals that worked and unique places visited. Recent activity is meal based; selections, restaurant ratings and profile edits do not appear as meals.
+
+Home also shows one secondary upcoming-offer card: the nearest eligible offer within seven days. Tomorrow is called out when applicable. The card opens details, does not provide an intent action before the offer day and does not affect tonight's ranking.
 
 Estimated savings is deferred because the prototype cannot reliably derive actual order totals, percentage savings or eligibility usage without burdensome user input or dependable transaction data.
 
