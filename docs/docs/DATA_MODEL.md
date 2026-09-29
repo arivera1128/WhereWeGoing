@@ -33,6 +33,12 @@ The Android prototype's current `HouseholdProfile` stores adult count, one curre
 
 An independent restaurant with one location and a chain with many use the same model. No separate Brand parent is required. A promotion exists once logically even when many outlets participate. DealLocation is a many-to-many applicability relationship; it must not be replaced by duplicated deals or a location-specific boolean.
 
+### Validated scenario: single-location independent restaurant
+
+**Accepted September 28, 2026.** A local independent restaurant receives one Restaurant record for the business concept and one Location record for its current physical outlet. The Restaurant stores shared identity and classification; the Location stores the address, coordinates, phone and other outlet facts. A deal remains a separate record, with the applicable outlet represented through DealLocation even when there is only one.
+
+This apparent one-to-one case still uses the same one-to-many structure as a chain. If the restaurant opens another outlet, the new Location can be added without changing its Restaurant identity. If it moves, the prior Location can be retired and a new one created so historical visits, evidence and deal applicability continue to refer to the place that actually existed at that time.
+
 The current model associates a deal with one restaurant concept. Multi-restaurant campaigns would need a future decision, not an invented relationship now. Location-specific changes to terms may require versions or related offers; representation TBD.
 
 ## Scope, applicability and confidence

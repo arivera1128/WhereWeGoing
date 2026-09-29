@@ -20,7 +20,7 @@
 | Product and UX | 80 | Core promise, implemented first-launch journey, profiles, Food Profile, selectable alternatives, manageable dinner plans, a meal-based Home dashboard, and tester-ready feedback flow are established. | Complete the remaining account-prompt and measurement decisions. |
 | Android client | 60 | A modularized Compose prototype covers onboarding, major screens, a shared household repository, local preferences, deal intent, check-ins, and meal history. | Move top-level state and remaining persistence behind clear boundaries. |
 | Recommendation engine | 70 | Plain Kotlin scoring uses deal strength, confidence, current-day availability, direct ratings, learned food traits, exact-age eligibility, exclusions and deliberate fallback rules; future offers cannot boost tonight. | Add geography, distance, structured date/time validity and production-data inputs. |
-| Restaurant and deal data | 30 | Curated Elk Grove examples, sources, and a detailed logical model exist. | Validate model scenarios and define the real-data sandbox. |
+| Restaurant and deal data | 35 | Curated Elk Grove examples, sources, a detailed logical model, and a validated independent-restaurant scenario exist. | Validate the remaining model scenarios and define the real-data sandbox. |
 | Backend and infrastructure | 10 | Platform boundaries and environment requirements are documented. | Define access patterns, then compare backend and database options. |
 | Feedback and learning | 65 | Deal appeal, intent, and one-tap next-visit deal outcomes are stored locally without treating deal failure as restaurant dislike. | Define durable event contracts and connect accepted signals to recommendations. |
 | Testing and launch | 35 | The app has been built, installed, and visually checked repeatedly; debug-only tools now provide repeatable weekday simulation, state visibility, onboarding preview and confirmed local reset. | Execute the end-to-end acceptance cases and define a tester distribution plan. |
@@ -107,7 +107,7 @@
 - [x] Represent per-location deal applicability.
 - [x] Separate explicit preferences from permanent exclusions.
 - [x] Keep recommendation, intent, visit, deal outcome, and preference feedback distinct.
-- [ ] Review a single-location independent restaurant scenario.
+- [x] Review a single-location independent restaurant scenario.
 - [ ] Review a chain offer with included, excluded, and unknown locations.
 - [ ] Review recurring, overnight, expired, and eligibility-restricted offers.
 - [ ] Formally accept or revise the logical model after scenario review.
