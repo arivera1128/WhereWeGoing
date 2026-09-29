@@ -45,7 +45,7 @@
 - [x] Require traceable recommendation factors while keeping consumer deal cards concise.
 - [x] Decide the exact intent, visit, verification, and preference-feedback subset for the MVP.
 - [x] Define no-result and weak-result behavior.
-- [ ] Define how the 30-second aspiration and MVP success will be measured.
+- [x] Define how the 30-second aspiration will be measured once representative data and external testers are available.
 
 ## Step 2: Modularize the Android prototype
 
@@ -214,7 +214,7 @@
 - [x] Test family and solo profiles against the same candidate supply.
 - [ ] Test strong match, weak match, and no-result cases.
 - [ ] Test excluded, expired, unknown, and conflicting deals.
-- [ ] Measure the agreed decision-time experience.
+- [ ] Measure the agreed decision-time experience with representative data and external testers.
 - [ ] Conduct an external tester session and prioritize findings.
 
 ## Step 10: Prepare the public MVP release

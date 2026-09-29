@@ -59,7 +59,9 @@ MVP has no paid ranking. Future sponsored placements should be identified and re
 
 ## Success and validation
 
-The established UX aspiration is approximately 30 seconds from opening the app to a confident dining decision. Define the measurement population, start/end events, onboarding treatment and success threshold before calling it a measured result. Primary MVP success metric is still TBD.
+The established UX aspiration is approximately 30 seconds from opening the app to a confident dining decision. Measure this with returning users who already have a household and Food Profile, using representative restaurant and deal data. Start timing when Home is visible and stop when the person confirms a dinner plan. Record completion time, whether help was needed, and whether the person accepted the recommendation or selected an alternative. Report the share completed within 30 seconds rather than treating the product owner's own walkthrough as user validation. Onboarding is measured separately.
+
+The current prototype appears short enough in owner walkthroughs, but the 30-second aspiration remains unvalidated until representative data and external testers are available. The minimum tester sample and acceptable completion rate will be chosen after an initial pilot rather than invented from prototype-only evidence.
 
 Working validation scenarios: compare recommendations for family and solo profiles; enforce location/time/eligibility constraints; inspect the internal score components; distinguish unverified participation; demonstrate data changes without changing hard-coded app offers. Detailed acceptance thresholds require review.
 
