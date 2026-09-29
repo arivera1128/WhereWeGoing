@@ -28,6 +28,8 @@ When no active deal exists, the app still recommends a restaurant from food fit 
 
 Time-limited deals use the restaurant location's local time. A deal may appear before its valid hours on the same day for advance dinner planning, but it stops being an actionable option when fewer than 25 minutes remain. Overnight windows continue past midnight to their stated end time. Expired deals do not appear in recommendations.
 
+Child-age deals are shown only when the saved household establishes that at least one child qualifies. Membership deals may remain visible because a user can choose to join; the requirement is stated clearly. When dependable information exists, details may provide source-dated instructions or an official link for joining through the restaurant app, website or location.
+
 ## Consumer journey and learning
 
 The core journey is open app → request tonight's recommendation → see the winner and alternatives → understand the deal terms → choose.

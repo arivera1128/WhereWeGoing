@@ -28,7 +28,7 @@ The Android prototype's current `HouseholdProfile` stores adult count, one curre
 |---|---|---|
 | Restaurant | MVP | restaurant_id; name, description, cuisine/category, price level, website, image reference, active status, created/updated times. Business/concept, not a street address. |
 | Location | MVP | location_id; restaurant_id; external provider/place references, address, coordinates, local time zone, phone, active status, timestamps. One physical outlet belongs to one Restaurant in the current model. |
-| Deal | MVP | deal_id; restaurant_id; title, description, deal type, value estimate, date range, recurring days/time window, expiration, scope, eligibility, promo code, dine-in/takeout restrictions, lifecycle status and version/history reference. |
+| Deal | MVP | deal_id; restaurant_id; title, description, deal type, value estimate, date range, recurring days/time window, expiration, scope, structured eligibility, separate enrollment guidance/link with source and checked time, promo code, dine-in/takeout restrictions, lifecycle status and version/history reference. |
 | DealLocation | MVP | Logical unique pair deal_id + location_id; applicability, confidence summary, last verification time and supporting evidence references. Optional surrogate ID is a physical-design choice. |
 
 An independent restaurant with one location and a chain with many use the same model. No separate Brand parent is required. A promotion exists once logically even when many outlets participate. DealLocation is a many-to-many applicability relationship; it must not be replaced by duplicated deals or a location-specific boolean.
@@ -85,7 +85,17 @@ Evidence and meaningful history are append-only in ordinary operations. Correcti
 | Identity/account linkage | Separate architectural seam | Application user linked to authentication subject(s) if enabled. Provider, migration and cardinality TBD. |
 | Roles/permissions | Planned tool capability; enforcement as needed | Authorized actions and resource scope. Consumer/operator/merchant concepts; exact matrix TBD. |
 
-Eligibility belongs both in offer requirements and relevant user context. Examples include children, military, senior, student, rewards membership, new-customer or birthday conditions. These examples do not mandate collecting every attribute. Exact representation, unknown eligibility behavior and privacy requirements remain open.
+Eligibility belongs both in offer requirements and relevant user context. Examples include children, military, senior, student, rewards membership, new-customer or birthday conditions. These examples do not mandate collecting every attribute. Exact representation for additional eligibility types and their privacy requirements remains open.
+
+### Validated scenario: age and membership eligibility
+
+**Accepted September 28, 2026.** A child-age offer is shown when at least one saved child satisfies the stated age range. It is hidden when the household has no children, all saved children are outside the range, or the age needed to establish eligibility is missing. The restaurant may still be recommended without that offer.
+
+A membership requirement is treated differently because the user may be willing and able to join. The deal remains visible with a clear term such as **Rewards members only**. When verified guidance exists, the deal may explain how to enroll through the restaurant app, official website or at the location and may link to the official enrollment destination. The requirement and enrollment guidance are stored separately. Guidance retains its source and last-checked time, and the app does not promise immediate enrollment unless current evidence supports that claim.
+
+## Logical model acceptance
+
+**Accepted September 28, 2026.** The logical model is approved as the basis for access-pattern review and later physical database design. Acceptance covers the entity boundaries and scenario rules documented here; it does not choose a database, finalize field names, or resolve the remaining questions explicitly marked open.
 
 ## Behavioral event domain
 
