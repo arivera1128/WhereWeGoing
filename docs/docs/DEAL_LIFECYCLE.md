@@ -49,6 +49,8 @@ A published deal can be confirmed at Location A and unknown at Location B. Unkno
 
 User verification records availability and honoring separately. Worked and did-not-work reports add location-specific, time-specific evidence and may adjust confidence as evidence accumulates. A negative report must not erase prior confirmations or automatically establish chain-wide invalidity. Confidence formula, age decay, weighting, minimum sample size and response to conflicts are TBD. Do not invent numeric confidence from raw counts without an agreed method.
 
+Current validity is calculated in the location's local time zone from the deal's date range, recurring day and time window. Overnight windows remain attached to their starting day. A published deal with fewer than 25 minutes remaining is no longer an actionable tonight result. Expiration removes it from consumer eligibility while retaining its history and evidence.
+
 ## Operations and environments
 
 The envisioned internal tool exposes candidate queues, enrichment/validation work, pending publication, approved/published offers, monitoring issues and retired records, with linked evidence. Operators can approve, reject, merge and retire under defined permissions. Restaurant, user and eventual merchant management share the platform rather than create disconnected stores.

@@ -109,7 +109,8 @@
 - [x] Keep recommendation, intent, visit, deal outcome, and preference feedback distinct.
 - [x] Review a single-location independent restaurant scenario.
 - [x] Review a chain offer with included, excluded, and unknown locations.
-- [ ] Review recurring, overnight, expired, and eligibility-restricted offers.
+- [x] Review recurring, overnight, expired, and near-closing offers.
+- [ ] Review eligibility-restricted offers.
 - [ ] Formally accept or revise the logical model after scenario review.
 
 ## Step 5: Define access patterns and expected scale

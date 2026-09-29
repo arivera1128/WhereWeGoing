@@ -27,7 +27,7 @@ The Android prototype's current `HouseholdProfile` stores adult count, one curre
 | Entity | Scope | Logical identity and candidate fields |
 |---|---|---|
 | Restaurant | MVP | restaurant_id; name, description, cuisine/category, price level, website, image reference, active status, created/updated times. Business/concept, not a street address. |
-| Location | MVP | location_id; restaurant_id; external provider/place references, address, coordinates, phone, active status, timestamps. One physical outlet belongs to one Restaurant in the current model. |
+| Location | MVP | location_id; restaurant_id; external provider/place references, address, coordinates, local time zone, phone, active status, timestamps. One physical outlet belongs to one Restaurant in the current model. |
 | Deal | MVP | deal_id; restaurant_id; title, description, deal type, value estimate, date range, recurring days/time window, expiration, scope, eligibility, promo code, dine-in/takeout restrictions, lifecycle status and version/history reference. |
 | DealLocation | MVP | Logical unique pair deal_id + location_id; applicability, confidence summary, last verification time and supporting evidence references. Optional surrogate ID is a physical-design choice. |
 
@@ -54,6 +54,12 @@ For verified ALL_LOCATIONS scope, exception-based mappings were proposed to avoi
 **Accepted September 28, 2026.** One chain Deal may be linked to many locations with different DealLocation applicability values. INCLUDED locations may show the deal as confirmed when the supporting evidence is current. EXCLUDED locations do not show the offer. UNKNOWN locations may show it as a **Possible deal** with **Confirm with this location**, allowing the user to consider a useful lead without presenting uncertain participation as fact.
 
 A user's worked or did-not-work result becomes evidence for the specific location and time involved. It can raise or lower that location's confidence as evidence accumulates, but one report does not confirm or invalidate the offer for the entire chain. The numeric weighting, conflict threshold and freshness decay remain to be defined before production scoring.
+
+### Validated scenario: recurring and time-limited offers
+
+**Accepted September 28, 2026.** Deal availability is evaluated in the physical location's local time zone. A recurring offer may be shown earlier on its valid day so a person can plan ahead, with its operating window visible. An overnight window belongs to its starting day and remains active after midnight until its stated end time. Once a deal is expired, it cannot be recommended, although its record and historical evidence remain available.
+
+An otherwise active deal needs at least **25 minutes remaining** to appear as an actionable tonight option. At 25 minutes or more, the user decides whether the remaining time is practical. Below 25 minutes, the deal is removed from the actionable results because it is unlikely to be useful. The same cutoff applies to households with and without children.
 
 ## Evidence and lifecycle domain
 
