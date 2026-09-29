@@ -49,6 +49,12 @@ Working per-location applicability values: INCLUDED, EXCLUDED, UNKNOWN. Confiden
 
 For verified ALL_LOCATIONS scope, exception-based mappings were proposed to avoid enumerating thousands of locations. Whether and how to inherit applicability, prioritize conflicting evidence and represent inclusions/exclusions is unresolved. Absence of a mapping must not silently mean confirmed participation. UNKNOWN is not EXCLUDED, and neither is a verification event.
 
+### Validated scenario: chain offer with mixed participation
+
+**Accepted September 28, 2026.** One chain Deal may be linked to many locations with different DealLocation applicability values. INCLUDED locations may show the deal as confirmed when the supporting evidence is current. EXCLUDED locations do not show the offer. UNKNOWN locations may show it as a **Possible deal** with **Confirm with this location**, allowing the user to consider a useful lead without presenting uncertain participation as fact.
+
+A user's worked or did-not-work result becomes evidence for the specific location and time involved. It can raise or lower that location's confidence as evidence accumulates, but one report does not confirm or invalidate the offer for the entire chain. The numeric weighting, conflict threshold and freshness decay remain to be defined before production scoring.
+
 ## Evidence and lifecycle domain
 
 | Concept | Scope | Candidate content and relationships |

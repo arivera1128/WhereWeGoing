@@ -45,9 +45,9 @@ These rules operationalize the agreed preservation/trust principles. Exact permi
 4. **Confidence/freshness:** strength and recency of evidence.
 5. **User eligibility and current validity:** whether the offer fits this user and this time.
 
-A published deal can be confirmed at Location A and unknown at Location B. Unknown participation must not be displayed as confirmed. Whether unknown locations can be recommended with a disclosure is an open product policy; publication alone does not settle it.
+A published deal can be confirmed at Location A and unknown at Location B. Unknown participation must not be displayed as confirmed. An unknown location may be recommended as a **Possible deal** with a **Confirm with this location** prompt. A confirmed exclusion is not shown. This consumer policy does not change the underlying applicability state.
 
-User verification records availability and honoring separately. A negative report adds evidence; it must not erase prior confirmations or automatically establish nationwide invalidity. Confidence formula, age decay, weighting, minimum sample size and response to conflicts are TBD. Do not invent numeric confidence from raw counts without an agreed method.
+User verification records availability and honoring separately. Worked and did-not-work reports add location-specific, time-specific evidence and may adjust confidence as evidence accumulates. A negative report must not erase prior confirmations or automatically establish chain-wide invalidity. Confidence formula, age decay, weighting, minimum sample size and response to conflicts are TBD. Do not invent numeric confidence from raw counts without an agreed method.
 
 ## Operations and environments
 
