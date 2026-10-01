@@ -83,7 +83,7 @@ Evidence and meaningful history are append-only in ordinary operations. Correcti
 | User | MVP | Stable user_id, created time, approximate home region, preferred radius, onboarding state, active status. Does not imply mandatory sign-in. |
 | Household | MVP basic | household_id, owning user reference, household/party size and children information. Adult/child counts were proposed; exact required fields TBD. |
 | UserPreference | MVP basic | user reference, restaurant/category target, preference or exclusion, origin and time. |
-| UserEligibilityCharacteristic | MVP incremental | user or household subject; characteristic type; `ELIGIBLE`, `NOT_ELIGIBLE`, or `UNKNOWN`; self-reported source; answer/update times; optional expiration or recheck time. Collected contextually when a relevant deal makes the question useful. |
+| UserEligibilityCharacteristic | MVP incremental | user and household context; characteristic type; response of `SELF`, `HOUSEHOLD_MEMBER`, `NOT_ELIGIBLE`, or `UNKNOWN`; prompting deal when applicable; answer/update times; optional recheck time. Collected contextually when a relevant deal makes the question useful. |
 | LearnedPreference | Planned | Derived signals with source/provenance, confidence and update time; storage form TBD. Never silently overwrites explicit preference. |
 | Identity/account linkage | Separate architectural seam | Application user linked to authentication subject(s) if enabled. Provider, migration and cardinality TBD. |
 | Roles/permissions | Planned tool capability; enforcement as needed | Authorized actions and resource scope. Consumer/operator/merchant concepts; exact matrix TBD. |

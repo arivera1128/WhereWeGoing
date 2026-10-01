@@ -187,6 +187,36 @@ Do not ask every possible eligibility question during onboarding. Collect a char
 
 For ranking, a known match may use the deal benefit; a known mismatch filters that deal; an unknown response does not assume eligibility. The restaurant can still be considered independently from the inapplicable or unresolved offer.
 
+### eligibility_attribute
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| eligibility_attribute_id | UUID | No | Primary key | Stable identity for a self-reportable audience characteristic. |
+| code | Text/code | No | Unique | Machine-readable value such as `VETERAN` or `FIRST_RESPONDER`. |
+| display_name | Text | No | | Consumer-readable name. |
+| status | Text/code | No | Allowed values TBD | Allows a characteristic to be retired without deleting responses. |
+| created_at | Timestamp with time zone | No | | Record creation instant. |
+| updated_at | Timestamp with time zone | No | | Most recent material update instant. |
+
+This lookup covers characteristics that require a direct user answer. Facts already stored structurally, such as saved child ages, should be derived from their authoritative profile data rather than copied here.
+
+### user_eligibility_response
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| user_eligibility_response_id | UUID | No | Primary key | Identity for the current self-reported response. |
+| user_id | UUID | No | Foreign key → future `app_user.user_id` | User who answered and, for `SELF`, the qualifying person. |
+| household_id | UUID | No | Foreign key → future `household.household_id` | Household context used by recommendations. |
+| eligibility_attribute_id | UUID | No | Foreign key → `eligibility_attribute.eligibility_attribute_id` | Characteristic being answered. |
+| response | Text/code | No | `SELF`, `HOUSEHOLD_MEMBER`, `NOT_ELIGIBLE`, or `UNKNOWN` | Distinguishes who may qualify without identifying another household member. |
+| prompted_by_deal_version_id | UUID | Yes | Foreign key → `deal_version.deal_version_id` | Relevant offer that caused the contextual question. |
+| answered_at | Timestamp with time zone | Yes | Null when explicitly left unknown | When the user supplied the current answer. |
+| recheck_after | Timestamp with time zone | Yes | | Optional future prompt date for characteristics that can change. |
+| created_at | Timestamp with time zone | No | | Record creation instant. |
+| updated_at | Timestamp with time zone | No | | Most recent edit instant. |
+
+Only one current response should exist for `(user_id, household_id, eligibility_attribute_id)`. The answer is user-confirmed matching data, not verified eligibility. Do not store identification documents or imply that the restaurant will accept the claim. `HOUSEHOLD_MEMBER` records no name; it means someone in the dining household may qualify and may need to be present for redemption. Users can edit the response later, and **Skip** is stored as `UNKNOWN` or left unknown according to the eventual event contract.
+
 ## Relationship sketch
 
 ```mermaid
@@ -200,8 +230,10 @@ erDiagram
   DEAL_VERSION ||--o{ DEAL_SCHEDULE : occurs_on
   DEAL_VERSION ||--o{ DEAL_LOCATION_APPLICABILITY : evaluated_at
   LOCATION ||--o{ DEAL_LOCATION_APPLICABILITY : participates_in
+  ELIGIBILITY_ATTRIBUTE ||--o{ USER_ELIGIBILITY_RESPONSE : answered_as
+  DEAL_VERSION ||--o{ USER_ELIGIBILITY_RESPONSE : prompted
 ```
 
 ## Next review
 
-Define the base condition record, typed condition tables and user/household eligibility-characteristic tables, then add evidence and behavioral events.
+Define the base deal-condition record and typed condition tables, then add the core user/household tables, evidence and behavioral events.
