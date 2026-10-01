@@ -4,6 +4,8 @@ Version 0.2 · Working design · September 26, 2026
 
 This is a business model, **not a Firestore collection specification**. Entity/field names are working vocabulary. Listed fields are candidates, not a finalized schema, required-field list or API contract. MVP/Planned/Future describe capability scope; they do not require one physical table or document per concept.
 
+The incremental database-oriented translation is maintained in [RELATIONAL_MODEL.md](RELATIONAL_MODEL.md). The logical model remains authoritative for business meaning; the relational draft makes keys, foreign keys, nullability and constraints reviewable.
+
 ## Core relationships
 
 ```mermaid
