@@ -28,7 +28,32 @@ This document translates the accepted logical model into a normalized relational
 | created_at | Timestamp with time zone | No | | Record creation instant. |
 | updated_at | Timestamp with time zone | No | | Most recent material update instant. |
 
-Cuisine and category need a separate review before deciding whether they belong in one lookup table, several many-to-many tables, or a simpler MVP representation.
+Cuisine, dining style, and food traits use the typed many-to-many structure below.
+
+### restaurant_attribute
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| attribute_id | UUID | No | Primary key | Stable identity for one classification value. |
+| attribute_type | Text/code | No | Unique with `name` | Dimension such as `CUISINE`, `DINING_STYLE`, or `FOOD_TRAIT`. |
+| name | Text | No | Unique with `attribute_type` | Value such as Mexican, fast casual, or vegetarian friendly. |
+| status | Text/code | No | Allowed values TBD | Allows a value to be retired without breaking history. |
+| created_at | Timestamp with time zone | No | | Record creation instant. |
+| updated_at | Timestamp with time zone | No | | Most recent material update instant. |
+
+`(attribute_type, name)` must be unique after applying the database's agreed case-normalization rule.
+
+### restaurant_attribute_assignment
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| restaurant_id | UUID | No | Composite primary key; foreign key → `restaurant.restaurant_id` | Restaurant being classified. |
+| attribute_id | UUID | No | Composite primary key; foreign key → `restaurant_attribute.attribute_id` | Assigned cuisine, dining style, or food trait. |
+| is_primary | Boolean | No | Default false | Marks the leading value within a dimension when useful for display. |
+| created_at | Timestamp with time zone | No | | When the assignment was created. |
+| updated_at | Timestamp with time zone | No | | Most recent material update instant. |
+
+This many-to-many structure lets one restaurant carry several useful signals without adding columns for each cuisine or trait. Provider provenance and confidence may be added when ingestion rules are defined; they are not implied by the assignment itself.
 
 ### location
 
@@ -73,8 +98,10 @@ Deleting a restaurant with dependent locations should not be a normal operation.
 erDiagram
   RESTAURANT ||--|{ LOCATION : operates
   LOCATION ||--o{ LOCATION_EXTERNAL_REFERENCE : identified_by
+  RESTAURANT ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : classified_as
+  RESTAURANT_ATTRIBUTE ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : assigned_to
 ```
 
 ## Next review
 
-Define cuisine/category structure, then add Deal and DealLocation using the already accepted applicability, timing, eligibility, and evidence rules.
+Add Deal, DealVersion, and DealLocation using the already accepted applicability, timing, eligibility, and evidence rules.
