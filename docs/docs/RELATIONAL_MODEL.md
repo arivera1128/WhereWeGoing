@@ -129,6 +129,20 @@ The parent record provides continuity across changes. Consumer-facing terms do n
 
 Recurring schedules, structured eligibility, enrollment guidance, and per-location applicability will be modeled in related tables rather than packed into the version row.
 
+### deal_schedule
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| deal_schedule_id | UUID | No | Primary key | Identity for one recurring weekday/time window. |
+| deal_version_id | UUID | No | Foreign key → `deal_version.deal_version_id` | Exact published terms that own this schedule. |
+| day_of_week | Small integer | No | ISO 1–7 | Local weekday, Monday through Sunday. |
+| start_local_time | Time | Conditional | Required unless `all_day` | Beginning of the local offer window. |
+| end_local_time | Time | Conditional | Required unless `all_day` | End of the local offer window. |
+| spans_midnight | Boolean | No | Default false | Makes an overnight window explicit. |
+| all_day | Boolean | No | Default false | Indicates no narrower time window that day. |
+
+A version receives one row per valid weekday and may receive multiple rows for separate windows on the same day. This favors direct SQL readability and constraints over compressed bitmasks or JSON. A uniqueness rule should prevent duplicate windows for the same version and weekday. Schedule rows belonging to a published version are immutable with that version; changed days or times require a new `deal_version`.
+
 ## Relationship sketch
 
 ```mermaid
@@ -139,8 +153,9 @@ erDiagram
   RESTAURANT_ATTRIBUTE ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : assigned_to
   RESTAURANT ||--o{ DEAL : offers
   DEAL ||--|{ DEAL_VERSION : versioned_as
+  DEAL_VERSION ||--o{ DEAL_SCHEDULE : occurs_on
 ```
 
 ## Next review
 
-Define recurring schedule rows, then add version-specific location applicability, structured eligibility, and evidence.
+Add version-specific location applicability, then structured eligibility and evidence.
