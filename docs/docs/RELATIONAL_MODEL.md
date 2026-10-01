@@ -143,6 +143,24 @@ Recurring schedules, structured eligibility, enrollment guidance, and per-locati
 
 A version receives one row per valid weekday and may receive multiple rows for separate windows on the same day. This favors direct SQL readability and constraints over compressed bitmasks or JSON. A uniqueness rule should prevent duplicate windows for the same version and weekday. Schedule rows belonging to a published version are immutable with that version; changed days or times require a new `deal_version`.
 
+### deal_location_applicability
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| deal_location_applicability_id | UUID | No | Primary key | Identity for one effective-dated applicability assertion. |
+| deal_version_id | UUID | No | Foreign key → `deal_version.deal_version_id` | Exact offer terms being evaluated. |
+| location_id | UUID | No | Foreign key → `location.location_id` | Physical outlet whose participation is described. |
+| applicability | Text/code | No | `INCLUDED`, `EXCLUDED`, or `UNKNOWN` | Current assertion for this version and location. |
+| confidence_level | Text/code | Yes | Formula/levels TBD | Derived strength of the supporting evidence. |
+| effective_from | Timestamp with time zone | No | | When this assertion became current. |
+| effective_through | Timestamp with time zone | Yes | Check > `effective_from` | When it stopped being current; null means current. |
+| last_verified_at | Timestamp with time zone | Yes | | Most recent supporting verification time. |
+| recorded_at | Timestamp with time zone | No | | When this assertion was stored. |
+
+Applicability knowledge changes independently from published offer terms. When a location moves from `UNKNOWN` to `INCLUDED`, close the current row by setting `effective_through` and insert a new row; do not create a new `deal_version` unless the consumer-facing offer terms also changed. There must be at most one current row for a given `(deal_version_id, location_id)`. Historical applicability rows are retained, and later evidence tables will explain why each assertion changed.
+
+Recommendation history must identify the exact deal version and location shown and retain or reference the applicability/confidence context used at that time. The confidence calculation remains open and must not be inferred from this summary column alone.
+
 ## Relationship sketch
 
 ```mermaid
@@ -154,8 +172,10 @@ erDiagram
   RESTAURANT ||--o{ DEAL : offers
   DEAL ||--|{ DEAL_VERSION : versioned_as
   DEAL_VERSION ||--o{ DEAL_SCHEDULE : occurs_on
+  DEAL_VERSION ||--o{ DEAL_LOCATION_APPLICABILITY : evaluated_at
+  LOCATION ||--o{ DEAL_LOCATION_APPLICABILITY : participates_in
 ```
 
 ## Next review
 
-Add version-specific location applicability, then structured eligibility and evidence.
+Add structured eligibility and enrollment guidance, then evidence and behavioral events.
