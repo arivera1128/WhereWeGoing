@@ -182,6 +182,32 @@ Official examples reviewed include [McDonald's deal and rewards terms](https://w
 
 The working direction is a shared base condition record plus typed detail tables. Shared fields can preserve the deal version, condition family, consumer wording, source wording and display order. Typed tables will hold enforceable values such as age ranges, purchase amounts, membership programs, channels and usage counts. Exact tables follow after the user-data counterpart is reviewed.
 
+### deal_condition_group
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| deal_condition_group_id | UUID | No | Primary key | Identity for one group of related requirements. |
+| deal_version_id | UUID | No | Foreign key → `deal_version.deal_version_id` | Published terms that own the group. |
+| match_rule | Text/code | No | `ANY` or `ALL` | Whether any or every condition in this group must match. |
+| display_name | Text | Yes | | Optional operations-facing label for the group. |
+| display_order | Integer | No | Nonnegative | Stable order for presenting grouped terms. |
+
+All condition groups attached to a deal version must pass. Within each group, `ANY` represents OR and `ALL` represents AND. This supports common expressions such as `(veteran OR active military OR first responder) AND dine-in AND qualifying purchase` without a general nested rules language.
+
+### deal_condition
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| deal_condition_id | UUID | No | Primary key | Identity shared by one typed condition detail. |
+| deal_condition_group_id | UUID | No | Foreign key → `deal_condition_group.deal_condition_group_id` | Boolean group containing this condition. |
+| condition_family | Text/code | No | Accepted condition family | Audience, purchase, redemption method, usage limit, or exclusion. |
+| condition_type | Text/code | No | Typed-detail discriminator | Selects the structured detail table and engine evaluator. |
+| consumer_text | Text | No | | Concise condition wording shown to the user. |
+| source_text | Text | Yes | | Exact or fuller source wording retained for review. |
+| display_order | Integer | No | Nonnegative | Stable order within the group. |
+
+Each `deal_condition` must have exactly one matching typed detail record. The detail tables remain the source of machine-evaluable values; `consumer_text` and `source_text` do not replace them. Groups, conditions and typed details become immutable with their published deal version.
+
 ### Personalization and contextual collection
 
 The engine needs comparable user or household characteristics for audience conditions. When a relevant local offer requires an unknown characteristic, the app may ask a short contextual question such as: **“XYZ Diner offers a veteran discount. Does this apply to you or someone in your household?”** The answer is stored as a self-reported eligibility characteristic and can be edited or removed later.
@@ -264,8 +290,10 @@ erDiagram
   ELIGIBILITY_ATTRIBUTE ||--o{ USER_ELIGIBILITY_RESPONSE : answered_as
   DEAL_VERSION ||--o{ USER_ELIGIBILITY_RESPONSE : prompted
   DEAL_VERSION ||--o| DEAL_BIRTHDAY_REQUIREMENT : may_require
+  DEAL_VERSION ||--o{ DEAL_CONDITION_GROUP : governed_by
+  DEAL_CONDITION_GROUP ||--|{ DEAL_CONDITION : contains
 ```
 
 ## Next review
 
-Define audience requirement grouping and remaining typed condition tables, then add the core user/household tables, evidence and behavioral events.
+Define the typed condition detail tables, then add the core user/household tables, evidence and behavioral events.

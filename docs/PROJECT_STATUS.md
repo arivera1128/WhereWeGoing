@@ -1,6 +1,6 @@
 # Where We Going — Project Status
 
-- **Last reviewed:** September 27, 2026
+- **Last reviewed:** September 30, 2026
 - **Primary target:** Tester-ready MVP
 - **Progress method:** Step progress is the percentage of checked checklist items. Overall progress is the weighted total of all steps.
 - **Interpretation:** These percentages are a current evidence-based assessment, not release commitments. Ideas and proposed architecture do not count as completed implementation.
@@ -20,7 +20,7 @@
 | Product and UX | 80 | Core promise, implemented first-launch journey, profiles, Food Profile, selectable alternatives, manageable dinner plans, a meal-based Home dashboard, and tester-ready feedback flow are established. | Complete the remaining account-prompt and measurement decisions. |
 | Android client | 60 | A modularized Compose prototype covers onboarding, major screens, a shared household repository, local preferences, deal intent, check-ins, and meal history. | Move top-level state and remaining persistence behind clear boundaries. |
 | Recommendation engine | 70 | Plain Kotlin scoring uses deal strength, confidence, current-day availability, direct ratings, learned food traits, exact-age eligibility, exclusions and deliberate fallback rules; future offers cannot boost tonight. | Add geography, distance, structured date/time validity and production-data inputs. |
-| Restaurant and deal data | 50 | Curated Elk Grove examples and sources exist, and the logical model has been accepted after independent, chain, timing, expiration and eligibility scenario reviews. | Define the real-data sandbox, provider rules and initial seed sizes. |
+| Restaurant and deal data | 55 | The accepted logical model now has an incremental relational reference covering restaurant/location identity, typed attributes, immutable deal versions, schedules, effective-dated location applicability, deal-condition groups, and contextual user eligibility responses. | Finish typed condition details, then define the real-data sandbox, provider rules and seed sizes. |
 | Backend and infrastructure | 10 | Platform boundaries and environment requirements are documented. | Define access patterns, then compare backend and database options. |
 | Feedback and learning | 65 | Deal appeal, intent, and one-tap next-visit deal outcomes are stored locally without treating deal failure as restaurant dislike. | Define durable event contracts and connect accepted signals to recommendations. |
 | Testing and launch | 35 | The app has been built, installed, and visually checked repeatedly; debug-only tools now provide repeatable weekday simulation, state visibility, onboarding preview and confirmed local reset. | Execute the end-to-end acceptance cases and define a tester distribution plan. |
