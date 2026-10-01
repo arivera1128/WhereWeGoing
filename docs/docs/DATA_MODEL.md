@@ -84,6 +84,7 @@ Evidence and meaningful history are append-only in ordinary operations. Correcti
 | Household | MVP basic | household_id, owning user reference, household/party size and children information. Adult/child counts were proposed; exact required fields TBD. |
 | UserPreference | MVP basic | user reference, restaurant/category target, preference or exclusion, origin and time. |
 | UserEligibilityCharacteristic | MVP incremental | user and household context; characteristic type; response of `SELF`, `HOUSEHOLD_MEMBER`, `NOT_ELIGIBLE`, or `UNKNOWN`; prompting deal when applicable; answer/update times; optional recheck time. Collected contextually when a relevant deal makes the question useful. |
+| UserOccasion | Planned personalization | user reference; typed recurring month/day such as birthday; answer/update times. Birth year is not required solely for birthday matching. |
 | LearnedPreference | Planned | Derived signals with source/provenance, confidence and update time; storage form TBD. Never silently overwrites explicit preference. |
 | Identity/account linkage | Separate architectural seam | Application user linked to authentication subject(s) if enabled. Provider, migration and cardinality TBD. |
 | Roles/permissions | Planned tool capability; enforcement as needed | Authorized actions and resource scope. Consumer/operator/merchant concepts; exact matrix TBD. |
@@ -97,6 +98,8 @@ Eligibility belongs both in offer requirements and relevant user context. Exampl
 A membership requirement is treated differently because the user may be willing and able to join. The deal remains visible with a clear term such as **Rewards members only**. When verified guidance exists, the deal may explain how to enroll through the restaurant app, official website or at the location and may link to the official enrollment destination. The requirement and enrollment guidance are stored separately. Guidance retains its source and last-checked time, and the app does not promise immediate enrollment unless current evidence supports that claim.
 
 Other audience requirements include veteran, first responder, healthcare worker, student, educator, senior, birthday and customer-history status. These are not assumed profile fields. When a nearby deal makes one relevant, the app may ask whether it applies to the user or household and persist the self-reported answer for later matching. Unknown, declined and known-ineligible states must not be converted into eligible. Purchase requirements, redemption channels, usage limits and combination exclusions remain separate from audience eligibility.
+
+Expandable characteristics use definition and response rows rather than one nullable column per possible characteristic. Date-based facts such as birthday use typed occasion data so the engine can evaluate a real calendar window. Structured conditions drive matching; published free-text terms, disclaimers and official links remain available for requirements that are not fully machine-evaluable.
 
 ## Logical model acceptance
 

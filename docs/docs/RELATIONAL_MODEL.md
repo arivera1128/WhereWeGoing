@@ -120,6 +120,9 @@ The parent record provides continuity across changes. Consumer-facing terms do n
 | valid_from | Date | Yes | | First eligible local calendar date. |
 | valid_through | Date | Yes | Check ≥ `valid_from` | Final eligible local calendar date. |
 | scope | Text/code | No | Allowed values TBD | Claimed applicability breadth. |
+| terms_text | Text | Yes | | Full consumer-readable terms retained alongside structured conditions. |
+| disclaimer_text | Text | Yes | | Additional wording such as restrictions or proof requirements. |
+| official_terms_url | Text | Yes | | Official destination for complete current terms when available. |
 | publication_status | Text/code | No | Draft/published/superseded/withdrawn direction | Controls whether this version can be presented. |
 | created_at | Timestamp with time zone | No | | Draft creation instant. |
 | published_at | Timestamp with time zone | Yes | Required when published | First publication instant. |
@@ -194,6 +197,7 @@ For ranking, a known match may use the deal benefit; a known mismatch filters th
 | eligibility_attribute_id | UUID | No | Primary key | Stable identity for a self-reportable audience characteristic. |
 | code | Text/code | No | Unique | Machine-readable value such as `VETERAN` or `FIRST_RESPONDER`. |
 | display_name | Text | No | | Consumer-readable name. |
+| prompt_text | Text | No | | Reusable contextual question shown when a relevant deal finds no answer. |
 | status | Text/code | No | Allowed values TBD | Allows a characteristic to be retired without deleting responses. |
 | created_at | Timestamp with time zone | No | | Record creation instant. |
 | updated_at | Timestamp with time zone | No | | Most recent material update instant. |
@@ -217,6 +221,33 @@ This lookup covers characteristics that require a direct user answer. Facts alre
 
 Only one current response should exist for `(user_id, household_id, eligibility_attribute_id)`. The answer is user-confirmed matching data, not verified eligibility. Do not store identification documents or imply that the restaurant will accept the claim. `HOUSEHOLD_MEMBER` records no name; it means someone in the dining household may qualify and may need to be present for redemption. Users can edit the response later, and **Skip** is stored as `UNKNOWN` or left unknown according to the eventual event contract.
 
+The engine does not need a prompt policy copied onto every deal. When a structured deal requirement references an `eligibility_attribute` and no current response exists, the missing join is the unknown state and the attribute supplies the reusable question. Adding another characteristic creates lookup and response rows rather than a new `app_user` column.
+
+### user_occasion
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| user_occasion_id | UUID | No | Primary key | Identity for a date-based user occasion. |
+| user_id | UUID | No | Foreign key → future `app_user.user_id` | User whose occasion is stored. |
+| occasion_type | Text/code | No | Initial value `BIRTHDAY` | Kind of recurring occasion. |
+| month | Small integer | No | 1–12 | Calendar month without requiring a birth year. |
+| day | Small integer | No | Valid for month | Calendar day without requiring a birth year. |
+| created_at | Timestamp with time zone | No | | Record creation instant. |
+| updated_at | Timestamp with time zone | No | | Most recent edit instant. |
+
+`(user_id, occasion_type)` is unique for the initial model. Birth year is not collected merely to support birthday offers. If later age-based adult eligibility requires a complete date of birth, that need receives a separate privacy and schema review.
+
+### deal_birthday_requirement
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| deal_version_id | UUID | No | Primary key; foreign key → `deal_version.deal_version_id` | Version offering the birthday benefit. |
+| days_before | Small integer | No | Nonnegative | Eligible days before the birthday. |
+| days_after | Small integer | No | Nonnegative | Eligible days after the birthday. |
+| terms_text | Text | Yes | | Birthday-specific details not otherwise structured. |
+
+The engine compares the user's recurring month/day with the version's validity and birthday window. If no birthday exists and a relevant offer is available, the app may invite the user to add it. Restaurant membership, purchase, channel and redemption requirements remain independent conditions even when they also apply to the birthday deal.
+
 ## Relationship sketch
 
 ```mermaid
@@ -232,8 +263,9 @@ erDiagram
   LOCATION ||--o{ DEAL_LOCATION_APPLICABILITY : participates_in
   ELIGIBILITY_ATTRIBUTE ||--o{ USER_ELIGIBILITY_RESPONSE : answered_as
   DEAL_VERSION ||--o{ USER_ELIGIBILITY_RESPONSE : prompted
+  DEAL_VERSION ||--o| DEAL_BIRTHDAY_REQUIREMENT : may_require
 ```
 
 ## Next review
 
-Define the base deal-condition record and typed condition tables, then add the core user/household tables, evidence and behavioral events.
+Define audience requirement grouping and remaining typed condition tables, then add the core user/household tables, evidence and behavioral events.
