@@ -92,6 +92,43 @@ Deleting a restaurant with dependent locations should not be a normal operation.
 
 `(provider, provider_location_id)` must be unique. The mapping can be corrected or retired without replacing the internal `location_id` used by deals and history.
 
+## Deal identity and immutable versions
+
+### deal
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| deal_id | UUID | No | Primary key | Stable identity for the continuing offer concept. |
+| restaurant_id | UUID | No | Foreign key → `restaurant.restaurant_id` | Restaurant offering the deal. |
+| status | Text/code | No | Allowed values TBD | Lifecycle state such as active or retired. |
+| created_at | Timestamp with time zone | No | | Record creation instant. |
+| retired_at | Timestamp with time zone | Yes | | When the continuing offer was retired. |
+
+The parent record provides continuity across changes. Consumer-facing terms do not live here because those terms must remain historically reproducible.
+
+### deal_version
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| deal_version_id | UUID | No | Primary key | Identity for the exact terms shown to users. |
+| deal_id | UUID | No | Foreign key → `deal.deal_id` | Continuing deal being versioned. |
+| version_number | Integer | No | Unique with `deal_id`; positive | Human-readable ordering within one deal. |
+| title | Text | No | | Consumer-facing offer title. |
+| description | Text | Yes | | Additional concise terms. |
+| deal_type | Text/code | No | Allowed values TBD | Classification used by display and scoring. |
+| value_estimate | Decimal | Yes | Nonnegative; meaning TBD | Optional structured value for later scoring. |
+| valid_from | Date | Yes | | First eligible local calendar date. |
+| valid_through | Date | Yes | Check ≥ `valid_from` | Final eligible local calendar date. |
+| scope | Text/code | No | Allowed values TBD | Claimed applicability breadth. |
+| publication_status | Text/code | No | Draft/published/superseded/withdrawn direction | Controls whether this version can be presented. |
+| created_at | Timestamp with time zone | No | | Draft creation instant. |
+| published_at | Timestamp with time zone | Yes | Required when published | First publication instant. |
+| superseded_at | Timestamp with time zone | Yes | | When a newer version replaced it. |
+
+`(deal_id, version_number)` must be unique. A draft can be edited before publication. After publication, its consumer-facing terms are immutable: any correction or change creates another `deal_version`. A recommendation, intent, and verification event references the exact `deal_version_id` shown to the user. Withdrawal or supersession changes lifecycle metadata without rewriting the published terms.
+
+Recurring schedules, structured eligibility, enrollment guidance, and per-location applicability will be modeled in related tables rather than packed into the version row.
+
 ## Relationship sketch
 
 ```mermaid
@@ -100,8 +137,10 @@ erDiagram
   LOCATION ||--o{ LOCATION_EXTERNAL_REFERENCE : identified_by
   RESTAURANT ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : classified_as
   RESTAURANT_ATTRIBUTE ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : assigned_to
+  RESTAURANT ||--o{ DEAL : offers
+  DEAL ||--|{ DEAL_VERSION : versioned_as
 ```
 
 ## Next review
 
-Add Deal, DealVersion, and DealLocation using the already accepted applicability, timing, eligibility, and evidence rules.
+Define recurring schedule rows, then add version-specific location applicability, structured eligibility, and evidence.
