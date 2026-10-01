@@ -83,6 +83,7 @@ Evidence and meaningful history are append-only in ordinary operations. Correcti
 | User | MVP | Stable user_id, created time, approximate home region, preferred radius, onboarding state, active status. Does not imply mandatory sign-in. |
 | Household | MVP basic | household_id, owning user reference, household/party size and children information. Adult/child counts were proposed; exact required fields TBD. |
 | UserPreference | MVP basic | user reference, restaurant/category target, preference or exclusion, origin and time. |
+| UserEligibilityCharacteristic | MVP incremental | user or household subject; characteristic type; `ELIGIBLE`, `NOT_ELIGIBLE`, or `UNKNOWN`; self-reported source; answer/update times; optional expiration or recheck time. Collected contextually when a relevant deal makes the question useful. |
 | LearnedPreference | Planned | Derived signals with source/provenance, confidence and update time; storage form TBD. Never silently overwrites explicit preference. |
 | Identity/account linkage | Separate architectural seam | Application user linked to authentication subject(s) if enabled. Provider, migration and cardinality TBD. |
 | Roles/permissions | Planned tool capability; enforcement as needed | Authorized actions and resource scope. Consumer/operator/merchant concepts; exact matrix TBD. |
@@ -94,6 +95,8 @@ Eligibility belongs both in offer requirements and relevant user context. Exampl
 **Accepted September 28, 2026.** A child-age offer is shown when at least one saved child satisfies the stated age range. It is hidden when the household has no children, all saved children are outside the range, or the age needed to establish eligibility is missing. The restaurant may still be recommended without that offer.
 
 A membership requirement is treated differently because the user may be willing and able to join. The deal remains visible with a clear term such as **Rewards members only**. When verified guidance exists, the deal may explain how to enroll through the restaurant app, official website or at the location and may link to the official enrollment destination. The requirement and enrollment guidance are stored separately. Guidance retains its source and last-checked time, and the app does not promise immediate enrollment unless current evidence supports that claim.
+
+Other audience requirements include veteran, first responder, healthcare worker, student, educator, senior, birthday and customer-history status. These are not assumed profile fields. When a nearby deal makes one relevant, the app may ask whether it applies to the user or household and persist the self-reported answer for later matching. Unknown, declined and known-ineligible states must not be converted into eligible. Purchase requirements, redemption channels, usage limits and combination exclusions remain separate from audience eligibility.
 
 ## Logical model acceptance
 

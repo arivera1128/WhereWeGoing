@@ -161,6 +161,32 @@ Applicability knowledge changes independently from published offer terms. When a
 
 Recommendation history must identify the exact deal version and location shown and retain or reference the applicability/confidence context used at that time. The confidence calculation remains open and must not be inferred from this summary column alone.
 
+## Deal-condition framework
+
+Review of current official restaurant terms shows that “eligibility” is too broad for one field or table. The relational design must keep these condition families distinct:
+
+| Condition family | Question answered | Examples |
+|---|---|---|
+| Audience requirement | Who qualifies? | Child/senior age, veteran, first responder, healthcare worker, student, educator, loyalty member or tier, birthday, new customer. |
+| Purchase requirement | What must be bought? | Minimum spend, adult entrée, qualifying item, number of paid items. |
+| Redemption method | How or where is it redeemed? | Dine-in, restaurant app, website, counter, drive-through, pickup, restaurant delivery. |
+| Usage limit | How often or how many? | Per person, account, table, visit, day or week; maximum free items or dollar value. |
+| Exclusion/combination rule | What cannot be combined or counted? | Other coupons, rewards, alcohol, taxes, fees, gift cards, value menu or third-party delivery. |
+
+Location participation and recurring time validity remain in their dedicated structures. Verification actions such as showing ID, scanning a code, claiming in an app or presenting a membership card must also remain distinguishable from the underlying audience requirement.
+
+Official examples reviewed include [McDonald's deal and rewards terms](https://www.mcdonalds.com/us/en-us/terms-and-conditions.html), [Denny's deal FAQ](https://dennys.com/faqs-frequently-asked-questions), [Chick-fil-A offer rules](https://www.chick-fil-a.com/officialrules), and [Outback's Heroes Discount](https://www.outback.com/offers/military-mates). These examples establish the condition families; they are not permanent claims about every location or future offer.
+
+The working direction is a shared base condition record plus typed detail tables. Shared fields can preserve the deal version, condition family, consumer wording, source wording and display order. Typed tables will hold enforceable values such as age ranges, purchase amounts, membership programs, channels and usage counts. Exact tables follow after the user-data counterpart is reviewed.
+
+### Personalization and contextual collection
+
+The engine needs comparable user or household characteristics for audience conditions. When a relevant local offer requires an unknown characteristic, the app may ask a short contextual question such as: **“XYZ Diner offers a veteran discount. Does this apply to you or someone in your household?”** The answer is stored as a self-reported eligibility characteristic and can be edited or removed later.
+
+Do not ask every possible eligibility question during onboarding. Collect a characteristic when it unlocks or filters a real nearby opportunity. Store `ELIGIBLE`, `NOT_ELIGIBLE`, and `UNKNOWN` distinctly; a skipped question remains unknown. Preserve whether the answer applies to the user or household, its self-reported source, answer time, optional expiration/recheck time and last update. Do not treat self-reporting as documentary verification.
+
+For ranking, a known match may use the deal benefit; a known mismatch filters that deal; an unknown response does not assume eligibility. The restaurant can still be considered independently from the inapplicable or unresolved offer.
+
 ## Relationship sketch
 
 ```mermaid
@@ -178,4 +204,4 @@ erDiagram
 
 ## Next review
 
-Add structured eligibility and enrollment guidance, then evidence and behavioral events.
+Define the base condition record, typed condition tables and user/household eligibility-characteristic tables, then add evidence and behavioral events.

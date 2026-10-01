@@ -30,6 +30,8 @@ Time-limited deals use the restaurant location's local time. A deal may appear b
 
 Child-age deals are shown only when the saved household establishes that at least one child qualifies. Membership deals may remain visible because a user can choose to join; the requirement is stated clearly. When dependable information exists, details may provide source-dated instructions or an official link for joining through the restaurant app, website or location.
 
+When a nearby deal depends on an unknown audience characteristic, the app may ask a concise contextual question and save the self-reported answer for later recommendations. For example: **“XYZ Diner offers a veteran discount. Does this apply to you or someone in your household?”** These questions appear because a relevant opportunity exists rather than as a long onboarding questionnaire. Answers remain editable, and unknown or skipped responses never imply eligibility.
+
 ## Consumer journey and learning
 
 The core journey is open app → request tonight's recommendation → see the winner and alternatives → understand the deal terms → choose.
