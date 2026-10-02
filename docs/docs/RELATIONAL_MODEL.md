@@ -208,6 +208,16 @@ All condition groups attached to a deal version must pass. Within each group, `A
 
 Each `deal_condition` must have exactly one matching typed detail record. The detail tables remain the source of machine-evaluable values; `consumer_text` and `source_text` do not replace them. Groups, conditions and typed details become immutable with their published deal version.
 
+### deal_attribute_requirement
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| deal_condition_id | UUID | No | Primary key; foreign key → `deal_condition.deal_condition_id` | Base condition receiving this typed audience detail. |
+| eligibility_attribute_id | UUID | No | Foreign key → `eligibility_attribute.eligibility_attribute_id` | Required characteristic such as veteran, teacher, student, or first responder. |
+| qualifying_subject_scope | Text/code | No | `SELF_ONLY` or `HOUSEHOLD_ALLOWED` | Whether the user must qualify personally or another household member may qualify. |
+
+The engine compares this requirement with `user_eligibility_response`. `SELF` satisfies either scope. `HOUSEHOLD_MEMBER` satisfies only `HOUSEHOLD_ALLOWED`. `NOT_ELIGIBLE` fails the condition, while `UNKNOWN` or a missing response can trigger the attribute's contextual question. Proof or verification instructions remain consumer terms and are not stored as user verification data.
+
 ### Personalization and contextual collection
 
 The engine needs comparable user or household characteristics for audience conditions. When a relevant local offer requires an unknown characteristic, the app may ask a short contextual question such as: **“XYZ Diner offers a veteran discount. Does this apply to you or someone in your household?”** The answer is stored as a self-reported eligibility characteristic and can be edited or removed later.
@@ -292,8 +302,10 @@ erDiagram
   DEAL_VERSION ||--o| DEAL_BIRTHDAY_REQUIREMENT : may_require
   DEAL_VERSION ||--o{ DEAL_CONDITION_GROUP : governed_by
   DEAL_CONDITION_GROUP ||--|{ DEAL_CONDITION : contains
+  DEAL_CONDITION ||--o| DEAL_ATTRIBUTE_REQUIREMENT : audience_detail
+  ELIGIBILITY_ATTRIBUTE ||--o{ DEAL_ATTRIBUTE_REQUIREMENT : required_by
 ```
 
 ## Next review
 
-Define the typed condition detail tables, then add the core user/household tables, evidence and behavioral events.
+Define purchase, redemption, usage-limit and exclusion detail tables, then add the core user/household tables, evidence and behavioral events.

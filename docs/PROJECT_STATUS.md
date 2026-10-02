@@ -1,6 +1,6 @@
 # Where We Going — Project Status
 
-- **Last reviewed:** September 30, 2026
+- **Last reviewed:** October 1, 2026
 - **Primary target:** Tester-ready MVP
 - **Progress method:** Step progress is the percentage of checked checklist items. Overall progress is the weighted total of all steps.
 - **Interpretation:** These percentages are a current evidence-based assessment, not release commitments. Ideas and proposed architecture do not count as completed implementation.
