@@ -103,6 +103,8 @@ Expandable characteristics use definition and response rows rather than one null
 
 Purchase requirements are preserved as classified, immutable deal terms and are not copied into the user profile. Detailed purchase fields are deferred until an accepted query or engine rule needs them; the app does not infer what a person intends to order.
 
+Usage limits are also preserved as classified, immutable deal terms. Detailed counters, quantities and reset periods are deferred because self-reported deal outcomes are not verified redemption accounting.
+
 ## Logical model acceptance
 
 **Accepted September 28, 2026.** The logical model is approved as the basis for access-pattern review and later physical database design. Acceptance covers the entity boundaries and scenario rules documented here; it does not choose a database, finalize field names, or resolve the remaining questions explicitly marked open.

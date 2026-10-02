@@ -246,6 +246,12 @@ Multiple rows mean multiple allowed channels. These rows become immutable with t
 
 Structured channels initially improve deal display and data completeness. They become engine filters only when the recommendation request includes a dining mode such as dine-in, pickup, or delivery.
 
+### Usage limits at the current scope
+
+Usage limits such as one per person, account, table, visit, day or week and maximum item or discount quantities are stored as immutable `deal_condition` records with `condition_family = USAGE_LIMIT`. Preserve concise consumer wording and the fuller source wording.
+
+Do not create structured redemption counters or limit-period tables yet. The current app records self-reported outcomes rather than verified transactions and cannot reliably determine remaining uses. Add structured limit fields when an accepted recommendation rule suppresses previously used offers, a merchant integration supplies redemption facts, or a reviewed query needs quantities and reset periods.
+
 ### Personalization and contextual collection
 
 The engine needs comparable user or household characteristics for audience conditions. When a relevant local offer requires an unknown characteristic, the app may ask a short contextual question such as: **“XYZ Diner offers a veteran discount. Does this apply to you or someone in your household?”** The answer is stored as a self-reported eligibility characteristic and can be edited or removed later.
@@ -338,4 +344,4 @@ erDiagram
 
 ## Next review
 
-Review usage limits and exclusions to decide which need structured engine fields and which remain classified text, then add the core user/household tables, evidence and behavioral events.
+Review exclusions to decide which need structured engine fields and which remain classified text, then add the core user/household tables, evidence and behavioral events.
