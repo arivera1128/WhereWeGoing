@@ -91,6 +91,39 @@ The row requires either `birth_date` or the pair `(entered_age_years, age_as_of_
 
 Full birthday is optional and introduces additional personal-data responsibilities. Collection, consent, retention, deletion and age-related privacy requirements must be reviewed before the UI asks for it. Without a birthday, the app can request periodic age confirmation using `age_reconfirm_after`.
 
+### user_restaurant_rating
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| user_id | UUID | No | Composite primary key; foreign key → `app_user.user_id` | Individual whose preference is recorded. |
+| restaurant_id | UUID | No | Composite primary key; foreign key → `restaurant.restaurant_id` | Restaurant being rated. |
+| response_type | Text/code | No | `RATED` or `NOT_TRIED` | Distinguishes an explicit rating from unknown experience. |
+| rating | Small integer | Conditional | 1–5 when `RATED`; null when `NOT_TRIED` | Current explicit restaurant preference. |
+| response_source | Text/code | No | Allowed values TBD | Interaction such as Food Profile or deal card. |
+| created_at | Timestamp with time zone | No | | First response instant. |
+| updated_at | Timestamp with time zone | No | | Most recent edit instant. |
+
+No row means the user has not answered. `NOT_TRIED` is known lack of experience and is neither neutral nor negative. A one-star rating remains a strong dislike but is not a permanent exclusion. This table stores current state; later feedback events preserve rating-change history where needed.
+
+### user_restaurant_exclusion
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| user_restaurant_exclusion_id | UUID | No | Primary key | Identity for one effective exclusion period. |
+| user_id | UUID | No | Foreign key → `app_user.user_id` | Individual requesting the exclusion. |
+| restaurant_id | UUID | No | Foreign key → `restaurant.restaurant_id` | Restaurant excluded from that user's results. |
+| reason_text | Text | Yes | | Optional user-provided context. |
+| effective_from | Timestamp with time zone | No | | When exclusion began. |
+| effective_through | Timestamp with time zone | Yes | Check > `effective_from` | When exclusion ended; null means current. |
+
+There must be at most one current exclusion per `(user_id, restaurant_id)`. Removing a place closes the current row rather than deleting history. Ratings and exclusions remain separate so changing a rating cannot silently remove or restore a restaurant.
+
+### Future account-linking seam
+
+Ratings, exclusions and other food-profile facts belong to individual `app_user` records. The existing `household_user` bridge can later link two authenticated adults without merging their profiles. Optional dining groups and per-meal participant snapshots can be introduced later through join tables referencing the same stable user IDs; no group or invitation workflow is required now.
+
+A future group recommendation can combine participant profiles at request time while retaining each person's source data. The exact aggregation and fairness rules are deferred. Current implementation may use the single active user's preferences as the available household signal.
+
 ## Restaurant and location foundation
 
 ### restaurant
@@ -413,6 +446,10 @@ erDiagram
   APP_USER ||--o{ HOUSEHOLD_USER : belongs_through
   HOUSEHOLD ||--|{ HOUSEHOLD_USER : includes
   HOUSEHOLD ||--o{ HOUSEHOLD_CHILD : has
+  APP_USER ||--o{ USER_RESTAURANT_RATING : rates
+  RESTAURANT ||--o{ USER_RESTAURANT_RATING : receives
+  APP_USER ||--o{ USER_RESTAURANT_EXCLUSION : excludes
+  RESTAURANT ||--o{ USER_RESTAURANT_EXCLUSION : excluded_by
   LOCATION ||--o{ LOCATION_EXTERNAL_REFERENCE : identified_by
   RESTAURANT ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : classified_as
   RESTAURANT_ATTRIBUTE ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : assigned_to
@@ -434,4 +471,4 @@ erDiagram
 
 ## Next review
 
-Review household preferences and restaurant ratings/exclusions, then add evidence and behavioral events.
+Review learned food attributes, then add evidence and behavioral events.

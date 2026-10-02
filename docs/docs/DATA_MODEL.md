@@ -28,6 +28,8 @@ The relational direction supports both guest and later authenticated use: `app_u
 
 Each child receives an anonymous household row. The current age-only experience stores entered age plus an as-of date. A future optional full birthday can replace that approximate source for exact calculation, but collection is not assumed and requires PII/privacy review. Child names remain unnecessary.
 
+Restaurant ratings and exclusions belong to individual application users. A rating, “not tried” response and permanent exclusion remain distinct states. Future linked household accounts or dining groups can combine independent profiles through join/context records without moving or merging the underlying preference data; those collaboration features are not part of the current build.
+
 ## Restaurant and offer domain
 
 | Entity | Scope | Logical identity and candidate fields |
