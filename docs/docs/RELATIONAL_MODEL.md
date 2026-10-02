@@ -224,6 +224,28 @@ Purchase requirements are transaction terms, not user or household eligibility. 
 
 Do not create user-profile characteristics from intended restaurant purchases, and do not hard-filter a recommendation based on an order the app cannot know in advance. A dedicated structured purchase-detail table is deferred until representative deal data demonstrates fields used by an accepted query, scoring rule, checkout integration, or value calculation. The published wording remains available to the user in the meantime.
 
+### redemption_channel
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| channel_code | Text/code | No | Primary key | Stable machine value for a redemption channel. |
+| display_name | Text | No | | Consumer-readable channel name. |
+| status | Text/code | No | Allowed values TBD | Allows a channel to be retired without changing published history. |
+
+Initial values may include `DINE_IN`, `TAKEOUT`, `DRIVE_THRU`, `RESTAURANT_APP`, `RESTAURANT_WEBSITE`, `FIRST_PARTY_DELIVERY`, and `THIRD_PARTY_DELIVERY`. The controlled lookup avoids a database migration merely to add a legitimate channel.
+
+### deal_redemption_channel
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| deal_version_id | UUID | No | Composite primary key; foreign key → `deal_version.deal_version_id` | Exact published terms supporting the channel. |
+| channel_code | Text/code | No | Composite primary key; foreign key → `redemption_channel.channel_code` | Allowed redemption channel. |
+| instructions_text | Text | Yes | | Channel-specific directions such as ordering in the restaurant app. |
+
+Multiple rows mean multiple allowed channels. These rows become immutable with the published deal version. No rows mean channel data has not been structured yet; absence must not be interpreted as “no redemption channel.” Restrictions and exceptions that cannot be represented by the allowed-channel list remain immutable deal-condition text.
+
+Structured channels initially improve deal display and data completeness. They become engine filters only when the recommendation request includes a dining mode such as dine-in, pickup, or delivery.
+
 ### Personalization and contextual collection
 
 The engine needs comparable user or household characteristics for audience conditions. When a relevant local offer requires an unknown characteristic, the app may ask a short contextual question such as: **“XYZ Diner offers a veteran discount. Does this apply to you or someone in your household?”** The answer is stored as a self-reported eligibility characteristic and can be edited or removed later.
@@ -310,8 +332,10 @@ erDiagram
   DEAL_CONDITION_GROUP ||--|{ DEAL_CONDITION : contains
   DEAL_CONDITION ||--o| DEAL_ATTRIBUTE_REQUIREMENT : audience_detail
   ELIGIBILITY_ATTRIBUTE ||--o{ DEAL_ATTRIBUTE_REQUIREMENT : required_by
+  DEAL_VERSION ||--o{ DEAL_REDEMPTION_CHANNEL : redeemed_through
+  REDEMPTION_CHANNEL ||--o{ DEAL_REDEMPTION_CHANNEL : classifies
 ```
 
 ## Next review
 
-Review redemption methods, usage limits and exclusions to decide which need structured engine fields and which remain classified text, then add the core user/household tables, evidence and behavioral events.
+Review usage limits and exclusions to decide which need structured engine fields and which remain classified text, then add the core user/household tables, evidence and behavioral events.
