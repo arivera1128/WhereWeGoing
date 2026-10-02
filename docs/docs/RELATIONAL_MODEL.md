@@ -201,12 +201,12 @@ All condition groups attached to a deal version must pass. Within each group, `A
 | deal_condition_id | UUID | No | Primary key | Identity shared by one typed condition detail. |
 | deal_condition_group_id | UUID | No | Foreign key → `deal_condition_group.deal_condition_group_id` | Boolean group containing this condition. |
 | condition_family | Text/code | No | Accepted condition family | Audience, purchase, redemption method, usage limit, or exclusion. |
-| condition_type | Text/code | No | Typed-detail discriminator | Selects the structured detail table and engine evaluator. |
+| condition_type | Text/code | No | Condition discriminator | Identifies a structured evaluator when one exists, or a classified text-only condition. |
 | consumer_text | Text | No | | Concise condition wording shown to the user. |
 | source_text | Text | Yes | | Exact or fuller source wording retained for review. |
 | display_order | Integer | No | Nonnegative | Stable order within the group. |
 
-Each `deal_condition` must have exactly one matching typed detail record. The detail tables remain the source of machine-evaluable values; `consumer_text` and `source_text` do not replace them. Groups, conditions and typed details become immutable with their published deal version.
+A `deal_condition` receives a typed detail record when the engine has a real machine-evaluable use for structured values. For text-only terms, the classified base condition is sufficient. Typed detail tables remain the source of machine-evaluable values when present; `consumer_text` and `source_text` do not replace those values. Groups, conditions and any typed details become immutable with their published deal version.
 
 ### deal_attribute_requirement
 
@@ -217,6 +217,12 @@ Each `deal_condition` must have exactly one matching typed detail record. The de
 | qualifying_subject_scope | Text/code | No | `SELF_ONLY` or `HOUSEHOLD_ALLOWED` | Whether the user must qualify personally or another household member may qualify. |
 
 The engine compares this requirement with `user_eligibility_response`. `SELF` satisfies either scope. `HOUSEHOLD_MEMBER` satisfies only `HOUSEHOLD_ALLOWED`. `NOT_ELIGIBLE` fails the condition, while `UNKNOWN` or a missing response can trigger the attribute's contextual question. Proof or verification instructions remain consumer terms and are not stored as user verification data.
+
+### Purchase requirements at the current scope
+
+Purchase requirements are transaction terms, not user or household eligibility. Store them as immutable `deal_condition` records with `condition_family = PURCHASE_REQUIREMENT`, concise `consumer_text`, and retained `source_text`. Examples include an adult entrée purchase, a minimum transaction amount, or a required menu item.
+
+Do not create user-profile characteristics from intended restaurant purchases, and do not hard-filter a recommendation based on an order the app cannot know in advance. A dedicated structured purchase-detail table is deferred until representative deal data demonstrates fields used by an accepted query, scoring rule, checkout integration, or value calculation. The published wording remains available to the user in the meantime.
 
 ### Personalization and contextual collection
 
@@ -308,4 +314,4 @@ erDiagram
 
 ## Next review
 
-Define purchase, redemption, usage-limit and exclusion detail tables, then add the core user/household tables, evidence and behavioral events.
+Review redemption methods, usage limits and exclusions to decide which need structured engine fields and which remain classified text, then add the core user/household tables, evidence and behavioral events.

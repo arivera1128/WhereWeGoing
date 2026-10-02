@@ -101,6 +101,8 @@ Other audience requirements include veteran, first responder, healthcare worker,
 
 Expandable characteristics use definition and response rows rather than one nullable column per possible characteristic. Date-based facts such as birthday use typed occasion data so the engine can evaluate a real calendar window. Structured conditions drive matching; published free-text terms, disclaimers and official links remain available for requirements that are not fully machine-evaluable.
 
+Purchase requirements are preserved as classified, immutable deal terms and are not copied into the user profile. Detailed purchase fields are deferred until an accepted query or engine rule needs them; the app does not infer what a person intends to order.
+
 ## Logical model acceptance
 
 **Accepted September 28, 2026.** The logical model is approved as the basis for access-pattern review and later physical database design. Acceptance covers the entity boundaries and scenario rules documented here; it does not choose a database, finalize field names, or resolve the remaining questions explicitly marked open.
