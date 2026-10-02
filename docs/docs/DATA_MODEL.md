@@ -24,6 +24,10 @@ Restaurant 1:N Location is established. User-to-household multiplicity is a work
 
 The Android prototype's current `HouseholdProfile` stores adult count, one current age entry per child, ZIP code and radius. It does not store child names or birth dates. Exact ages support the current 12-and-under child-deal check; future deals need structured eligibility terms rather than parsing offer text.
 
+The relational direction supports both guest and later authenticated use: `app_user` remains stable, an installation can reference the guest, and a future authentication identity links to the same user instead of replacing profile/history. Household access uses a bridge so shared accounts remain possible without requiring them in the MVP.
+
+Each child receives an anonymous household row. The current age-only experience stores entered age plus an as-of date. A future optional full birthday can replace that approximate source for exact calculation, but collection is not assumed and requires PII/privacy review. Child names remain unnecessary.
+
 ## Restaurant and offer domain
 
 | Entity | Scope | Logical identity and candidate fields |

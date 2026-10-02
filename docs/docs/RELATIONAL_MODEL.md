@@ -12,6 +12,85 @@ This document translates the accepted logical model into a normalized relational
 - `location.restaurant_id` is a required foreign key, implementing Restaurant 1:N Location.
 - Timestamps should represent an absolute instant, equivalent to SQL `timestamp with time zone`; location time-zone names are stored separately for local deal evaluation.
 
+## User identity and household foundation
+
+### app_user
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| user_id | UUID | No | Primary key | Stable application identity for guest and authenticated use. |
+| onboarding_status | Text/code | No | Allowed values TBD | Tracks completion of the initial setup flow. |
+| status | Text/code | No | Allowed values TBD | Supports active, disabled, or deleted-account processing. |
+| created_at | Timestamp with time zone | No | | Application-user creation instant. |
+| updated_at | Timestamp with time zone | No | | Most recent material update. |
+
+`app_user` is not an authentication-provider record. A guest receives this stable ID before login exists. Later account enrollment links authentication to the same user so household, preferences and history remain attached.
+
+### auth_identity
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| auth_identity_id | UUID | No | Primary key | Internal identity-link record. |
+| user_id | UUID | No | Foreign key → `app_user.user_id` | Application user authenticated by this identity. |
+| provider | Text/code | No | Unique with `provider_subject` | Authentication provider. |
+| provider_subject | Text | No | Unique with `provider` | Stable subject identifier issued by the provider. |
+| created_at | Timestamp with time zone | No | | When the identity was linked. |
+| last_authenticated_at | Timestamp with time zone | Yes | | Most recent successful authentication. |
+
+Email addresses or provider profile details are not primary keys. One application user may eventually link more than one authentication identity. Provider selection, credential handling, verified email and account-recovery rules remain future security decisions.
+
+### app_installation
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| installation_id | UUID | No | Primary key | Stable identifier for one app installation. |
+| user_id | UUID | No | Foreign key → `app_user.user_id` | Guest or authenticated user currently associated with the installation. |
+| platform | Text/code | No | | Initial value `ANDROID`; extensible to future clients. |
+| created_at | Timestamp with time zone | No | | First registration instant. |
+| last_seen_at | Timestamp with time zone | No | | Most recent app contact. |
+
+An installation link supports guest continuity and later attachment to an authenticated account. It is not itself an authentication credential. Device and notification-token details require a separate security/retention review.
+
+### household
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| household_id | UUID | No | Primary key | Stable dining-household identity. |
+| adult_count | Small integer | No | Positive | Adults represented without requiring an account for each person. |
+| home_postal_code | Text | Yes | | User-entered starting area. |
+| preferred_radius | Decimal | No | Positive | Default search radius; unit convention TBD. |
+| created_at | Timestamp with time zone | No | | Household creation instant. |
+| updated_at | Timestamp with time zone | No | | Most recent profile update. |
+
+### household_user
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| household_id | UUID | No | Composite primary key; foreign key → `household.household_id` | Household being accessed. |
+| user_id | UUID | No | Composite primary key; foreign key → `app_user.user_id` | Linked application user. |
+| role | Text/code | No | Allowed values TBD | Future owner/member permission seam. |
+| is_primary | Boolean | No | Default false | User's default household context. |
+| joined_at | Timestamp with time zone | No | | Link creation instant. |
+
+The MVP may enforce one primary household for one user while the bridge leaves room for future shared household accounts. Sharing, invitations and permissions are not implied by the table alone.
+
+### household_child
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| household_child_id | UUID | No | Primary key | Anonymous identity for one child profile row. |
+| household_id | UUID | No | Foreign key → `household.household_id` | Household containing the child. |
+| birth_date | Date | Conditional | Optional full birthday | Precise age source when voluntarily supplied. |
+| entered_age_years | Small integer | Conditional | Nonnegative, realistic maximum TBD | Age supplied without a birthday. |
+| age_as_of_date | Date | Conditional | Required with entered age | Date on which the entered age was confirmed. |
+| age_reconfirm_after | Date | Yes | | Optional prompt date when approximate age may be stale. |
+| created_at | Timestamp with time zone | No | | Child-row creation instant. |
+| updated_at | Timestamp with time zone | No | | Most recent profile update. |
+
+The row requires either `birth_date` or the pair `(entered_age_years, age_as_of_date)`, not conflicting active sources. The initial app can continue asking only for age. If a user later supplies a full birthday, replace the approximate pair transactionally and use birth date for exact-age calculations. Profile-change history may retain the prior assertion separately; the current row remains unambiguous. Child names are not required.
+
+Full birthday is optional and introduces additional personal-data responsibilities. Collection, consent, retention, deletion and age-related privacy requirements must be reviewed before the UI asks for it. Without a birthday, the app can request periodic age confirmation using `age_reconfirm_after`.
+
 ## Restaurant and location foundation
 
 ### restaurant
@@ -329,6 +408,11 @@ The engine compares the user's recurring month/day with the version's validity a
 ```mermaid
 erDiagram
   RESTAURANT ||--|{ LOCATION : operates
+  APP_USER ||--o{ AUTH_IDENTITY : authenticates_with
+  APP_USER ||--o{ APP_INSTALLATION : uses
+  APP_USER ||--o{ HOUSEHOLD_USER : belongs_through
+  HOUSEHOLD ||--|{ HOUSEHOLD_USER : includes
+  HOUSEHOLD ||--o{ HOUSEHOLD_CHILD : has
   LOCATION ||--o{ LOCATION_EXTERNAL_REFERENCE : identified_by
   RESTAURANT ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : classified_as
   RESTAURANT_ATTRIBUTE ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : assigned_to
@@ -350,4 +434,4 @@ erDiagram
 
 ## Next review
 
-Add the core user/household tables, then evidence and behavioral events.
+Review household preferences and restaurant ratings/exclusions, then add evidence and behavioral events.
