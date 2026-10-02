@@ -124,6 +124,34 @@ Ratings, exclusions and other food-profile facts belong to individual `app_user`
 
 A future group recommendation can combine participant profiles at request time while retaining each person's source data. The exact aggregation and fairness rules are deferred. Current implementation may use the single active user's preferences as the available household signal.
 
+### user_attribute_preference
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| user_id | UUID | No | Composite primary key; foreign key → `app_user.user_id` | Individual stating the preference. |
+| attribute_id | UUID | No | Composite primary key; foreign key → `restaurant_attribute.attribute_id` | Cuisine, dining style, or food trait being described. |
+| preference_level | Text/code | No | Initial direction: `LIKE`, `NEUTRAL`, `DISLIKE` | Explicit user-authored preference. |
+| response_source | Text/code | No | Allowed values TBD | Interaction where the preference was stated. |
+| created_at | Timestamp with time zone | No | | First explicit response. |
+| updated_at | Timestamp with time zone | No | | Most recent edit. |
+
+This table records only direct user input. It is not rewritten when the learning algorithm changes or when another restaurant is rated.
+
+### user_attribute_affinity
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| user_id | UUID | No | Composite primary key; foreign key → `app_user.user_id` | Individual receiving the learned score. |
+| attribute_id | UUID | No | Composite primary key; foreign key → `restaurant_attribute.attribute_id` | Learned cuisine, dining style, or food trait. |
+| algorithm_version | Text | No | Composite primary key | Logic version that produced the result. |
+| calculated_score | Decimal | No | Range TBD by algorithm contract | Rebuildable learned affinity. |
+| evidence_count | Integer | No | Nonnegative | Number of qualifying evidence items used. |
+| calculated_at | Timestamp with time zone | No | | Most recent calculation instant. |
+
+Restaurant ratings and later accepted behavioral events remain the evidence. This table is a rebuildable projection/cache, not an irreplaceable source record. An algorithm-version change may produce a new row or rebuild the projection. Learned affinity never overwrites `user_attribute_preference`; the rule for resolving explicit and learned signals during scoring remains a recommendation-engine policy.
+
+Dietary restrictions and allergies are not ordinary taste attributes and must receive a separate model and safety review. They must not be inferred from restaurant ratings or learned affinity.
+
 ## Restaurant and location foundation
 
 ### restaurant
@@ -450,6 +478,10 @@ erDiagram
   RESTAURANT ||--o{ USER_RESTAURANT_RATING : receives
   APP_USER ||--o{ USER_RESTAURANT_EXCLUSION : excludes
   RESTAURANT ||--o{ USER_RESTAURANT_EXCLUSION : excluded_by
+  APP_USER ||--o{ USER_ATTRIBUTE_PREFERENCE : states
+  RESTAURANT_ATTRIBUTE ||--o{ USER_ATTRIBUTE_PREFERENCE : preferred_as
+  APP_USER ||--o{ USER_ATTRIBUTE_AFFINITY : learns
+  RESTAURANT_ATTRIBUTE ||--o{ USER_ATTRIBUTE_AFFINITY : learned_as
   LOCATION ||--o{ LOCATION_EXTERNAL_REFERENCE : identified_by
   RESTAURANT ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : classified_as
   RESTAURANT_ATTRIBUTE ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : assigned_to
@@ -471,4 +503,4 @@ erDiagram
 
 ## Next review
 
-Review learned food attributes, then add evidence and behavioral events.
+Review dietary restrictions and allergies, then add evidence and behavioral events.

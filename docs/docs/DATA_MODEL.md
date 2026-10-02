@@ -30,6 +30,8 @@ Each child receives an anonymous household row. The current age-only experience 
 
 Restaurant ratings and exclusions belong to individual application users. A rating, “not tried” response and permanent exclusion remain distinct states. Future linked household accounts or dining groups can combine independent profiles through join/context records without moving or merging the underlying preference data; those collaboration features are not part of the current build.
 
+Direct cuisine/style/food-trait preferences and engine-learned affinities are separate. Explicit preferences remain user-authored current state. Learned affinity is a rebuildable, algorithm-versioned projection with evidence counts and never overwrites direct input. Dietary restrictions and allergies require a separate model and are never inferred from restaurant ratings.
+
 ## Restaurant and offer domain
 
 | Entity | Scope | Logical identity and candidate fields |
