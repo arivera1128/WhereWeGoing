@@ -152,6 +152,12 @@ Restaurant ratings and later accepted behavioral events remain the evidence. Thi
 
 Dietary restrictions and allergies are not ordinary taste attributes and must receive a separate model and safety review. They must not be inferred from restaurant ratings or learned affinity.
 
+### Dietary and allergy boundary
+
+Explicit dietary patterns such as vegetarian or vegan may later use a dedicated user-requirement structure and hard-filter policy. They remain separate from `user_attribute_preference` and `user_attribute_affinity`, and the engine must never infer them from ratings.
+
+Do not create or collect allergy records in the current scope. Allergy-aware recommendations require dependable, location-specific restaurant/menu accommodation and cross-contact evidence, its own freshness/provenance rules, and clear user messaging that the app does not establish medical safety. Design the user requirement and restaurant capability sides together before adding those tables.
+
 ## Restaurant and location foundation
 
 ### restaurant
@@ -503,4 +509,4 @@ erDiagram
 
 ## Next review
 
-Review dietary restrictions and allergies, then add evidence and behavioral events.
+Add evidence and behavioral events; revisit structured dietary requirements with dependable restaurant capability data.

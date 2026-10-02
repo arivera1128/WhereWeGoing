@@ -32,6 +32,8 @@ Restaurant ratings and exclusions belong to individual application users. A rati
 
 Direct cuisine/style/food-trait preferences and engine-learned affinities are separate. Explicit preferences remain user-authored current state. Learned affinity is a rebuildable, algorithm-versioned projection with evidence counts and never overwrites direct input. Dietary restrictions and allergies require a separate model and are never inferred from restaurant ratings.
 
+Explicit vegetarian/vegan or similar dietary requirements may later become structured hard filters once matching restaurant capability data is dependable. Allergy data is not collected in the current scope; supporting it requires location-specific accommodation/cross-contact evidence, provenance/freshness rules and separate safety messaging rather than ordinary restaurant tags.
+
 ## Restaurant and offer domain
 
 | Entity | Scope | Logical identity and candidate fields |
