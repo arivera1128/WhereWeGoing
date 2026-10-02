@@ -105,6 +105,8 @@ Purchase requirements are preserved as classified, immutable deal terms and are 
 
 Usage limits are also preserved as classified, immutable deal terms. Detailed counters, quantities and reset periods are deferred because self-reported deal outcomes are not verified redemption accounting.
 
+Exclusions and combination rules remain classified, immutable deal terms unless an accepted structure such as redemption channel already represents the restriction. Detailed stacking logic is deferred while the product recommends one offer at a time and has no checkout integration.
+
 ## Logical model acceptance
 
 **Accepted September 28, 2026.** The logical model is approved as the basis for access-pattern review and later physical database design. Acceptance covers the entity boundaries and scenario rules documented here; it does not choose a database, finalize field names, or resolve the remaining questions explicitly marked open.

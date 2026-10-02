@@ -252,6 +252,12 @@ Usage limits such as one per person, account, table, visit, day or week and maxi
 
 Do not create structured redemption counters or limit-period tables yet. The current app records self-reported outcomes rather than verified transactions and cannot reliably determine remaining uses. Add structured limit fields when an accepted recommendation rule suppresses previously used offers, a merchant integration supplies redemption facts, or a reviewed query needs quantities and reset periods.
 
+### Exclusions and combination rules at the current scope
+
+Exclusions such as no coupon stacking, alcohol/tax/fee exclusions, gift-card exclusions, or incompatibility with rewards are stored as immutable `deal_condition` records with `condition_family = EXCLUSION`. Preserve both concise consumer wording and source wording.
+
+Do not create a structured stacking or exclusion-rule system while the product recommends one deal at a time and has no checkout integration. Avoid duplicating restrictions already expressed by another accepted structure; for example, redemption-channel rows should carry a delivery restriction when they can represent it accurately. Revisit structured combination rules if the app later evaluates multiple simultaneous offers or participates in checkout.
+
 ### Personalization and contextual collection
 
 The engine needs comparable user or household characteristics for audience conditions. When a relevant local offer requires an unknown characteristic, the app may ask a short contextual question such as: **“XYZ Diner offers a veteran discount. Does this apply to you or someone in your household?”** The answer is stored as a self-reported eligibility characteristic and can be edited or removed later.
@@ -344,4 +350,4 @@ erDiagram
 
 ## Next review
 
-Review exclusions to decide which need structured engine fields and which remain classified text, then add the core user/household tables, evidence and behavioral events.
+Add the core user/household tables, then evidence and behavioral events.
