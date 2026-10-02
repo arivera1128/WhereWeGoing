@@ -34,6 +34,8 @@ Direct cuisine/style/food-trait preferences and engine-learned affinities are se
 
 Explicit vegetarian/vegan or similar dietary requirements may later become structured hard filters once matching restaurant capability data is dependable. Allergy data is not collected in the current scope; supporting it requires location-specific accommodation/cross-contact evidence, provenance/freshness rules and separate safety messaging rather than ordinary restaurant tags.
 
+Normal recommendation history stores each engine run, the winner and alternatives actually presented, their exact restaurant/location/deal-version references, engine version and internal score components. It does not persist every rejected candidate. User selection remains a later intent event rather than rewriting the engine's original featured option.
+
 ## Restaurant and offer domain
 
 | Entity | Scope | Logical identity and candidate fields |

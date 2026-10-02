@@ -158,6 +158,52 @@ Explicit dietary patterns such as vegetarian or vegan may later use a dedicated 
 
 Do not create or collect allergy records in the current scope. Allergy-aware recommendations require dependable, location-specific restaurant/menu accommodation and cross-contact evidence, its own freshness/provenance rules, and clear user messaging that the app does not establish medical safety. Design the user requirement and restaurant capability sides together before adding those tables.
 
+## Recommendation history
+
+### recommendation_run
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| recommendation_run_id | UUID | No | Primary key | Identity for one request to the recommendation engine. |
+| requested_by_user_id | UUID | No | Foreign key → `app_user.user_id` | User requesting the decision. |
+| household_id | UUID | Yes | Foreign key → `household.household_id` | Household context when used. |
+| origin_postal_code | Text | Yes | | Approximate location context used by the request. |
+| requested_radius | Decimal | Yes | Positive; unit convention TBD | Distance boundary used by the request. |
+| party_size | Small integer | No | Positive | People represented in the dining decision. |
+| engine_version | Text | No | | Recommendation logic version. |
+| outcome_status | Text/code | No | Allowed values TBD | Completed, no result, failed, or abandoned direction. |
+| no_result_reason | Text/code | Yes | Required for reviewed no-result states | Structured explanation when no option was available. |
+| requested_at | Timestamp with time zone | No | | Request instant. |
+| completed_at | Timestamp with time zone | Yes | | Engine completion instant. |
+
+Exact coordinates, temporary debug-day overrides and richer group context require separate privacy/testing fields if later accepted. Do not overload postal code into an assumption of precise user position.
+
+### recommendation_option
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| recommendation_option_id | UUID | No | Primary key | Identity for one option actually presented. |
+| recommendation_run_id | UUID | No | Foreign key → `recommendation_run.recommendation_run_id` | Engine run that produced the option. |
+| restaurant_id | UUID | No | Foreign key → `restaurant.restaurant_id` | Presented restaurant. |
+| location_id | UUID | No | Foreign key → `location.location_id` | Presented physical outlet. |
+| deal_version_id | UUID | Yes | Foreign key → `deal_version.deal_version_id` | Exact offer shown; null for a restaurant-only pick. |
+| displayed_rank | Small integer | No | Unique within run; positive | Featured result and alternative ordering. |
+| total_score | Decimal | No | Scale defined by engine version | Final internal score used for ordering. |
+| was_featured | Boolean | No | Exactly one when results exist | Whether this was the initial winner. |
+| presented_at | Timestamp with time zone | No | | When the option became visible to the user. |
+
+Only options actually shown are persisted in normal recommendation history. Choosing an alternative does not update `was_featured`; selection is a separate intent event so the engine's original output remains intact.
+
+### recommendation_score_component
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| recommendation_option_id | UUID | No | Composite primary key; foreign key → `recommendation_option.recommendation_option_id` | Presented option being explained. |
+| component_type | Text/code | No | Composite primary key | Versioned factor such as deal strength or food fit. |
+| component_value | Decimal | No | Scale defined by engine version | Contribution retained for testing and support. |
+
+The score components and `engine_version` preserve traceability without permanently storing every rejected candidate. Full candidate traces may be temporary diagnostics or sampled test-environment data later; they are not normal consumer history.
+
 ## Restaurant and location foundation
 
 ### restaurant
@@ -488,6 +534,13 @@ erDiagram
   RESTAURANT_ATTRIBUTE ||--o{ USER_ATTRIBUTE_PREFERENCE : preferred_as
   APP_USER ||--o{ USER_ATTRIBUTE_AFFINITY : learns
   RESTAURANT_ATTRIBUTE ||--o{ USER_ATTRIBUTE_AFFINITY : learned_as
+  APP_USER ||--o{ RECOMMENDATION_RUN : requests
+  HOUSEHOLD ||--o{ RECOMMENDATION_RUN : contextualizes
+  RECOMMENDATION_RUN ||--o{ RECOMMENDATION_OPTION : presents
+  RESTAURANT ||--o{ RECOMMENDATION_OPTION : recommended_as
+  LOCATION ||--o{ RECOMMENDATION_OPTION : located_at
+  DEAL_VERSION ||--o{ RECOMMENDATION_OPTION : offered_as
+  RECOMMENDATION_OPTION ||--o{ RECOMMENDATION_SCORE_COMPONENT : scored_by
   LOCATION ||--o{ LOCATION_EXTERNAL_REFERENCE : identified_by
   RESTAURANT ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : classified_as
   RESTAURANT_ATTRIBUTE ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : assigned_to
@@ -509,4 +562,4 @@ erDiagram
 
 ## Next review
 
-Add evidence and behavioral events; revisit structured dietary requirements with dependable restaurant capability data.
+Add intent, check-in, verification and preference events, then evidence/lifecycle tables. Revisit structured dietary requirements with dependable restaurant capability data.
