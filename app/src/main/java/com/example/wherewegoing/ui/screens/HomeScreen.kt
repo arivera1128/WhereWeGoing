@@ -26,6 +26,7 @@ import java.util.Locale
 import kotlinx.coroutines.delay
 @Composable
 fun HomePage(
+    deals: List<PlaceDeal>,
     profileSaved: Boolean,
     zip: String,
     onPick: () -> Unit,
@@ -52,18 +53,21 @@ fun HomePage(
     upcomingDaysAway: Int?,
     currentDay: Int,
     onViewUpcoming: (PlaceDeal) -> Unit,
-    onQuiz: () -> Unit
+    onQuiz: () -> Unit,
+    recommendationsReady: Boolean = true,
+    planWarning: String = ""
 ) {
     PageColumn {
         ChickLogo()
         Text("What's for dinner?", style = MaterialTheme.typography.headlineMedium)
         Text("A smart little pick for you in Elk Grove.")
         if (pendingCheckIn == null) {
-            Button(onClick = onPick, modifier = Modifier.fillMaxWidth().height(64.dp)) {
+            Button(onClick = onPick, enabled = recommendationsReady, modifier = Modifier.fillMaxWidth().height(64.dp)) {
                 Text("Where should we eat tonight?")
             }
         }
         Text("Starting area: Elk Grove • ZIP $zip", style = MaterialTheme.typography.bodySmall)
+        if(pendingCheckIn != null && planWarning.isNotBlank()) Text(planWarning)
 
         if (pendingCheckIn != null && checkInReady) {
             Text("Pending check-in", style = MaterialTheme.typography.titleLarge)
@@ -82,6 +86,7 @@ fun HomePage(
             TonightPlanCard(
                 deal = pendingCheckIn,
                 hadOffer = pendingCheckInHadOffer,
+                canChangePlan = recommendationsReady,
                 onViewDetails = { onViewPlan(pendingCheckIn) },
                 onChangePlan = { onChangePlan(pendingCheckIn) },
                 onCancelPlan = onCancelPlan
@@ -109,7 +114,7 @@ fun HomePage(
         DinnerSummary(mealHistory)
 
         Text("Recent meals", style = MaterialTheme.typography.titleLarge)
-        RecentMeals(mealHistory)
+        RecentMeals(mealHistory, deals)
 
         if (!profileSaved) {
             OutlinedButton(onClick = onProfile, modifier = Modifier.fillMaxWidth()) { Text("Set up your profile") }
@@ -195,6 +200,7 @@ private fun UpcomingOfferCard(deal: PlaceDeal, daysAway: Int, currentDay: Int, o
 private fun TonightPlanCard(
     deal: PlaceDeal,
     hadOffer: Boolean,
+    canChangePlan: Boolean,
     onViewDetails: () -> Unit,
     onChangePlan: () -> Unit,
     onCancelPlan: () -> Unit
@@ -214,7 +220,7 @@ private fun TonightPlanCard(
             Button(onClick = onViewDetails, modifier = Modifier.fillMaxWidth()) {
                 Text(if (hadOffer) "View deal details" else "View restaurant details")
             }
-            OutlinedButton(onClick = onChangePlan, modifier = Modifier.fillMaxWidth()) { Text("Change my plan") }
+            OutlinedButton(onClick = onChangePlan, enabled = canChangePlan, modifier = Modifier.fillMaxWidth()) { Text("Change my plan") }
             TextButton(onClick = onCancelPlan, modifier = Modifier.fillMaxWidth()) { Text("Cancel plan") }
         }
     }
@@ -242,7 +248,7 @@ private fun SummaryMetric(value: String, label: String, modifier: Modifier = Mod
 }
 
 @Composable
-private fun RecentMeals(mealHistory: List<MealRecord>) {
+private fun RecentMeals(mealHistory: List<MealRecord>, deals: List<PlaceDeal>) {
     if (mealHistory.isEmpty()) {
         Card(modifier = Modifier.fillMaxWidth()) {
             Text(
@@ -255,7 +261,7 @@ private fun RecentMeals(mealHistory: List<MealRecord>) {
 
     val dateFormat = remember { SimpleDateFormat("MMM d", Locale.getDefault()) }
     mealHistory.take(5).forEach { meal ->
-        val deal = elkGroveDeals.find { it.id == meal.dealId }
+        val deal = deals.find { it.id == meal.dealId }
         if (deal != null) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Row(
@@ -313,5 +319,3 @@ private fun CheckInCard(
         }
     }
 }
-
-

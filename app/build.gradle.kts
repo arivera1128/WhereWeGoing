@@ -1,7 +1,18 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
+
+// Development connection only. No service-role key or database password belongs in the app.
+val proofProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+fun configString(value: String): String = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r") + "\""
 
 android {
     namespace = "com.example.wherewegoing"
@@ -20,7 +31,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "PROOF_SUPABASE_URL", configString(proofProperties.getProperty("proof.supabase.url", "")))
+            buildConfigField("String", "PROOF_SUPABASE_KEY", configString(proofProperties.getProperty("proof.supabase.publishableKey", "")))
+        }
         release {
+            buildConfigField("String", "PROOF_SUPABASE_URL", "\"\"")
+            buildConfigField("String", "PROOF_SUPABASE_KEY", "\"\"")
             optimization {
                 enable = false
             }
@@ -31,8 +48,13 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
+}
+
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {
@@ -44,6 +66,9 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

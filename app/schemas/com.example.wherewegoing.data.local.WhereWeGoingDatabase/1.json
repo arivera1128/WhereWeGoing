@@ -1,0 +1,332 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "c392ac717e3a3bff530b92de3c53d2b5",
+    "entities": [
+      {
+        "tableName": "app_user",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`user_id` TEXT NOT NULL, `onboarding_status` TEXT NOT NULL, `status` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`user_id`))",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "onboardingStatus",
+            "columnName": "onboarding_status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "user_id"
+          ]
+        }
+      },
+      {
+        "tableName": "app_installation",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`installation_id` TEXT NOT NULL, `user_id` TEXT NOT NULL, `platform` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `last_seen_at` INTEGER NOT NULL, PRIMARY KEY(`installation_id`), FOREIGN KEY(`user_id`) REFERENCES `app_user`(`user_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "installationId",
+            "columnName": "installation_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "platform",
+            "columnName": "platform",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSeenAt",
+            "columnName": "last_seen_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "installation_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_app_installation_user_id",
+            "unique": false,
+            "columnNames": [
+              "user_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_app_installation_user_id` ON `${TABLE_NAME}` (`user_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "app_user",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "user_id"
+            ],
+            "referencedColumns": [
+              "user_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "household",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`household_id` TEXT NOT NULL, `adult_count` INTEGER NOT NULL, `home_postal_code` TEXT, `preferred_radius_miles` REAL NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`household_id`))",
+        "fields": [
+          {
+            "fieldPath": "householdId",
+            "columnName": "household_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "adultCount",
+            "columnName": "adult_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "homePostalCode",
+            "columnName": "home_postal_code",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "preferredRadiusMiles",
+            "columnName": "preferred_radius_miles",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "household_id"
+          ]
+        }
+      },
+      {
+        "tableName": "household_user",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`household_id` TEXT NOT NULL, `user_id` TEXT NOT NULL, `role` TEXT NOT NULL, `is_primary` INTEGER NOT NULL, `joined_at` INTEGER NOT NULL, PRIMARY KEY(`household_id`, `user_id`), FOREIGN KEY(`household_id`) REFERENCES `household`(`household_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`user_id`) REFERENCES `app_user`(`user_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "householdId",
+            "columnName": "household_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "role",
+            "columnName": "role",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isPrimary",
+            "columnName": "is_primary",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "joinedAt",
+            "columnName": "joined_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "household_id",
+            "user_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_household_user_user_id",
+            "unique": false,
+            "columnNames": [
+              "user_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_household_user_user_id` ON `${TABLE_NAME}` (`user_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "household",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "household_id"
+            ],
+            "referencedColumns": [
+              "household_id"
+            ]
+          },
+          {
+            "table": "app_user",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "user_id"
+            ],
+            "referencedColumns": [
+              "user_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "household_child",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`household_child_id` TEXT NOT NULL, `household_id` TEXT NOT NULL, `display_order` INTEGER NOT NULL, `birth_date` TEXT, `entered_age_years` INTEGER, `age_as_of_date` TEXT, `age_reconfirm_after` TEXT, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`household_child_id`), FOREIGN KEY(`household_id`) REFERENCES `household`(`household_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "householdChildId",
+            "columnName": "household_child_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "householdId",
+            "columnName": "household_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayOrder",
+            "columnName": "display_order",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "birthDate",
+            "columnName": "birth_date",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "enteredAgeYears",
+            "columnName": "entered_age_years",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "ageAsOfDate",
+            "columnName": "age_as_of_date",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ageReconfirmAfter",
+            "columnName": "age_reconfirm_after",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "household_child_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_household_child_household_id",
+            "unique": false,
+            "columnNames": [
+              "household_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_household_child_household_id` ON `${TABLE_NAME}` (`household_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "household",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "household_id"
+            ],
+            "referencedColumns": [
+              "household_id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c392ac717e3a3bff530b92de3c53d2b5')"
+    ]
+  }
+}

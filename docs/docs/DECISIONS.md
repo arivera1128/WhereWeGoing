@@ -65,6 +65,32 @@ These records summarize the September 2026 discussion and current explicit reque
 | D-55 | **Accepted October 1, 2026.** Explicit restaurant-attribute preferences and learned affinities are stored separately. Explicit preferences are user-authored and are never overwritten by learning. Learned affinity is a rebuildable projection carrying algorithm version, score, evidence count and calculation time; ratings/events remain source evidence. Dietary restrictions and allergies are outside ordinary taste learning and must not be inferred. | RELATIONAL_MODEL, DATA_MODEL and recommendation engine: preserves user intent, supports explainable recalculation and prevents derived taste signals from masquerading as safety requirements. |
 | D-56 | **Accepted October 1, 2026.** Explicit dietary patterns such as vegetarian or vegan may later be modeled as separate hard requirements, never inferred preferences. Do not collect or act on allergy data until the user-requirement model is paired with dependable location/menu accommodation and cross-contact evidence, freshness/provenance rules and clear safety messaging. | RELATIONAL_MODEL, DATA_MODEL, recommendation engine and future profile UI: leaves a deliberate extension seam without implying medical safety from ordinary restaurant attributes. |
 | D-57 | **Accepted October 1, 2026.** Normal recommendation history stores one engine run and only the winner/alternatives actually presented, including exact restaurant, location, optional deal version, displayed rank, engine version, total score and score components. Rejected candidates are temporary diagnostics or sampled test data rather than permanent consumer history. Selecting an alternative is a separate intent event and never rewrites the original featured result. | RELATIONAL_MODEL, DATA_MODEL, recommendation testing and analytics: preserves explainable user-visible decisions while controlling event volume and retaining truthful output-versus-selection meaning. |
+| D-58 | **Accepted October 1, 2026.** One `meal_occasion` owns the recommendation runs for a user's household dinner journey on a local service date. A selected engine option creates a distinct plan intent; check-in and self-reported outcome remain separate. Plan changes preserve superseded intent, no response remains unknown, and verified redemption is not inferred. Detailed impression/click collection is deferred. | RELATIONAL_MODEL, PRODUCT and future analytics: preserves recommendation, declared intent and outcome as distinct evidence while keeping the MVP event set small. |
+| D-59 | **Accepted October 1, 2026.** Use Room over SQLite for structured local persistence in the tester-ready Android MVP. Keep Room entities and DAOs inside the data layer, expose repository interfaces to the rest of the app, use application-owned UUIDs, export versioned schemas and require migrations. This does not select the shared backend; Room may later serve as an offline cache or be replaced behind repositories. | ARCHITECTURE, ROADMAP and Android implementation: replaces growing preference-string storage incrementally without coupling Compose to the physical database. Hosted storage, synchronization and API choices remain open under Q-01. |
+| D-60 | **Implemented October 2, 2026 under D-59.** Read the prototype restaurant/offer catalog through a Room repository. Initialize missing catalog data once, retain existing published wording, store trait and weekday rows, and read the latest published version. | Android schema 5 and ARCHITECTURE: removes runtime dependence on hardcoded catalog lists for the quiz, recommendations and related screens. This remains the small single-location prototype, not full applicability, ingestion or shared storage. |
+
+## Accepted MVP additions — October 2, 2026
+
+- **D-61 — Manual submission review:** signed-in users submit a short text offer tied to an existing restaurant/location or a missing-place entry. Reviewer resolves identity, duplicates, schedule, terms and eligibility; unclear material facts cause a hold. Only approved entries become visible as possible deals, without equating approval with restaurant verification. My submissions includes status, notes and held-entry update/resubmission. Rationale: low entry friction and a testable manual publication boundary. PRODUCT, ROADMAP and tracker updated; implementation remains pending.
+- **D-62 — Guest/account permissions:** guests retain recommendation, plan and check-in access, including worked/did-not-work outcomes. Only signed-in users submit deals or report problems. Optional sign-in from menu/submission preserves guest profile/history. Provider, recovery and cross-device semantics remain open. Refines D-52 and Q-07; authentication implementation is deferred until shared submissions.
+- **D-63 — Problem reports:** signed-in users choose offer ended, incorrect details, wrong location or other, optionally adding a note. Route to review without automatically editing/withdrawing an offer. Keep reports distinct from meal outcomes. Rationale: catalog corrections need review and accountable contributions.
+- **D-64 — Maps handoff:** include Open in maps on location details, with Copy address fallback when no maps app can open it; available to guests. Does not record intent or a visit. Supersedes the native-navigation exclusion in the earlier tester-ready scope only for this small external handoff; in-app maps and GPS tracking remain deferred.
+- **D-65 — Deferred launch features:** favorites, photo/menu uploads, automated approval/trusted-contributor shortcuts, GPS tracking and push notifications are outside MVP. Revisit approval automation after manual workflow tests provide evidence. This limits launch scope without removing future design seams.
+
+These decisions are accepted product requirements, not completed application features. Shared storage/authentication, detailed screen behavior and operational implementation remain necessary.
+
+- **D-66 — Offline scope:** offline mode is post-launch. Shared MVP recommendations/community features may require internet, with clear connection messaging. This does not remove existing local Room persistence. Rationale: focus launch work on the connected core loop.
+- **D-67 — Failure and retirement:** one failed-deal check-in flags review, not automatic hiding or restaurant dislike. Reviewer-confirmed ended offers leave current recommendations but preserve original historical evidence. Reliability aggregation remains open.
+- **D-68 — Existing plan availability:** preserve the user's chosen place when an offer ends today or is withdrawn; distinguish the messages, offer Choose another place and retain earlier-use check-in. The 25-minute cutoff gates new recommendations only. Rationale: avoid silently changing user intent or blocking historical reporting.
+- **D-69 — Outcome correction:** include Edit outcome in meal history, brief Undo after No and Edit last check-in on Home until the next plan is selected. Preserve access to the original expired offer for correction. No adds no meal/count; corrected Yes creates a meal. Corrections update totals/reliability and preserve prior-response provenance. No Recent plans section. Rationale: recover accidental answers with minimal visible history. Detailed correction storage and signal-reversal mechanics remain to implement.
+
+PRODUCT, ROADMAP and PROJECT_STATUS carry D-66–D-69; these are accepted but unimplemented requirements.
+
+## October 2, 2026 — accepted development direction
+
+- **D-70 — Supabase/PostgreSQL proof:** user accepted the suggested bounded development experiment following comparison with Firebase. SQL experience, relational design and import/review workflows favor PostgreSQL. Prepare a Free development project, location import, published-only guest reads and reviewer-restricted publication. No paid deployment or complete production-schema approval is implied. Local Room remains in use. ARCHITECTURE, tracker and backend/proof describe limits and verification.
+- **D-71 — Reviewer interface:** the product owner is the sole MVP reviewer; use a small browser-based review page with backend-enforced permissions. Additional reviewer assignments and a full operations portal are later scope. A development login/publication proof is not the full review workflow.
+- **D-72 — Location import direction:** CSV/flat-file ingestion is the preferred starting approach for the initial market; preserve application UUIDs and separate import references. Duplicate/matching validation and source rights remain required. Fixture imports use prototype addresses explicitly not reverified; no restaurant-data provider or current production dataset is approved.
 
 ## Superseded or unapproved sketches
 
@@ -89,11 +115,11 @@ Owner for all questions: product owner with implementation review; no named team
 | Q-04 | D-35 and D-36 resolve current timing, age and membership behavior. How should additional eligibility types be represented, and how should trustworthy savings be calculated? | Later filtering/ranking and presentation; PRODUCT, DATA_MODEL. |
 | Q-05 | Restaurant provider, allowed storage/caching, ingestion budget and refresh; exact market and seed counts; curated deal sourcing? | Real-data ingestion; ARCHITECTURE, ROADMAP. |
 | Q-06 | D-20 resolves the tester-ready UI subset. How are event identity, correlation, attribution, retries and deduplication defined before shared persistence and analytics? | Event implementation and analytics claims; PRODUCT, DATA_MODEL, ROADMAP. |
-| Q-07 | Anonymous versus authenticated MVP users; account migration; household ownership/membership and required profile fields? | Persistent user design; ARCHITECTURE, DATA_MODEL. |
+| Q-07 | D-62 settles guest/account permissions. Provider, account recovery, guest migration details, cross-device synchronization and household ownership remain open. | Persistent user design; ARCHITECTURE, DATA_MODEL. |
 | Q-08 | D-28 resolves the local scoring version 1 formula and basic fit gates. How should distance, urgency, variety history, behavior learning, decay and explicit-versus-learned conflicts work with production data? | Later recommendation implementation; PRODUCT. |
 | Q-09 | Operational roles, action permissions, approval requirements, merge/version/reactivation semantics and minimum tool scope? | Operational workflow implementation; ARCHITECTURE, DEAL_LIFECYCLE. |
 | Q-10 | Privacy, location precision/consent, event/evidence retention, deletion/redaction and future merchant aggregation policy? | Production data collection; ARCHITECTURE, DATA_MODEL. |
-| Q-11 | Exact onboarding and no-result experience; explore/map/navigation launch scope and providers; notifications and manual rewards scope? | Related UI implementation; PRODUCT, ROADMAP. |
+| Q-11 | D-64 settles external maps handoff. In-app explore/map, remaining onboarding/empty-state details and manual rewards scope remain open; notifications are deferred by D-65. | Related UI implementation; PRODUCT, ROADMAP. |
 | Q-12 | D-32 defines the decision-time measurement protocol. What minimum external-tester sample and completion rate should become the acceptance threshold after the initial pilot? | MVP evaluation; PRODUCT, ROADMAP. |
 | Q-13 | Product name, monetization, merchant claims/ownership, analytics attribution, rewards feasibility and iOS approach? | Relevant later milestone; PRODUCT, ROADMAP. |
 | Q-14 | Environment provisioning sequence, release controls, domain ownership, audit storage and recovery approach? | Shared/backend operational rollout; ARCHITECTURE, ROADMAP. |
@@ -115,3 +141,51 @@ Replaces / replaced by:
 ## Change log
 
 - **0.2 — September 26, 2026:** consolidated earlier BRD/logical-model drafts and later lifecycle, evidence, environment, internal-tool and identity discussion into this coherent pack. Added explicit provenance, scope uncertainty and decision tracking. No application code or infrastructure changed.
+
+
+
+## D-73 — Shared catalog refresh and identity preservation
+
+- **Date:** October 3, 2026
+- **Status:** Accepted; bounded development implementation completed.
+- **Decision:** Supabase owns the shared catalog; Room holds an atomic validated snapshot and personal data. Refresh at opening/eligible foreground returns; freeze during dinner selection. Preserve local identities, ratings, exclusions, history and the original plan. Retire withdrawn rows instead of deleting historical references. Failure pauses new/replacement recommendations, offers Retry and leaves check-in/cancellation available with an offer-status warning.
+- **Rationale:** Avoid partial updates, shuffled choices and loss of saved preferences. Offline recommendation support remains deferred.
+- **Consequences:** Schema 6 maps shared UUIDs onto existing local keys. Current DEV endpoint includes three locations, excludes all synthetic offers and therefore supplies restaurant-only picks. Reviewed real offers and production setup remain pending.
+- **Affected:** PRODUCT, ARCHITECTURE, ROADMAP, PROJECT_STATUS, Android repositories and backend/proof/004_app_catalog.sql.
+
+## D-74 — Anonymous authentication for private tester submissions
+
+- **Date:** October 4, 2026
+- **Status:** Accepted.
+- **Decision:** For the private development feature test, allow automatically authenticated anonymous testers to submit deals; preserve their existing local user/profile and link the provider identity separately. No email/password, recovery or cross-device continuity is required for this test. Submission ownership and reviewer-only publication remain backend-enforced.
+- **Replaces:** D-62 identifiable-sign-in requirement for development submissions only. Public launch policy and problem-report requirements remain unchanged.
+- **Rationale:** Test submission features with approximately 15 people before adding account UX.
+- **Consequences:** Room schema 7, encrypted non-backed-up sessions, authenticated pending-intake RPCs. Anonymous identity is created on first community action; clearing data may lose access. Public abuse protection and reviewer publication remain follow-up work.
+- **Affected:** PRODUCT, ARCHITECTURE, ROADMAP, PROJECT_STATUS, Android and backend/proof/005_tester_submissions.sql.
+
+## D-75 — Two-step contribution form and bounded location search
+
+- **Date:** October 4, 2026
+- **Status:** Accepted and implemented.
+- **Decision:** Search/select a location, then enter a free-text deal description. Missing places enter review as unmatched text. Capture existing UUIDs automatically; reviewer maps the description into structured deal/version/schedule/eligibility records. Keep My submissions separate and direct to it after confirmation.
+- **Rationale:** Avoid a screen full of restaurants and avoid making contributors enter the physical schema.
+- **Consequences:** Backend 006 provides active-only indexed prefix search with ten-result bound. Paging/fuzzy lookup and full review/publication remain follow-up work.
+- **Affected:** PRODUCT, ARCHITECTURE, ROADMAP, PROJECT_STATUS, submission UI and backend/proof.
+
+## D-76 — Editable manual review and test isolation
+
+- **Date:** October 4, 2026
+- **Status:** Accepted; development implementation prepared.
+- **Decision:** Reviewer can edit a separate offer draft, match or explicitly create a restaurant/location, save/clarify/reject/approve, and identify test submissions. Preserve the original submission. Test entries and test-created places never reach recommendations.
+- **Rationale:** Support a complete manual intake path without forcing contributor schema entry or mixing tests with real supply.
+- **Consequences:** Backend 007 adds revision-protected drafts, review audit, immutable published schedule/content, reviewer-only RPCs and app-catalog publication. Timed/date-limited offers stay on hold until supported; approval is possible, not verified. Published editing/version replacement and contributor resubmission remain follow-ups.
+- **Affected:** PRODUCT, ARCHITECTURE, DEAL_LIFECYCLE, ROADMAP, PROJECT_STATUS, backend/proof.
+
+## D-77 — Environment separation replaces per-offer test classification
+
+- **Date:** October 4, 2026
+- **Status:** Accepted; implementation prepared, hosted SQL 008 pending.
+- **Decision:** All approved supported development offers participate in recommendations. Remove per-record test flags and show small Development indicators. Launch uses a fresh production database with curated places, genuine reviewed offers and fresh activity.
+- **Rationale:** The whole current project is a testing environment; separate catalogs add friction without improving this private test.
+- **Consequences:** Supersedes test classification/exclusions in D-73/D-76 and per-record sandbox labeling in D-11. Preserve existing published IDs/history and dev database. Keep reviewer authorization, duplicate checks and published immutability. Production provisioning remains a launch gate.
+- **Affected:** PRODUCT, ARCHITECTURE, DEAL_LIFECYCLE, ROADMAP, PROJECT_STATUS, Android catalog, reviewer UI and backend 008.

@@ -1,0 +1,7 @@
+{
+  "name": "where-we-going-backend-proof",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node permissions.test.mjs" },
+  "devDependencies": { "@electric-sql/pglite": "0.3.14" }
+}

@@ -156,12 +156,12 @@ private fun ProfileAgeSelector(label: String, age: Int?, onAge: (Int) -> Unit) {
 }
 
 @Composable
-fun RemovedPage(removed: Set<String>, onRestore: (String) -> Unit) {
+fun RemovedPage(removed: Set<String>, deals: List<com.example.wherewegoing.model.PlaceDeal>, onRestore: (String) -> Unit) {
     PageColumn {
         Text("Removed places", style = MaterialTheme.typography.headlineSmall)
         Text("These places won't appear in recommendations. You can restore them anytime.")
         if (removed.isEmpty()) Text("No places removed yet.")
-        elkGroveDeals.filter { it.id in removed }.forEach { deal ->
+        deals.filter { it.id in removed }.forEach { deal ->
             Card(Modifier.fillMaxWidth()) {
                 Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(deal.name, modifier = Modifier.weight(1f))
@@ -171,4 +171,5 @@ fun RemovedPage(removed: Set<String>, onRestore: (String) -> Unit) {
         }
     }
 }
+
 

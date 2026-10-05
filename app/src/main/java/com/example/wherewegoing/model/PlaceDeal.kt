@@ -12,5 +12,8 @@ data class PlaceDeal(
     val address: String,
     val terms: String,
     val source: String,
-    val checked: String
+    val checked: String,
+    val restaurantId: String? = null,
+    val locationId: String? = null,
+    val dealVersionId: String? = null
 )

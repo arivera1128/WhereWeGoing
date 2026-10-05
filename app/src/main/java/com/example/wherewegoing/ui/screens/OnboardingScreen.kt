@@ -29,7 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.wherewegoing.foodQuizPlaces
+import com.example.wherewegoing.model.QuizPlace
 import com.example.wherewegoing.nextQuizPlace
 
 private const val ONBOARDING_QUIZ_SIZE = 5
@@ -37,6 +37,7 @@ private val supportedElkGroveZips = setOf("95624", "95757", "95758")
 
 @Composable
 fun OnboardingScreen(
+    places: List<QuizPlace>,
     onComplete: (zip: String, adults: Int, childAges: List<Int>, ratings: Map<String, Int>) -> Unit
 ) {
     var step by remember { mutableStateOf("location") }
@@ -140,9 +141,10 @@ fun OnboardingScreen(
             }
 
             "food" -> {
-                val place = nextQuizPlace(ratings)
+                val quizSize = minOf(ONBOARDING_QUIZ_SIZE, places.size)
+                val place = nextQuizPlace(ratings, places)
                 Text("Build your food profile", style = MaterialTheme.typography.headlineMedium)
-                Text("Place ${ratings.size + 1} of $ONBOARDING_QUIZ_SIZE")
+                Text("Place ${ratings.size + 1} of $quizSize")
                 if (place != null) {
                     Text(place.name, style = MaterialTheme.typography.headlineSmall)
                     Text(place.description)
@@ -152,7 +154,7 @@ fun OnboardingScreen(
                             OutlinedButton(
                                 onClick = {
                                     ratings = ratings + (place.id to rating)
-                                    if (ratings.size >= ONBOARDING_QUIZ_SIZE) step = "complete"
+                                    if (ratings.size >= quizSize) step = "complete"
                                 },
                                 modifier = Modifier.weight(1f)
                             ) { Text(rating.toString()) }
@@ -165,11 +167,12 @@ fun OnboardingScreen(
                     OutlinedButton(
                         onClick = {
                             ratings = ratings + (place.id to 0)
-                            if (ratings.size >= ONBOARDING_QUIZ_SIZE) step = "complete"
+                            if (ratings.size >= quizSize) step = "complete"
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) { Text("I haven't tried this place") }
                 }
+                if (place == null) Button(onClick = { step = "complete" }) { Text("Continue") }
                 TextButton(onClick = { step = if ((childCount ?: 0) > 0) "ages" else "household" }) { Text("Back") }
             }
 

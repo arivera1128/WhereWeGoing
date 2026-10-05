@@ -108,21 +108,21 @@ val foodQuizPlaces = listOf(
 
 const val INITIAL_FOOD_QUIZ_SIZE = 5
 
-fun foodTraitScores(ratings: Map<String, Int>): Map<String, Int> {
-    return foodQuizPlaces
+fun foodTraitScores(ratings: Map<String, Int>, places: List<QuizPlace> = foodQuizPlaces): Map<String, Int> {
+    return places
         .filter { (ratings[it.id] ?: 0) in 1..5 }
         .flatMap { place -> place.traits.map { trait -> trait to ((ratings[place.id] ?: 3) - 3) } }
         .groupingBy { it.first }
         .fold(0) { total, pair -> total + pair.second }
 }
 
-fun nextQuizPlace(ratings: Map<String, Int>): QuizPlace? {
-    val unanswered = foodQuizPlaces.filter { it.id !in ratings }
+fun nextQuizPlace(ratings: Map<String, Int>, places: List<QuizPlace> = foodQuizPlaces): QuizPlace? {
+    val unanswered = places.filter { it.id !in ratings }
     if (unanswered.isEmpty()) return null
-    if (ratings.isEmpty()) return foodQuizPlaces.first()
+    if (ratings.isEmpty()) return places.first()
 
-    val traitScores = foodTraitScores(ratings)
-    val lastPlace = ratings.keys.lastOrNull()?.let { lastId -> foodQuizPlaces.find { it.id == lastId } }
+    val traitScores = foodTraitScores(ratings, places)
+    val lastPlace = ratings.keys.lastOrNull()?.let { lastId -> places.find { it.id == lastId } }
     val lastRating = lastPlace?.let { ratings[it.id] } ?: 0
 
     return unanswered.maxByOrNull { candidate ->
@@ -133,3 +133,4 @@ fun nextQuizPlace(ratings: Map<String, Int>): QuizPlace? {
         uncertainTraits * 3 + relatedComparison
     }
 }
+

@@ -80,6 +80,7 @@ The MVP may enforce one primary household for one user while the bridge leaves r
 |---|---|---:|---|---|
 | household_child_id | UUID | No | Primary key | Anonymous identity for one child profile row. |
 | household_id | UUID | No | Foreign key → `household.household_id` | Household containing the child. |
+| display_order | Small integer | No | Unique within household; nonnegative | Stable ordering for anonymous child rows in profile editing. |
 | birth_date | Date | Conditional | Optional full birthday | Precise age source when voluntarily supplied. |
 | entered_age_years | Small integer | Conditional | Nonnegative, realistic maximum TBD | Age supplied without a birthday. |
 | age_as_of_date | Date | Conditional | Required with entered age | Date on which the entered age was confirmed. |
@@ -160,23 +161,52 @@ Do not create or collect allergy records in the current scope. Allergy-aware rec
 
 ## Recommendation history
 
+### meal_occasion
+
+`meal_occasion` is the parent record for one use of the app to decide where to eat for a particular meal. The MVP supports `DINNER`, but the identifier is deliberately not tied to a calendar day or to deals. Starting **Where should we eat tonight?** creates the occasion; merely opening Home does not. Recommendation reruns and changes of plan remain within the same occasion.
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| meal_occasion_id | UUID | No | Primary key | Identity for one meal-decision journey. |
+| household_id | UUID | No | Foreign key → `household.household_id` | Household context whose profile informs the decision, including a one-person household. |
+| created_by_user_id | UUID | No | Foreign key → `app_user.user_id` | Individual who started the journey. |
+| profile_context_type | Text/code | No | Initial value `HOUSEHOLD` | Leaves a seam for future individual or group contexts. |
+| meal_type | Text/code | No | Initial value `DINNER` | Intended meal; extensible without redefining the record. |
+| service_date | Date | No | Interpreted with `time_zone` | Local date for which the meal is planned. |
+| time_zone | Text | No | IANA name | Local-time basis for the occasion and its expiry rules. |
+| status | Text/code | No | `PLANNING`, `PLANNED`, `RESOLVED`, `CANCELED`, `ABANDONED`, or `EXPIRED` | Current journey state. |
+| started_at | Timestamp with time zone | No | | When the recommendation journey began. |
+| closed_at | Timestamp with time zone | Yes | Required for terminal states | When the occasion reached its terminal state. |
+| created_from | Text/code | No | Allowed values TBD | Entry point such as Home or a resumed recommendation journey. |
+
+`RESOLVED` means the user answered the check-in; it does not imply a visit or successful deal. `ABANDONED` means planning ended without a plan intent. `EXPIRED` means a plan existed but its response window ended without an answer.
+
+Allow at most one `PLANNING` or `PLANNED` occasion for the same `(household_id, created_by_user_id, meal_type, service_date)`. Returning to **Where should we eat tonight?** on that same local service date resumes the existing occasion. Starting the flow on a later service date creates a new occasion even if the earlier occasion still has a pending check-in. The older and newer occasions then resolve independently.
+
+At the end of its local service date, an occasion still in `PLANNING` becomes `ABANDONED`. An occasion in `PLANNED` remains open for its agreed check-in window and becomes `RESOLVED` when answered or `EXPIRED` at the end of the following local calendar day. Creating a later occasion never marks the earlier one `CANCELED`; cancellation requires an explicit user action. The MVP uses local midnight as the service-date boundary. A later configurable dining-day cutoff can support overnight use without changing these relationships.
+
+The household foreign key preserves the source-of-truth relationship, while the recommendation run below may retain a limited immutable snapshot of the decision inputs. This intentional redundancy keeps historical recommendations explainable after the household or user profile changes. The snapshot must contain decision inputs only, not an unrestricted copy of the profile or unnecessary personal data.
+
 ### recommendation_run
 
 | Column | Working type | Null? | Key / rule | Purpose |
 |---|---|---:|---|---|
 | recommendation_run_id | UUID | No | Primary key | Identity for one request to the recommendation engine. |
+| meal_occasion_id | UUID | No | Foreign key → `meal_occasion.meal_occasion_id` | Meal journey containing this calculation. |
 | requested_by_user_id | UUID | No | Foreign key → `app_user.user_id` | User requesting the decision. |
 | household_id | UUID | Yes | Foreign key → `household.household_id` | Household context when used. |
 | origin_postal_code | Text | Yes | | Approximate location context used by the request. |
 | requested_radius | Decimal | Yes | Positive; unit convention TBD | Distance boundary used by the request. |
 | party_size | Small integer | No | Positive | People represented in the dining decision. |
 | engine_version | Text | No | | Recommendation logic version. |
+| context_schema_version | Text | No | | Version of the immutable decision-input snapshot contract. |
+| context_snapshot | Structured document | No | Decision inputs only | Limited snapshot needed to explain this run after profiles change. |
 | outcome_status | Text/code | No | Allowed values TBD | Completed, no result, failed, or abandoned direction. |
 | no_result_reason | Text/code | Yes | Required for reviewed no-result states | Structured explanation when no option was available. |
 | requested_at | Timestamp with time zone | No | | Request instant. |
 | completed_at | Timestamp with time zone | Yes | | Engine completion instant. |
 
-Exact coordinates, temporary debug-day overrides and richer group context require separate privacy/testing fields if later accepted. Do not overload postal code into an assumption of precise user position.
+Exact coordinates, temporary debug-day overrides and richer group context require separate privacy/testing fields if later accepted. Do not overload postal code into an assumption of precise user position. Stable foreign keys remain authoritative for current entities; the immutable snapshot preserves only the values actually used by this run, such as party composition, relevant eligibility answers, preference-model version and location/radius inputs. Frequently queried values retain first-class columns rather than being hidden only in the structured snapshot.
 
 ### recommendation_option
 
@@ -190,9 +220,9 @@ Exact coordinates, temporary debug-day overrides and richer group context requir
 | displayed_rank | Small integer | No | Unique within run; positive | Featured result and alternative ordering. |
 | total_score | Decimal | No | Scale defined by engine version | Final internal score used for ordering. |
 | was_featured | Boolean | No | Exactly one when results exist | Whether this was the initial winner. |
-| presented_at | Timestamp with time zone | No | | When the option became visible to the user. |
+| prepared_at | Timestamp with time zone | No | | When the option was made available for presentation. |
 
-Only options actually shown are persisted in normal recommendation history. Choosing an alternative does not update `was_featured`; selection is a separate intent event so the engine's original output remains intact.
+Only options made available in the consumer recommendation result are persisted in normal history; rejected internal candidates are not. A `recommendation_option` is not an advertising impression and does not prove that its tile entered the viewport. Choosing an alternative does not update `was_featured`; selection is recorded in `plan_intent` so the engine's original output remains intact.
 
 ### recommendation_score_component
 
@@ -203,6 +233,74 @@ Only options actually shown are persisted in normal recommendation history. Choo
 | component_value | Decimal | No | Scale defined by engine version | Contribution retained for testing and support. |
 
 The score components and `engine_version` preserve traceability without permanently storing every rejected candidate. Full candidate traces may be temporary diagnostics or sampled test-environment data later; they are not normal consumer history.
+
+### plan_intent
+
+`plan_intent` records an explicit selection such as **I'll try this deal**. It is a declared plan, not a visit, redemption, purchase or merchant lead. A meal occasion may contain several historical intents as the user changes the plan, but at most one may be `CURRENT`.
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| plan_intent_id | UUID | No | Primary key | Identity for one declared selection. |
+| meal_occasion_id | UUID | No | Foreign key → `meal_occasion.meal_occasion_id` | Meal journey containing the plan. |
+| user_id | UUID | No | Foreign key → `app_user.user_id` | Individual who declared the plan. |
+| recommendation_option_id | UUID | No | Foreign key → `recommendation_option.recommendation_option_id` | Exact engine-produced option that the user selected. |
+| status | Text/code | No | `CURRENT`, `SUPERSEDED`, or `RETRACTED` | Whether this remains the selected plan. |
+| source | Text/code | No | Initial values `FEATURED_PICK` or `ALTERNATIVE` | Placement from which the engine-produced option was selected. |
+| declared_at | Timestamp with time zone | No | | When the user selected the plan. |
+| ended_at | Timestamp with time zone | Yes | Required when not `CURRENT` | When this selection stopped being current. |
+| superseded_by_intent_id | UUID | Yes | Self foreign key; required for `SUPERSEDED` | New intent that replaced this selection. |
+
+Selecting another option changes the prior intent to `SUPERSEDED` and creates a new `CURRENT` row in one transaction. Withdrawing without a replacement uses `RETRACTED`. Follow-through and deal success never overload this status.
+
+In the current product boundary, every plan intent must reference a `recommendation_option` from a recommendation run in the same meal occasion. The engine evaluates the applicable service date, schedule, location and eligibility before producing that option. Upcoming offers are informational and may expose details, but they cannot create a plan intent directly. Supporting advance meal planning would require a separately reviewed recommendation flow rather than treating an upcoming-offer detail view as a selection.
+
+The immutable recommendation option is the authoritative path from the intent to its restaurant, location and optional deal version. Do not duplicate those foreign keys on `plan_intent`; doing so could create contradictory selections without preserving additional history.
+
+Retain `meal_occasion_id` directly on `plan_intent` because it is the business owner of the declared plan and supports an efficient partial unique rule allowing at most one `CURRENT` intent per occasion. The referenced recommendation option must belong to a recommendation run whose `meal_occasion_id` equals the intent's `meal_occasion_id`. Enforce this cross-table invariant in the plan-creation transaction and with a database trigger or equivalent database-level mechanism once the database platform is selected.
+
+Changing the current selection is one atomic operation: mark the existing intent `SUPERSEDED`, set its `ended_at` and `superseded_by_intent_id`, cancel its pending check-in, insert the replacement `CURRENT` intent, and create the replacement pending check-in. The meal occasion remains `PLANNED`. A failure in any step rolls back the entire change so the occasion cannot be left with two current plans or no check-in for its current plan.
+
+### plan_check_in
+
+`plan_check_in` represents the follow-up request itself, including a request that is never answered. A superseded or retracted plan must not retain an active check-in.
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| plan_check_in_id | UUID | No | Primary key | Identity for one follow-up request. |
+| plan_intent_id | UUID | No | Unique; foreign key → `plan_intent.plan_intent_id` | Selected plan being checked. |
+| status | Text/code | No | `PENDING`, `PRESENTED`, `ANSWERED`, `CANCELED`, or `EXPIRED` | Current request state. |
+| eligible_at | Timestamp with time zone | No | | Earliest time the app should present the request. |
+| first_presented_at | Timestamp with time zone | Yes | | First time the follow-up was shown. |
+| responded_at | Timestamp with time zone | Yes | Required when `ANSWERED` | When an answer was submitted. |
+| created_at | Timestamp with time zone | No | | When the follow-up was scheduled. |
+
+For the initial experience, set `eligible_at` one minute after the plan intent and present the pending check-in on the user's next app visit after that instant. The question remains available without forcing an immediate answer and expires at the end of the local calendar day following `meal_occasion.service_date`. No response remains unknown; it must not be converted into a negative outcome. Superseding or retracting the plan changes its pending check-in to `CANCELED`.
+
+The one-minute value is an application policy rather than a database constraint. It prevents the check-in from appearing during the immediate selection transition while still supporting users who record their plan late. Future push notifications, location-assisted reminders or other channels may use longer schedules without delaying the in-app check-in or changing the meaning of the response.
+
+### plan_outcome
+
+`plan_outcome` stores the user's self-reported answer. It does not become a verified redemption merely because the user reports success.
+
+| Column | Working type | Null? | Key / rule | Purpose |
+|---|---|---:|---|---|
+| plan_outcome_id | UUID | No | Primary key | Identity for one submitted answer or correction. |
+| plan_check_in_id | UUID | No | Foreign key → `plan_check_in.plan_check_in_id` | Follow-up that collected the answer. |
+| reported_by_user_id | UUID | No | Foreign key → `app_user.user_id` | Individual providing the answer. |
+| outcome_type | Text/code | No | Controlled values below | Exact self-reported result. |
+| reporting_method | Text/code | No | Initial value `IN_APP_SELF_REPORT` | Evidence source; never implies independent verification. |
+| reported_at | Timestamp with time zone | No | | When this answer was recorded. |
+| supersedes_outcome_id | UUID | Yes | Unique self foreign key | Earlier answer corrected by this row. |
+
+Initial outcome types are `DEAL_USED_WORKED`, `DEAL_USED_FAILED`, and `DEAL_NOT_USED` when a deal was selected; and `PLACE_VISITED` or `PLACE_NOT_VISITED` for a restaurant-only plan. `DEAL_NOT_USED` does not establish whether the user visited the restaurant. A correction inserts a new row pointing to the previous answer; it does not overwrite or delete history. A chain may not branch, and the current answer is the row that has not been superseded by another row.
+
+The recommendation option determines the allowed outcome family. When its `deal_version_id` is present, only the three deal outcomes are valid. When it is null, only `PLACE_VISITED` or `PLACE_NOT_VISITED` is valid. Enforce this invariant in application logic and with a database trigger or equivalent mechanism after selecting the database platform.
+
+Recording the initial answer is one atomic operation: insert the outcome, change the check-in to `ANSWERED`, set `responded_at`, change the meal occasion to `RESOLVED`, and set its `closed_at`. A correction adds a new outcome in the same check-in's correction chain without reopening the resolved occasion.
+
+The parent chain is authoritative: `plan_outcome` reaches its intent through `plan_check_in`, and the check-in reaches its meal occasion through `plan_intent`. Do not duplicate those foreign keys on the child records. Keep `reported_by_user_id` directly on the outcome because the reporting user may eventually differ from the person who declared the plan.
+
+Detailed impressions, detail views, phone taps, directions requests, website openings and other advertising-style interaction events are deferred. `recommendation_option` records must not be reported as impressions. A future append-only `interaction_event` table can reference the stable user, meal occasion, recommendation run, recommendation option, location and deal-version IDs defined here without restructuring these business tables. Future merchant integrations and independently verified redemptions remain separate from self-reported `plan_outcome` rows.
 
 ## Restaurant and location foundation
 
@@ -536,11 +634,20 @@ erDiagram
   RESTAURANT_ATTRIBUTE ||--o{ USER_ATTRIBUTE_AFFINITY : learned_as
   APP_USER ||--o{ RECOMMENDATION_RUN : requests
   HOUSEHOLD ||--o{ RECOMMENDATION_RUN : contextualizes
+  APP_USER ||--o{ MEAL_OCCASION : creates
+  HOUSEHOLD ||--o{ MEAL_OCCASION : plans_for
+  MEAL_OCCASION ||--o{ RECOMMENDATION_RUN : contains
   RECOMMENDATION_RUN ||--o{ RECOMMENDATION_OPTION : presents
   RESTAURANT ||--o{ RECOMMENDATION_OPTION : recommended_as
   LOCATION ||--o{ RECOMMENDATION_OPTION : located_at
   DEAL_VERSION ||--o{ RECOMMENDATION_OPTION : offered_as
   RECOMMENDATION_OPTION ||--o{ RECOMMENDATION_SCORE_COMPONENT : scored_by
+  MEAL_OCCASION ||--o{ PLAN_INTENT : includes
+  APP_USER ||--o{ PLAN_INTENT : declares
+  RECOMMENDATION_OPTION ||--o{ PLAN_INTENT : selected_as
+  PLAN_INTENT ||--o| PLAN_CHECK_IN : followed_by
+  PLAN_CHECK_IN ||--o{ PLAN_OUTCOME : answered_by
+  APP_USER ||--o{ PLAN_OUTCOME : reports
   LOCATION ||--o{ LOCATION_EXTERNAL_REFERENCE : identified_by
   RESTAURANT ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : classified_as
   RESTAURANT_ATTRIBUTE ||--o{ RESTAURANT_ATTRIBUTE_ASSIGNMENT : assigned_to
@@ -562,4 +669,4 @@ erDiagram
 
 ## Next review
 
-Add intent, check-in, verification and preference events, then evidence/lifecycle tables. Revisit structured dietary requirements with dependable restaurant capability data.
+Review plan/check-in timing policies and future verification boundaries, then add evidence/lifecycle tables. Detailed interaction-event collection remains deferred until merchant reporting or product analysis provides a concrete use. Revisit structured dietary requirements with dependable restaurant capability data.

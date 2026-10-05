@@ -22,6 +22,7 @@ import java.util.Date
 import java.util.Locale
 @Composable
 fun QuizPage(
+    places: List<QuizPlace>,
     ratings: Map<String, Int>,
     targetCount: Int,
     editingPlaceId: String?,
@@ -38,8 +39,8 @@ fun QuizPage(
     onExitPreview: () -> Unit,
     onSeePicks: () -> Unit
 ) {
-    val currentPlace = editingPlaceId?.let { id -> foodQuizPlaces.find { it.id == id } }
-        ?: if (ratings.size < targetCount) nextQuizPlace(ratings) else null
+    val currentPlace = editingPlaceId?.let { id -> places.find { it.id == id } }
+        ?: if (ratings.size < targetCount) nextQuizPlace(ratings, places) else null
     val answeredCount = ratings.size
     var searchText by remember { mutableStateOf("") }
     var removalCandidate by remember { mutableStateOf<QuizPlace?>(null) }
@@ -134,9 +135,9 @@ fun QuizPage(
                 OutlinedButton(onClick = onExitPreview, modifier = Modifier.fillMaxWidth()) {
                     Text("Return to my saved profile")
                 }
-            } else if (ratings.size < foodQuizPlaces.size) {
+            } else if (ratings.size < places.size) {
                 Button(onClick = onRateMore, modifier = Modifier.fillMaxWidth()) {
-                    Text("Rate more places — ${foodQuizPlaces.size - ratings.size} available")
+                    Text("Rate more places — ${places.size - ratings.size} available")
                 }
             } else {
                 Text("You've rated all places currently available in this prototype.")
@@ -150,7 +151,7 @@ fun QuizPage(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-            val matchingPlaces = foodQuizPlaces.filter {
+            val matchingPlaces = places.filter {
                 it.id in ratings && it.name.contains(searchText.trim(), ignoreCase = true)
             }
             if (matchingPlaces.isEmpty()) {
@@ -270,5 +271,6 @@ private fun SavedRatingRow(place: QuizPlace, rating: Int, onEdit: () -> Unit) {
         }
     }
 }
+
 
 

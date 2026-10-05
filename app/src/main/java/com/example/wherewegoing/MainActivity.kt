@@ -43,6 +43,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,14 +52,25 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.wherewegoing.data.readMealHistory
-import com.example.wherewegoing.data.writeMealHistory
-import com.example.wherewegoing.data.SharedPreferencesHouseholdProfileRepository
+import com.example.wherewegoing.data.DinnerJourneySnapshot
+import com.example.wherewegoing.data.RoomDinnerJourneyRepository
+import com.example.wherewegoing.data.RoomHouseholdProfileRepository
+import com.example.wherewegoing.data.HouseholdProfileSnapshot
+import com.example.wherewegoing.data.CatalogSnapshot
+import com.example.wherewegoing.data.RoomCatalogRepository
+import com.example.wherewegoing.data.SharedCatalogRepository
+import com.example.wherewegoing.data.SupabaseCatalogSource
+import com.example.wherewegoing.data.PreferenceSnapshot
+import com.example.wherewegoing.data.RoomPreferenceRepository
+import com.example.wherewegoing.data.local.WhereWeGoingDatabase
 import com.example.wherewegoing.domain.isDealEligibleForHousehold
 import com.example.wherewegoing.domain.RecommendationEngine
 import com.example.wherewegoing.domain.daysUntilNextOffer
@@ -77,6 +90,7 @@ import com.example.wherewegoing.ui.RemovedPage
 import com.example.wherewegoing.ui.theme.WhereWeGoingTheme
 import java.util.Calendar
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,53 +112,138 @@ fun DinnerApp() {
                 .putString("kids", previous.getString("numberOfKids", ""))
                 .apply()
         }
-        val pendingId = current.getString("pending_checkin_deal_id", "").orEmpty()
-        if (pendingId.isNotBlank() && !current.getBoolean("pending_checkin_ready", false)) {
-            val previousShows = current.getInt("pending_checkin_shows", 0)
-            if (previousShows >= 3) {
-                current.edit()
-                    .remove("pending_checkin_deal_id")
-                    .remove("pending_checkin_stage")
-                    .remove("pending_checkin_ready")
-                    .remove("pending_checkin_shows")
-                    .apply()
-            } else {
-                current.edit()
-                    .putBoolean("pending_checkin_ready", true)
-                    .putInt("pending_checkin_shows", previousShows + 1)
-                    .apply()
-            }
-        }
         current
     }
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    val householdRepository = remember(prefs) { SharedPreferencesHouseholdProfileRepository(prefs) }
-    val recommendationEngine = remember { RecommendationEngine() }
+    val householdDatabase = remember(context) { WhereWeGoingDatabase.getInstance(context) }
+    val householdRepository = remember(householdDatabase, prefs) {
+        RoomHouseholdProfileRepository(householdDatabase, prefs)
+    }
+    val preferenceRepository = remember(householdDatabase, prefs) {
+        RoomPreferenceRepository(householdDatabase, prefs)
+    }
+    val dinnerJourneyRepository = remember(householdDatabase) {
+        RoomDinnerJourneyRepository(householdDatabase)
+    }
+    var householdSnapshot by remember { mutableStateOf<HouseholdProfileSnapshot?>(null) }
+    LaunchedEffect(householdRepository) {
+        householdSnapshot = householdRepository.load()
+    }
+    val loadedHousehold = householdSnapshot
+    if (loadedHousehold == null) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(24.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            ChickLogo()
+            Spacer(Modifier.height(16.dp))
+            Text("Loading your profile…", style = MaterialTheme.typography.titleMedium)
+        }
+        return
+    }
+    val catalogRepository = remember(householdDatabase) {
+        RoomCatalogRepository(householdDatabase, foodQuizPlaces, elkGroveDeals)
+    }
     var page by remember { mutableStateOf("Home") }
+    val sharedEnabled = BuildConfig.DEBUG && BuildConfig.PROOF_SUPABASE_URL.isNotBlank()
+    val sharedRepository = remember(householdDatabase) {
+        SharedCatalogRepository(householdDatabase, SupabaseCatalogSource(BuildConfig.PROOF_SUPABASE_URL, BuildConfig.PROOF_SUPABASE_KEY))
+    }
+    val testerRepository = remember(householdDatabase) { com.example.wherewegoing.data.TesterAccountRepository(context, householdDatabase, BuildConfig.PROOF_SUPABASE_URL, BuildConfig.PROOF_SUPABASE_KEY) }
+    var refreshRequest by remember { mutableStateOf(0) }
+    var catalogBusy by remember { mutableStateOf(sharedEnabled) }
+    var catalogError by remember { mutableStateOf(false) }
+    var catalogDiagnostic by remember { mutableStateOf("") }
+    val lifecycleOwner=LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, sharedEnabled) {
+        var stopped=false
+        val observer=LifecycleEventObserver { _, event ->
+            if(event==Lifecycle.Event.ON_STOP) stopped=true
+            if(event==Lifecycle.Event.ON_START && stopped) {
+                stopped=false
+                // Freeze the snapshot while a dinner choice/detail flow is in progress.
+                if(sharedEnabled && page !in setOf("Tonight's picks","Deal details")) refreshRequest += 1
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    var catalogSnapshot by remember { mutableStateOf<CatalogSnapshot?>(null) }
+    LaunchedEffect(catalogRepository, refreshRequest) {
+        catalogBusy=sharedEnabled
+        try {
+            // Seed/retain existing identities before the first shared import.
+            catalogRepository.load()
+            if(sharedEnabled) sharedRepository.refresh()
+            catalogError=false
+            catalogDiagnostic=if(sharedEnabled) "Shared catalog refreshed." else "Local prototype catalog."
+        } catch(error: CancellationException) { throw error
+        } catch(error: Exception) {
+            catalogError=true
+            catalogDiagnostic=error.message ?: "Catalog refresh failed."
+        } finally {
+            catalogSnapshot=catalogRepository.load()
+            catalogBusy=false
+        }
+    }
+    val catalog = catalogSnapshot
+    if (catalog == null) {
+        Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center) {
+            Text("Loading places…")
+        }
+        return
+    }
+    val places = catalog.places
+    val deals = catalog.deals
+    val canRecommend=!catalogBusy && !catalogError
+    var preferenceSnapshot by remember { mutableStateOf<PreferenceSnapshot?>(null) }
+    LaunchedEffect(loadedHousehold.userId) {
+        preferenceSnapshot = preferenceRepository.load(loadedHousehold.userId, places)
+    }
+    val loadedPreferences = preferenceSnapshot
+    if (loadedPreferences == null) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(24.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            ChickLogo()
+            Spacer(Modifier.height(16.dp))
+            Text("Loading your food profile…", style = MaterialTheme.typography.titleMedium)
+        }
+        return
+    }
+    var dinnerSnapshot by remember { mutableStateOf<DinnerJourneySnapshot?>(null) }
+    LaunchedEffect(loadedHousehold.userId) {
+        dinnerSnapshot = dinnerJourneyRepository.load(loadedHousehold.userId)
+    }
+    val loadedDinner = dinnerSnapshot
+    if (loadedDinner == null) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(24.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            ChickLogo()
+            Spacer(Modifier.height(16.dp))
+            Text("Loading your dinner plans…", style = MaterialTheme.typography.titleMedium)
+        }
+        return
+    }
+    val recommendationEngine = remember { RecommendationEngine() }
     var selectedDeal by remember { mutableStateOf<PlaceDeal?>(null) }
     var detailBackPage by remember { mutableStateOf("Tonight's picks") }
-    var selectedTonightDealId by remember {
-        mutableStateOf(prefs.getString("selected_tonight_deal_id", null))
-    }
-    var savedHousehold by remember { mutableStateOf(householdRepository.load()) }
+    var selectedTonightDealId by remember { mutableStateOf<String?>(null) }
+    var savedHousehold by remember { mutableStateOf(loadedHousehold.profile) }
     var householdDraft by remember { mutableStateOf(savedHousehold) }
-    var profileSaved by remember { mutableStateOf(householdRepository.hasProfile()) }
+    var profileSaved by remember { mutableStateOf(loadedHousehold.hasProfile) }
     var onboardingComplete by remember {
-        mutableStateOf(prefs.getBoolean("onboarding_complete", profileSaved))
+        mutableStateOf(profileSaved)
     }
     var editingProfile by remember { mutableStateOf(!profileSaved) }
     var votes by remember {
-        mutableStateOf(elkGroveDeals.associate { it.id to (prefs.getString("vote_${it.id}", "neutral") ?: "neutral") })
+        mutableStateOf(deals.associate { it.id to (prefs.getString("vote_${it.id}", "neutral") ?: "neutral") })
     }
-    var quizRatings by remember {
-        mutableStateOf(
-            foodQuizPlaces.mapNotNull { place ->
-                val key = "quiz_rating_${place.id}"
-                if (prefs.contains(key)) place.id to prefs.getInt(key, 0) else null
-            }.toMap()
-        )
-    }
+    var quizRatings by remember { mutableStateOf(loadedPreferences.ratings) }
     var quizTarget by remember {
         mutableStateOf(
             if (quizRatings.size < INITIAL_FOOD_QUIZ_SIZE) INITIAL_FOOD_QUIZ_SIZE else quizRatings.size
@@ -155,58 +254,51 @@ fun DinnerApp() {
     var previewRatings by remember { mutableStateOf<Map<String, Int>>(emptyMap()) }
     var previewRemoved by remember { mutableStateOf<Set<String>>(emptySet()) }
     var removeInfoSuppressed by remember { mutableStateOf(prefs.getBoolean("hide_remove_info", false)) }
-    var removed by remember { mutableStateOf(prefs.getStringSet("removed", emptySet())?.toSet() ?: emptySet()) }
+    var removed by remember { mutableStateOf(loadedPreferences.removedPlaceKeys) }
     var picksMessage by remember { mutableStateOf("") }
     var recommendationRefreshVersion by remember { mutableStateOf(0) }
-    var pendingCheckInDealId by remember { mutableStateOf(prefs.getString("pending_checkin_deal_id", "") ?: "") }
-    var pendingCheckInHadOffer by remember { mutableStateOf(prefs.getBoolean("pending_checkin_had_offer", true)) }
-    var pendingCheckInReady by remember { mutableStateOf(prefs.getBoolean("pending_checkin_ready", false)) }
-    var pendingCheckInShows by remember { mutableStateOf(prefs.getInt("pending_checkin_shows", 0)) }
+    var pendingCheckInDealId by remember { mutableStateOf(loadedDinner.pendingPlaceKey.orEmpty()) }
+    var savedPendingPlace by remember { mutableStateOf(loadedDinner.pendingPlace) }
+    var pendingCheckInHadOffer by remember { mutableStateOf(loadedDinner.pendingHasOffer) }
+    var pendingCheckInReady by remember { mutableStateOf(loadedDinner.checkInReady) }
+    var pendingCheckInShows by remember { mutableStateOf(0) }
     var checkInMessage by remember { mutableStateOf("") }
     var checkInResult by remember { mutableStateOf("") }
-    var mealHistory by remember {
-        mutableStateOf(readMealHistory(prefs.getString("meal_history", "").orEmpty()))
-    }
+    var mealHistory by remember { mutableStateOf(loadedDinner.mealHistory) }
     var simulatedDay by remember {
         mutableStateOf(prefs.getInt("prototype_simulated_day", 0).takeIf { it in 1..7 })
     }
 
     fun saveRemoved(newValue: Set<String>) {
+        val added = newValue - removed
+        val restored = removed - newValue
         removed = newValue
-        prefs.edit().putStringSet("removed", newValue).apply()
+        scope.launch {
+            added.forEach { preferenceRepository.setExcluded(loadedHousehold.userId, it, true) }
+            restored.forEach { preferenceRepository.setExcluded(loadedHousehold.userId, it, false) }
+        }
     }
 
     fun postponeCheckIn() {
         pendingCheckInReady = false
-        prefs.edit().putBoolean("pending_checkin_ready", false).apply()
     }
 
     fun cancelPlan() {
+        savedPendingPlace=null
         pendingCheckInDealId = ""
         pendingCheckInReady = false
         pendingCheckInHadOffer = true
         pendingCheckInShows = 0
         checkInMessage = "Plan canceled."
         checkInResult = "canceled"
-        prefs.edit()
-            .remove("pending_checkin_deal_id")
-            .remove("pending_checkin_stage")
-            .remove("pending_checkin_ready")
-            .remove("pending_checkin_shows")
-            .remove("pending_checkin_had_offer")
-            .apply()
+        scope.launch { dinnerJourneyRepository.cancelCurrentPlan(loadedHousehold.userId) }
     }
 
     fun finishCheckIn(message: String, result: String) {
+        savedPendingPlace=null
         val completedDealId = pendingCheckInDealId
-        if (completedDealId.isNotBlank()) {
-            prefs.edit().putString("deal_checkin_result_$completedDealId", result).apply()
-            if (result == "worked" || result == "did_not_work" || result == "visited") {
-                val updatedHistory = (listOf(MealRecord(completedDealId, result, System.currentTimeMillis())) + mealHistory)
-                    .take(50)
-                mealHistory = updatedHistory
-                prefs.edit().putString("meal_history", writeMealHistory(updatedHistory)).apply()
-            }
+        if (completedDealId.isNotBlank() && (result == "worked" || result == "did_not_work" || result == "visited")) {
+            mealHistory = (listOf(MealRecord(completedDealId, result, System.currentTimeMillis())) + mealHistory).take(50)
         }
         pendingCheckInDealId = ""
         pendingCheckInReady = false
@@ -214,17 +306,11 @@ fun DinnerApp() {
         pendingCheckInShows = 0
         checkInMessage = message
         checkInResult = result
-        prefs.edit()
-            .remove("pending_checkin_deal_id")
-            .remove("pending_checkin_stage")
-            .remove("pending_checkin_ready")
-            .remove("pending_checkin_shows")
-            .remove("pending_checkin_had_offer")
-            .apply()
+        scope.launch { dinnerJourneyRepository.recordOutcome(loadedHousehold.userId, result) }
     }
 
     val supportedZip = savedHousehold.zip in setOf("95624", "95757", "95758")
-    val visibleDeals = if (supportedZip) elkGroveDeals.filter { it.id !in removed } else emptyList()
+    val visibleDeals = if (supportedZip && canRecommend) deals.filter { it.id !in removed } else emptyList()
     val today = simulatedDay ?: Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
     val recommendationResult = remember(
         visibleDeals,
@@ -235,7 +321,7 @@ fun DinnerApp() {
     ) {
         recommendationEngine.recommend(
             deals = visibleDeals,
-            quizPlaces = foodQuizPlaces,
+            quizPlaces = places,
             ratings = quizRatings,
             household = savedHousehold,
             today = today
@@ -263,7 +349,7 @@ fun DinnerApp() {
         )
 
     if (!onboardingComplete) {
-        OnboardingScreen { onboardingZip, adultCount, childAges, onboardingRatings ->
+        OnboardingScreen(places = places) { onboardingZip, adultCount, childAges, onboardingRatings ->
             val completedHousehold = HouseholdProfile(
                 adults = adultCount,
                 childAges = childAges,
@@ -273,8 +359,7 @@ fun DinnerApp() {
             val editor = prefs.edit()
 
             onboardingRatings.forEach { (placeId, rating) ->
-                editor.putInt("quiz_rating_$placeId", rating)
-                if (rating in 1..5 && elkGroveDeals.any { it.id == placeId }) {
+                if (rating in 1..5 && deals.any { it.id == placeId }) {
                     val vote = when (rating) {
                         1, 2 -> "dislike"
                         4, 5 -> "like"
@@ -285,15 +370,20 @@ fun DinnerApp() {
                 }
             }
             editor.apply()
-            householdRepository.save(completedHousehold)
-            savedHousehold = completedHousehold
-            householdDraft = completedHousehold
-            profileSaved = true
-            editingProfile = false
-            quizRatings = onboardingRatings
-            quizTarget = onboardingRatings.size
-            onboardingComplete = true
-            page = "Tonight's picks"
+            scope.launch {
+                householdRepository.save(completedHousehold)
+                onboardingRatings.forEach { (placeId, rating) ->
+                    preferenceRepository.saveRating(loadedHousehold.userId, placeId, rating)
+                }
+                savedHousehold = completedHousehold
+                householdDraft = completedHousehold
+                profileSaved = true
+                editingProfile = false
+                quizRatings = onboardingRatings
+                quizTarget = onboardingRatings.size
+                onboardingComplete = true
+                page = "Tonight's picks"
+            }
         }
         return
     }
@@ -306,7 +396,7 @@ fun DinnerApp() {
                     Spacer(Modifier.height(20.dp))
                     Text("  Dinner, decided.", style = MaterialTheme.typography.titleLarge)
                     Spacer(Modifier.height(16.dp))
-                    listOf("Home", "Tonight's picks", "Food profile", "Profile", "Removed places").forEach { item ->
+                    (listOf("Home", "Tonight's picks", "Food profile", "Profile", "Removed places") + if(sharedEnabled) listOf("Share a deal", "My submissions") else emptyList()).forEach { item ->
                         NavigationDrawerItem(
                             label = { Text(item) },
                             selected = page == item,
@@ -364,14 +454,28 @@ fun DinnerApp() {
                         )
                     }
                 }
+                if (sharedEnabled) Text("Development environment", style = MaterialTheme.typography.labelSmall)
+                if(sharedEnabled && (catalogBusy || catalogError)) {
+                    Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                        Text(if(catalogBusy) "Refreshing places and deals…" else "We couldn’t refresh places and deals. Try again.")
+                        if(catalogError && !catalogBusy) OutlinedButton(onClick={ refreshRequest += 1 }) { Text("Retry") }
+                    }
+                }
                 when (page) {
                     "Home" -> HomePage(
+                        deals = catalog.archivedDeals,
+                        recommendationsReady = canRecommend,
+                        planWarning = if(catalogError) "Couldn’t check the latest offer details."
+                            else if(!catalogBusy && pendingCheckInHadOffer && savedPendingPlace?.dealVersionId != null &&
+                                deals.none { it.id==pendingCheckInDealId && it.dealVersionId==savedPendingPlace?.dealVersionId })
+                                "This offer is no longer available." else "",
                         profileSaved = profileSaved,
                         zip = savedHousehold.zip,
                         onPick = { page = "Tonight's picks" },
                         onProfile = { page = "Profile" },
-                        hasFoodProfile = quizRatings.size >= INITIAL_FOOD_QUIZ_SIZE,
-                        pendingCheckIn = elkGroveDeals.find { it.id == pendingCheckInDealId },
+                        hasFoodProfile = quizRatings.isNotEmpty() && quizRatings.size >= minOf(INITIAL_FOOD_QUIZ_SIZE, places.size),
+                        pendingCheckIn = savedPendingPlace?.takeIf { it.id==pendingCheckInDealId }
+                            ?: catalog.archivedDeals.find { it.id == pendingCheckInDealId },
                         checkInReady = pendingCheckInReady,
                         pendingCheckInHadOffer = pendingCheckInHadOffer,
                         checkInShows = pendingCheckInShows,
@@ -413,7 +517,9 @@ fun DinnerApp() {
                             page = "Food profile"
                         }
                     )
-                    "Tonight's picks" -> PicksPage(
+                    "Tonight's picks" -> if(!canRecommend) {
+                        Column(Modifier.padding(24.dp)) { Text("New recommendations will be available after places and deals refresh.") }
+                    } else PicksPage(
                         displayedPick = displayedPick,
                         isUserSelected = selectedTonightDeal != null,
                         hasTonightDeal = hasTonightDeal,
@@ -425,7 +531,9 @@ fun DinnerApp() {
                         plannedDealId = pendingCheckInDealId,
                         onRate = { deal, rating ->
                             quizRatings = quizRatings + (deal.id to rating)
-                            prefs.edit().putInt("quiz_rating_${deal.id}", rating).apply()
+                            scope.launch {
+                                preferenceRepository.saveRating(loadedHousehold.userId, deal.id, rating)
+                            }
                             val vote = when (rating) {
                                 1, 2 -> "dislike"
                                 4, 5 -> "like"
@@ -436,7 +544,6 @@ fun DinnerApp() {
                             if (rating == 1) {
                                 if (selectedTonightDealId == deal.id) {
                                     selectedTonightDealId = null
-                                    prefs.edit().remove("selected_tonight_deal_id").apply()
                                 }
                                 recommendationRefreshVersion += 1
                                 picksMessage = "Your picks were updated."
@@ -445,7 +552,9 @@ fun DinnerApp() {
                             }
                         },
                         onPlanToTry = { deal ->
+                            savedPendingPlace=deal
                             val planHasOffer = today in deal.days && isDealEligibleForHousehold(deal, savedHousehold)
+                            val wasFeatured = recommendation?.id == deal.id && selectedTonightDealId == null
                             selectedTonightDealId = deal.id
                             pendingCheckInDealId = deal.id
                             pendingCheckInHadOffer = planHasOffer
@@ -453,20 +562,22 @@ fun DinnerApp() {
                             pendingCheckInShows = 0
                             checkInMessage = ""
                             checkInResult = ""
-                            prefs.edit()
-                                .putString("selected_tonight_deal_id", deal.id)
-                                .putString("pending_checkin_deal_id", deal.id)
-                                .putBoolean("pending_checkin_had_offer", planHasOffer)
-                                .putBoolean("pending_checkin_ready", false)
-                                .putInt("pending_checkin_shows", 0)
-                                .apply()
+                            scope.launch {
+                                dinnerJourneyRepository.selectPlan(
+                                    userId = loadedHousehold.userId,
+                                    householdId = loadedHousehold.householdId,
+                                    placeKey = deal.id,
+                                    hasOffer = planHasOffer,
+                                    featured = wasFeatured,
+                                    selection = deal
+                                )
+                            }
                             page = "Home"
                         },
                         onUpdateLocation = { page = "Profile" },
                         onReviewRemoved = { page = "Removed places" },
                         onChoose = {
                             selectedTonightDealId = it.id
-                            prefs.edit().putString("selected_tonight_deal_id", it.id).apply()
                         },
                         onOpen = {
                             selectedDeal = it
@@ -489,6 +600,7 @@ fun DinnerApp() {
                         )
                     }
                     "Food profile" -> QuizPage(
+                        places = places,
                         ratings = if (previewingNewUser) previewRatings else quizRatings,
                         targetCount = if (previewingNewUser) INITIAL_FOOD_QUIZ_SIZE else quizTarget,
                         editingPlaceId = editingQuizPlaceId,
@@ -502,9 +614,11 @@ fun DinnerApp() {
                             } else {
                                 val updatedRatings = quizRatings + (place.id to rating)
                                 quizRatings = updatedRatings
-                                prefs.edit().putInt("quiz_rating_${place.id}", rating).apply()
+                                scope.launch {
+                                    preferenceRepository.saveRating(loadedHousehold.userId, place.id, rating)
+                                }
 
-                                if (elkGroveDeals.any { it.id == place.id } && rating in 1..5) {
+                                if (deals.any { it.id == place.id } && rating in 1..5) {
                                     val vote = when (rating) {
                                         1, 2 -> "dislike"
                                         4, 5 -> "like"
@@ -525,7 +639,7 @@ fun DinnerApp() {
                         onEdit = { editingQuizPlaceId = it.id },
                         onBackToProfile = { editingQuizPlaceId = null },
                         onRateMore = {
-                            quizTarget = minOf(foodQuizPlaces.size, quizRatings.size + 2)
+                            quizTarget = minOf(places.size, quizRatings.size + 2)
                         },
                         onRemove = { place ->
                             if (previewingNewUser) {
@@ -537,7 +651,9 @@ fun DinnerApp() {
                                 if (place.id !in quizRatings) {
                                     val updatedRatings = quizRatings + (place.id to 0)
                                     quizRatings = updatedRatings
-                                    prefs.edit().putInt("quiz_rating_${place.id}", 0).apply()
+                                    scope.launch {
+                                        preferenceRepository.saveRating(loadedHousehold.userId, place.id, 0)
+                                    }
                                     if (updatedRatings.size >= quizTarget) quizTarget = updatedRatings.size
                                 }
                                 editingQuizPlaceId = null
@@ -573,14 +689,19 @@ fun DinnerApp() {
                             editingProfile = true
                         },
                         onSave = {
-                            householdRepository.save(householdDraft)
-                            savedHousehold = householdDraft
-                            profileSaved = true
-                            editingProfile = false
+                            scope.launch {
+                                householdRepository.save(householdDraft)
+                                savedHousehold = householdDraft
+                                profileSaved = true
+                                editingProfile = false
+                            }
                         }
                     )
-                    "Removed places" -> RemovedPage(removed) { id -> saveRemoved(removed - id) }
+                    "Share a deal" -> if(sharedEnabled) com.example.wherewegoing.ui.DealSubmissionPage(loadedHousehold.userId,testerRepository) { page = "My submissions" }
+                    "My submissions" -> if(sharedEnabled) com.example.wherewegoing.ui.MySubmissionsPage(loadedHousehold.userId,testerRepository) { page = "Share a deal" }
+                    "Removed places" -> RemovedPage(removed, catalog.archivedDeals) { id -> saveRemoved(removed - id) }
                     "Prototype tools" -> if (isDebugBuild) PrototypeToolsPage(
+                        catalogStatus = catalogDiagnostic,
                         simulatedDay = simulatedDay,
                         household = savedHousehold,
                         ratedPlaceCount = quizRatings.count { it.value in 1..5 },
@@ -601,35 +722,58 @@ fun DinnerApp() {
                             page = "Food profile"
                         },
                         onReset = {
-                            prefs.edit().clear().apply()
-                            val freshHousehold = HouseholdProfile()
-                            savedHousehold = freshHousehold
-                            householdDraft = freshHousehold
-                            profileSaved = false
-                            onboardingComplete = false
-                            editingProfile = true
-                            votes = elkGroveDeals.associate { it.id to "neutral" }
-                            quizRatings = emptyMap()
-                            quizTarget = INITIAL_FOOD_QUIZ_SIZE
-                            editingQuizPlaceId = null
-                            previewingNewUser = false
-                            previewRatings = emptyMap()
-                            previewRemoved = emptySet()
-                            removeInfoSuppressed = false
-                            removed = emptySet()
-                            picksMessage = ""
-                            pendingCheckInDealId = ""
-                            pendingCheckInHadOffer = true
-                            pendingCheckInReady = false
-                            pendingCheckInShows = 0
-                            checkInMessage = ""
-                            checkInResult = ""
-                            mealHistory = emptyList()
-                            selectedTonightDealId = null
-                            selectedDeal = null
-                            simulatedDay = null
-                            recommendationRefreshVersion += 1
-                            page = "Home"
+                            scope.launch {
+                                testerRepository.reset(loadedHousehold.userId)
+                                householdRepository.reset()
+                                prefs.edit().clear().commit()
+                                val freshSnapshot = householdRepository.load()
+                                if(sharedEnabled) {
+                                    catalogBusy=true
+                                    try { catalogRepository.load(); sharedRepository.refresh(); catalogError=false
+                                    } catch(error: CancellationException) { throw error
+                                    } catch(error: Exception) { catalogError=true
+                                    } finally { catalogBusy=false }
+                                }
+                                val freshCatalog = catalogRepository.load()
+                                catalogSnapshot = freshCatalog
+                                val freshPreferences = preferenceRepository.load(
+                                    freshSnapshot.userId,
+                                    freshCatalog.places
+                                )
+                                val freshDinner = dinnerJourneyRepository.load(freshSnapshot.userId)
+                                val freshHousehold = freshSnapshot.profile
+                                householdSnapshot = freshSnapshot
+                                preferenceSnapshot = freshPreferences
+                                dinnerSnapshot = freshDinner
+                                savedHousehold = freshHousehold
+                                householdDraft = freshHousehold
+                                profileSaved = false
+                                onboardingComplete = false
+                                editingProfile = true
+                                votes = deals.associate { it.id to "neutral" }
+                                quizRatings = emptyMap()
+                                quizTarget = INITIAL_FOOD_QUIZ_SIZE
+                                editingQuizPlaceId = null
+                                previewingNewUser = false
+                                previewRatings = emptyMap()
+                                previewRemoved = emptySet()
+                                removeInfoSuppressed = false
+                                removed = emptySet()
+                                picksMessage = ""
+                                pendingCheckInDealId = ""
+                                savedPendingPlace=null
+                                pendingCheckInHadOffer = true
+                                pendingCheckInReady = false
+                                pendingCheckInShows = 0
+                                checkInMessage = ""
+                                checkInResult = ""
+                                mealHistory = emptyList()
+                                selectedTonightDealId = null
+                                selectedDeal = null
+                                simulatedDay = null
+                                recommendationRefreshVersion += 1
+                                page = "Home"
+                            }
                         }
                     )
                 }

@@ -55,10 +55,32 @@ Current validity is calculated in the location's local time zone from the deal's
 
 The envisioned internal tool exposes candidate queues, enrichment/validation work, pending publication, approved/published offers, monitoring issues and retired records, with linked evidence. Operators can approve, reject, merge and retire under defined permissions. Restaurant, user and eventual merchant management share the platform rather than create disconnected stores.
 
-Exercise the lifecycle in dev and QA/staging with synthetic deals and messy cases before promoting code to prod. Synthetic labels are retained through every transition. A successful QA publication must never publish that test offer to real consumers.
+Exercise the lifecycle in dev and QA/staging with synthetic deals and messy cases before promoting code to prod. Environment separation keeps development records out of production. A successful QA publication must never publish that test offer to real consumers.
 
 ## Review checks and open questions
 
 Check that a single-location report cannot silently become national truth; duplicate candidates retain provenance; published deals preserve unknown applicability; failed verification remains distinct from poor preference fit; retirement removes consumer eligibility while retaining history; and test offers cannot cross environments.
 
 Before operational implementation, settle Q-02 through Q-05 and Q-09 in [DECISIONS](DECISIONS.md): scope inheritance, publication/confidence policy, terms/eligibility semantics, sourcing, and permission/transition design. Manual workflow remains the initial direction; automated discovery, validation and approval are later capabilities, with timing TBD.
+
+## Accepted community MVP workflow — October 2, 2026
+
+Signed-in text submissions enter manual review and remain invisible until approved. The reviewer matches restaurant/location records, checks duplicate offers and completes schedule, terms and eligibility. Hold missing material facts for clarification. Preserve the original submission and reviewer notes; My submissions allows held-entry correction/resubmission. Exact transitions and reviewer UI remain to be implemented.
+
+Approval permits publication as a Possible deal and does not itself confirm participation. Guest and signed-in meal outcomes are self-reported evidence. Only signed-in users may submit problem reports, which enter review without automatically changing a published offer. Confidence aggregation, report prioritization and expiry handling require further decisions. Photos, automated approval and notifications are deferred.
+
+Additional accepted rules: one failed-deal outcome flags review without automatically hiding an offer. Reviewer-confirmed ended offers are excluded from new recommendations while original versions remain available to historical meals and corrections. Existing plans show expiry or withdrawal without silently replacing the chosen place. Corrected check-ins supersede their earlier contribution to totals and derived reliability; retain prior-response provenance rather than counting both answers. Thresholds for aggregate confidence changes remain undecided. See D-67–D-69.
+
+## Development reviewer queue — October 4, 2026
+
+The owner approved reviewer editing, missing restaurant/location creation and a test-submission flag. The browser queue at backend/proof/review.html replaces the original permissions-proof screen; that screen remains at publication-proof.html. Status tabs load 20 entries per page. Original contribution text stays unchanged; edits live in review_draft, with optimistic revision checks and append-only application review events. Reviewer-only RPCs enforce access independently of the browser.
+
+Actions are Save draft, Needs clarification, Reject and Approve. Clarification/rejection require a contributor-visible note. Approval resolves or explicitly creates restaurant/location UUIDs, requires offer wording, terms, source, weekdays, deal strength and review confirmation, and creates immutable published version/schedule records atomically. Matching published offer wording/terms/weekdays at a location is rejected as a duplicate. Approval means a possible offer (not verified). The current engine only supports recurring weekly all-day schedules: date-limited or timed offers must be held rather than represented as all-day offers. Structured eligibility expansion remains pending.
+
+After SQL 008, all supported approved development offers and their places reach ww_app_catalog (D-77). No existing submission is automatically approved. Finalized reviews are read-only; published changes require a future new-version workflow. Contributor clarification/resubmission, retirement UI, fuzzy matching and production authentication/abuse controls remain pending.
+
+## Development catalog and launch boundary — D-77 (October 4, 2026)
+
+All approved, supported DEV offers participate in Android recommendations, including previously flagged Panda records. SQL 008 removes per-record test flags without changing published content, IDs, schedules or activity references. Small Development indicators identify the environment. Review approval still means possible deal, not verified deal; permissions, duplicate checks and immutable publication remain. This supersedes earlier test-flag exclusions in D-73/D-76 and sandbox labeling requirements in D-11.
+
+Launch requires a fresh production database: apply reviewed schema, import curated restaurants/locations and genuine reviewed offers, configure the release app, verify environment separation, and begin fresh production activity. Do not copy DEV offers, test accounts or meal history. Preserve DEV for testing. This launch gate is documented, not implemented.

@@ -1,0 +1,1441 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 4,
+    "identityHash": "ec4ebc7abb2d8712e0ce1d43c5823976",
+    "entities": [
+      {
+        "tableName": "app_user",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`user_id` TEXT NOT NULL, `onboarding_status` TEXT NOT NULL, `status` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`user_id`))",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "onboardingStatus",
+            "columnName": "onboarding_status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "user_id"
+          ]
+        }
+      },
+      {
+        "tableName": "app_installation",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`installation_id` TEXT NOT NULL, `user_id` TEXT NOT NULL, `platform` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `last_seen_at` INTEGER NOT NULL, PRIMARY KEY(`installation_id`), FOREIGN KEY(`user_id`) REFERENCES `app_user`(`user_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "installationId",
+            "columnName": "installation_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "platform",
+            "columnName": "platform",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSeenAt",
+            "columnName": "last_seen_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "installation_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_app_installation_user_id",
+            "unique": false,
+            "columnNames": [
+              "user_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_app_installation_user_id` ON `${TABLE_NAME}` (`user_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "app_user",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "user_id"
+            ],
+            "referencedColumns": [
+              "user_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "household",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`household_id` TEXT NOT NULL, `adult_count` INTEGER NOT NULL, `home_postal_code` TEXT, `preferred_radius_miles` REAL NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`household_id`))",
+        "fields": [
+          {
+            "fieldPath": "householdId",
+            "columnName": "household_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "adultCount",
+            "columnName": "adult_count",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "homePostalCode",
+            "columnName": "home_postal_code",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "preferredRadiusMiles",
+            "columnName": "preferred_radius_miles",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "household_id"
+          ]
+        }
+      },
+      {
+        "tableName": "household_user",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`household_id` TEXT NOT NULL, `user_id` TEXT NOT NULL, `role` TEXT NOT NULL, `is_primary` INTEGER NOT NULL, `joined_at` INTEGER NOT NULL, PRIMARY KEY(`household_id`, `user_id`), FOREIGN KEY(`household_id`) REFERENCES `household`(`household_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`user_id`) REFERENCES `app_user`(`user_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "householdId",
+            "columnName": "household_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "role",
+            "columnName": "role",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isPrimary",
+            "columnName": "is_primary",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "joinedAt",
+            "columnName": "joined_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "household_id",
+            "user_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_household_user_user_id",
+            "unique": false,
+            "columnNames": [
+              "user_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_household_user_user_id` ON `${TABLE_NAME}` (`user_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "household",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "household_id"
+            ],
+            "referencedColumns": [
+              "household_id"
+            ]
+          },
+          {
+            "table": "app_user",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "user_id"
+            ],
+            "referencedColumns": [
+              "user_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "household_child",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`household_child_id` TEXT NOT NULL, `household_id` TEXT NOT NULL, `display_order` INTEGER NOT NULL, `birth_date` TEXT, `entered_age_years` INTEGER, `age_as_of_date` TEXT, `age_reconfirm_after` TEXT, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`household_child_id`), FOREIGN KEY(`household_id`) REFERENCES `household`(`household_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "householdChildId",
+            "columnName": "household_child_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "householdId",
+            "columnName": "household_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayOrder",
+            "columnName": "display_order",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "birthDate",
+            "columnName": "birth_date",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "enteredAgeYears",
+            "columnName": "entered_age_years",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "ageAsOfDate",
+            "columnName": "age_as_of_date",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ageReconfirmAfter",
+            "columnName": "age_reconfirm_after",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "household_child_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_household_child_household_id",
+            "unique": false,
+            "columnNames": [
+              "household_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_household_child_household_id` ON `${TABLE_NAME}` (`household_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "household",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "household_id"
+            ],
+            "referencedColumns": [
+              "household_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "restaurant",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`restaurant_id` TEXT NOT NULL, `prototype_key` TEXT NOT NULL, `name` TEXT NOT NULL, `status` TEXT NOT NULL, PRIMARY KEY(`restaurant_id`))",
+        "fields": [
+          {
+            "fieldPath": "restaurantId",
+            "columnName": "restaurant_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "prototypeKey",
+            "columnName": "prototype_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "restaurant_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_restaurant_prototype_key",
+            "unique": true,
+            "columnNames": [
+              "prototype_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_restaurant_prototype_key` ON `${TABLE_NAME}` (`prototype_key`)"
+          }
+        ]
+      },
+      {
+        "tableName": "location",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`location_id` TEXT NOT NULL, `restaurant_id` TEXT NOT NULL, `prototype_key` TEXT NOT NULL, `address` TEXT NOT NULL, `time_zone` TEXT NOT NULL, `status` TEXT NOT NULL, PRIMARY KEY(`location_id`), FOREIGN KEY(`restaurant_id`) REFERENCES `restaurant`(`restaurant_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "locationId",
+            "columnName": "location_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "restaurantId",
+            "columnName": "restaurant_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "prototypeKey",
+            "columnName": "prototype_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "address",
+            "columnName": "address",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timeZone",
+            "columnName": "time_zone",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "location_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_location_restaurant_id",
+            "unique": false,
+            "columnNames": [
+              "restaurant_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_location_restaurant_id` ON `${TABLE_NAME}` (`restaurant_id`)"
+          },
+          {
+            "name": "index_location_prototype_key",
+            "unique": true,
+            "columnNames": [
+              "prototype_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_location_prototype_key` ON `${TABLE_NAME}` (`prototype_key`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "restaurant",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "restaurant_id"
+            ],
+            "referencedColumns": [
+              "restaurant_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "deal",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`deal_id` TEXT NOT NULL, `restaurant_id` TEXT NOT NULL, `prototype_key` TEXT NOT NULL, `status` TEXT NOT NULL, PRIMARY KEY(`deal_id`), FOREIGN KEY(`restaurant_id`) REFERENCES `restaurant`(`restaurant_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "dealId",
+            "columnName": "deal_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "restaurantId",
+            "columnName": "restaurant_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "prototypeKey",
+            "columnName": "prototype_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "deal_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_deal_restaurant_id",
+            "unique": false,
+            "columnNames": [
+              "restaurant_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_deal_restaurant_id` ON `${TABLE_NAME}` (`restaurant_id`)"
+          },
+          {
+            "name": "index_deal_prototype_key",
+            "unique": true,
+            "columnNames": [
+              "prototype_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_deal_prototype_key` ON `${TABLE_NAME}` (`prototype_key`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "restaurant",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "restaurant_id"
+            ],
+            "referencedColumns": [
+              "restaurant_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "deal_version",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`deal_version_id` TEXT NOT NULL, `deal_id` TEXT NOT NULL, `version_number` INTEGER NOT NULL, `offer` TEXT NOT NULL, `terms` TEXT NOT NULL, `status` TEXT NOT NULL, `published_at` INTEGER NOT NULL, PRIMARY KEY(`deal_version_id`), FOREIGN KEY(`deal_id`) REFERENCES `deal`(`deal_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "dealVersionId",
+            "columnName": "deal_version_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dealId",
+            "columnName": "deal_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "versionNumber",
+            "columnName": "version_number",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "offer",
+            "columnName": "offer",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "terms",
+            "columnName": "terms",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "publishedAt",
+            "columnName": "published_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "deal_version_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_deal_version_deal_id",
+            "unique": false,
+            "columnNames": [
+              "deal_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_deal_version_deal_id` ON `${TABLE_NAME}` (`deal_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "deal",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "deal_id"
+            ],
+            "referencedColumns": [
+              "deal_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "meal_occasion",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`meal_occasion_id` TEXT NOT NULL, `household_id` TEXT NOT NULL, `created_by_user_id` TEXT NOT NULL, `meal_type` TEXT NOT NULL, `service_date` TEXT NOT NULL, `time_zone` TEXT NOT NULL, `status` TEXT NOT NULL, `started_at` INTEGER NOT NULL, `closed_at` INTEGER, `created_from` TEXT NOT NULL, PRIMARY KEY(`meal_occasion_id`), FOREIGN KEY(`household_id`) REFERENCES `household`(`household_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`created_by_user_id`) REFERENCES `app_user`(`user_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "mealOccasionId",
+            "columnName": "meal_occasion_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "householdId",
+            "columnName": "household_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdByUserId",
+            "columnName": "created_by_user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mealType",
+            "columnName": "meal_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "serviceDate",
+            "columnName": "service_date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timeZone",
+            "columnName": "time_zone",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startedAt",
+            "columnName": "started_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "closedAt",
+            "columnName": "closed_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "createdFrom",
+            "columnName": "created_from",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "meal_occasion_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_meal_occasion_household_id",
+            "unique": false,
+            "columnNames": [
+              "household_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_meal_occasion_household_id` ON `${TABLE_NAME}` (`household_id`)"
+          },
+          {
+            "name": "index_meal_occasion_created_by_user_id",
+            "unique": false,
+            "columnNames": [
+              "created_by_user_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_meal_occasion_created_by_user_id` ON `${TABLE_NAME}` (`created_by_user_id`)"
+          },
+          {
+            "name": "index_meal_occasion_household_id_created_by_user_id_meal_type_service_date",
+            "unique": false,
+            "columnNames": [
+              "household_id",
+              "created_by_user_id",
+              "meal_type",
+              "service_date"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_meal_occasion_household_id_created_by_user_id_meal_type_service_date` ON `${TABLE_NAME}` (`household_id`, `created_by_user_id`, `meal_type`, `service_date`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "household",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "household_id"
+            ],
+            "referencedColumns": [
+              "household_id"
+            ]
+          },
+          {
+            "table": "app_user",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "created_by_user_id"
+            ],
+            "referencedColumns": [
+              "user_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "recommendation_run",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`recommendation_run_id` TEXT NOT NULL, `meal_occasion_id` TEXT NOT NULL, `engine_version` TEXT NOT NULL, `requested_at` INTEGER NOT NULL, `completed_at` INTEGER NOT NULL, PRIMARY KEY(`recommendation_run_id`), FOREIGN KEY(`meal_occasion_id`) REFERENCES `meal_occasion`(`meal_occasion_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "recommendationRunId",
+            "columnName": "recommendation_run_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mealOccasionId",
+            "columnName": "meal_occasion_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "engineVersion",
+            "columnName": "engine_version",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requestedAt",
+            "columnName": "requested_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completedAt",
+            "columnName": "completed_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "recommendation_run_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_recommendation_run_meal_occasion_id",
+            "unique": false,
+            "columnNames": [
+              "meal_occasion_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_recommendation_run_meal_occasion_id` ON `${TABLE_NAME}` (`meal_occasion_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "meal_occasion",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "meal_occasion_id"
+            ],
+            "referencedColumns": [
+              "meal_occasion_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "recommendation_option",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`recommendation_option_id` TEXT NOT NULL, `recommendation_run_id` TEXT NOT NULL, `restaurant_id` TEXT NOT NULL, `location_id` TEXT NOT NULL, `deal_version_id` TEXT, `displayed_rank` INTEGER NOT NULL, `total_score` REAL NOT NULL, `was_featured` INTEGER NOT NULL, `prepared_at` INTEGER NOT NULL, PRIMARY KEY(`recommendation_option_id`), FOREIGN KEY(`recommendation_run_id`) REFERENCES `recommendation_run`(`recommendation_run_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`restaurant_id`) REFERENCES `restaurant`(`restaurant_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`location_id`) REFERENCES `location`(`location_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`deal_version_id`) REFERENCES `deal_version`(`deal_version_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "recommendationOptionId",
+            "columnName": "recommendation_option_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recommendationRunId",
+            "columnName": "recommendation_run_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "restaurantId",
+            "columnName": "restaurant_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "locationId",
+            "columnName": "location_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dealVersionId",
+            "columnName": "deal_version_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "displayedRank",
+            "columnName": "displayed_rank",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalScore",
+            "columnName": "total_score",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wasFeatured",
+            "columnName": "was_featured",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "preparedAt",
+            "columnName": "prepared_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "recommendation_option_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_recommendation_option_recommendation_run_id",
+            "unique": false,
+            "columnNames": [
+              "recommendation_run_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_recommendation_option_recommendation_run_id` ON `${TABLE_NAME}` (`recommendation_run_id`)"
+          },
+          {
+            "name": "index_recommendation_option_restaurant_id",
+            "unique": false,
+            "columnNames": [
+              "restaurant_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_recommendation_option_restaurant_id` ON `${TABLE_NAME}` (`restaurant_id`)"
+          },
+          {
+            "name": "index_recommendation_option_location_id",
+            "unique": false,
+            "columnNames": [
+              "location_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_recommendation_option_location_id` ON `${TABLE_NAME}` (`location_id`)"
+          },
+          {
+            "name": "index_recommendation_option_deal_version_id",
+            "unique": false,
+            "columnNames": [
+              "deal_version_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_recommendation_option_deal_version_id` ON `${TABLE_NAME}` (`deal_version_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "recommendation_run",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "recommendation_run_id"
+            ],
+            "referencedColumns": [
+              "recommendation_run_id"
+            ]
+          },
+          {
+            "table": "restaurant",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "restaurant_id"
+            ],
+            "referencedColumns": [
+              "restaurant_id"
+            ]
+          },
+          {
+            "table": "location",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "location_id"
+            ],
+            "referencedColumns": [
+              "location_id"
+            ]
+          },
+          {
+            "table": "deal_version",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "deal_version_id"
+            ],
+            "referencedColumns": [
+              "deal_version_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "plan_intent",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`plan_intent_id` TEXT NOT NULL, `meal_occasion_id` TEXT NOT NULL, `user_id` TEXT NOT NULL, `recommendation_option_id` TEXT NOT NULL, `status` TEXT NOT NULL, `source` TEXT NOT NULL, `declared_at` INTEGER NOT NULL, `ended_at` INTEGER, `superseded_by_intent_id` TEXT, PRIMARY KEY(`plan_intent_id`), FOREIGN KEY(`meal_occasion_id`) REFERENCES `meal_occasion`(`meal_occasion_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`user_id`) REFERENCES `app_user`(`user_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`recommendation_option_id`) REFERENCES `recommendation_option`(`recommendation_option_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "planIntentId",
+            "columnName": "plan_intent_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mealOccasionId",
+            "columnName": "meal_occasion_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recommendationOptionId",
+            "columnName": "recommendation_option_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "declaredAt",
+            "columnName": "declared_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endedAt",
+            "columnName": "ended_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "supersededByIntentId",
+            "columnName": "superseded_by_intent_id",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "plan_intent_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_plan_intent_meal_occasion_id",
+            "unique": false,
+            "columnNames": [
+              "meal_occasion_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_plan_intent_meal_occasion_id` ON `${TABLE_NAME}` (`meal_occasion_id`)"
+          },
+          {
+            "name": "index_plan_intent_user_id",
+            "unique": false,
+            "columnNames": [
+              "user_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_plan_intent_user_id` ON `${TABLE_NAME}` (`user_id`)"
+          },
+          {
+            "name": "index_plan_intent_recommendation_option_id",
+            "unique": false,
+            "columnNames": [
+              "recommendation_option_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_plan_intent_recommendation_option_id` ON `${TABLE_NAME}` (`recommendation_option_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "meal_occasion",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "meal_occasion_id"
+            ],
+            "referencedColumns": [
+              "meal_occasion_id"
+            ]
+          },
+          {
+            "table": "app_user",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "user_id"
+            ],
+            "referencedColumns": [
+              "user_id"
+            ]
+          },
+          {
+            "table": "recommendation_option",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "recommendation_option_id"
+            ],
+            "referencedColumns": [
+              "recommendation_option_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "plan_check_in",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`plan_check_in_id` TEXT NOT NULL, `plan_intent_id` TEXT NOT NULL, `status` TEXT NOT NULL, `eligible_at` INTEGER NOT NULL, `expires_at` INTEGER NOT NULL, `first_presented_at` INTEGER, `responded_at` INTEGER, `created_at` INTEGER NOT NULL, PRIMARY KEY(`plan_check_in_id`), FOREIGN KEY(`plan_intent_id`) REFERENCES `plan_intent`(`plan_intent_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "planCheckInId",
+            "columnName": "plan_check_in_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "planIntentId",
+            "columnName": "plan_intent_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eligibleAt",
+            "columnName": "eligible_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expiresAt",
+            "columnName": "expires_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstPresentedAt",
+            "columnName": "first_presented_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "respondedAt",
+            "columnName": "responded_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "plan_check_in_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_plan_check_in_plan_intent_id",
+            "unique": true,
+            "columnNames": [
+              "plan_intent_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_plan_check_in_plan_intent_id` ON `${TABLE_NAME}` (`plan_intent_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "plan_intent",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "plan_intent_id"
+            ],
+            "referencedColumns": [
+              "plan_intent_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "plan_outcome",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`plan_outcome_id` TEXT NOT NULL, `plan_check_in_id` TEXT NOT NULL, `reported_by_user_id` TEXT NOT NULL, `outcome_type` TEXT NOT NULL, `reporting_method` TEXT NOT NULL, `reported_at` INTEGER NOT NULL, `supersedes_outcome_id` TEXT, PRIMARY KEY(`plan_outcome_id`), FOREIGN KEY(`plan_check_in_id`) REFERENCES `plan_check_in`(`plan_check_in_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`reported_by_user_id`) REFERENCES `app_user`(`user_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "planOutcomeId",
+            "columnName": "plan_outcome_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "planCheckInId",
+            "columnName": "plan_check_in_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reportedByUserId",
+            "columnName": "reported_by_user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "outcomeType",
+            "columnName": "outcome_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reportingMethod",
+            "columnName": "reporting_method",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reportedAt",
+            "columnName": "reported_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "supersedesOutcomeId",
+            "columnName": "supersedes_outcome_id",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "plan_outcome_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_plan_outcome_plan_check_in_id",
+            "unique": false,
+            "columnNames": [
+              "plan_check_in_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_plan_outcome_plan_check_in_id` ON `${TABLE_NAME}` (`plan_check_in_id`)"
+          },
+          {
+            "name": "index_plan_outcome_reported_by_user_id",
+            "unique": false,
+            "columnNames": [
+              "reported_by_user_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_plan_outcome_reported_by_user_id` ON `${TABLE_NAME}` (`reported_by_user_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "plan_check_in",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "plan_check_in_id"
+            ],
+            "referencedColumns": [
+              "plan_check_in_id"
+            ]
+          },
+          {
+            "table": "app_user",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "reported_by_user_id"
+            ],
+            "referencedColumns": [
+              "user_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "user_restaurant_rating",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`user_id` TEXT NOT NULL, `restaurant_id` TEXT NOT NULL, `response_type` TEXT NOT NULL, `rating` INTEGER, `response_source` TEXT NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`user_id`, `restaurant_id`), FOREIGN KEY(`user_id`) REFERENCES `app_user`(`user_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`restaurant_id`) REFERENCES `restaurant`(`restaurant_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "restaurantId",
+            "columnName": "restaurant_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "responseType",
+            "columnName": "response_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rating",
+            "columnName": "rating",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "responseSource",
+            "columnName": "response_source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "user_id",
+            "restaurant_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_user_restaurant_rating_restaurant_id",
+            "unique": false,
+            "columnNames": [
+              "restaurant_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_user_restaurant_rating_restaurant_id` ON `${TABLE_NAME}` (`restaurant_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "app_user",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "user_id"
+            ],
+            "referencedColumns": [
+              "user_id"
+            ]
+          },
+          {
+            "table": "restaurant",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "restaurant_id"
+            ],
+            "referencedColumns": [
+              "restaurant_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "user_restaurant_exclusion",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`user_restaurant_exclusion_id` TEXT NOT NULL, `user_id` TEXT NOT NULL, `restaurant_id` TEXT NOT NULL, `effective_from` INTEGER NOT NULL, `effective_through` INTEGER, PRIMARY KEY(`user_restaurant_exclusion_id`), FOREIGN KEY(`user_id`) REFERENCES `app_user`(`user_id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`restaurant_id`) REFERENCES `restaurant`(`restaurant_id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "exclusionId",
+            "columnName": "user_restaurant_exclusion_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "user_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "restaurantId",
+            "columnName": "restaurant_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "effectiveFrom",
+            "columnName": "effective_from",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "effectiveThrough",
+            "columnName": "effective_through",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "user_restaurant_exclusion_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_user_restaurant_exclusion_user_id",
+            "unique": false,
+            "columnNames": [
+              "user_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_user_restaurant_exclusion_user_id` ON `${TABLE_NAME}` (`user_id`)"
+          },
+          {
+            "name": "index_user_restaurant_exclusion_restaurant_id",
+            "unique": false,
+            "columnNames": [
+              "restaurant_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_user_restaurant_exclusion_restaurant_id` ON `${TABLE_NAME}` (`restaurant_id`)"
+          },
+          {
+            "name": "index_user_restaurant_exclusion_user_id_restaurant_id_effective_through",
+            "unique": false,
+            "columnNames": [
+              "user_id",
+              "restaurant_id",
+              "effective_through"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_user_restaurant_exclusion_user_id_restaurant_id_effective_through` ON `${TABLE_NAME}` (`user_id`, `restaurant_id`, `effective_through`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "app_user",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "user_id"
+            ],
+            "referencedColumns": [
+              "user_id"
+            ]
+          },
+          {
+            "table": "restaurant",
+            "onDelete": "RESTRICT",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "restaurant_id"
+            ],
+            "referencedColumns": [
+              "restaurant_id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ec4ebc7abb2d8712e0ce1d43c5823976')"
+    ]
+  }
+}

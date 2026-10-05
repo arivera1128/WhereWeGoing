@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where We Going — development review proof</title>
+<style>
+body{font:16px system-ui,sans-serif;background:#fff9ed;color:#342f2a;margin:0;padding:24px}
+main{max-width:720px;margin:auto}section{background:white;border:1px solid #ead7bc;border-radius:16px;padding:20px;margin:16px 0}
+h1{font-size:28px}h2{font-size:20px}label{display:block;margin:12px 0 5px}input{box-sizing:border-box;width:100%;padding:10px;border:1px solid #aa947b;border-radius:8px;font:inherit}
+button{background:#744629;color:white;border:0;border-radius:8px;padding:12px 16px;font:inherit;margin:14px 8px 0 0;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}.notice{background:#ffe6ba;border-radius:12px;padding:16px}#status{white-space:pre-wrap}li{margin:14px 0}small{display:block;margin-top:8px}
+</style></head><body><main>
+<h1>Development review proof</h1>
+<p class="notice">Test offers only. This page demonstrates database permissions, not the finished submission queue. Use only WhereWeGoing-dev.</p>
+<section><h2>Connect development project</h2>
+<label for="url">Project URL</label><input id="url" type="url" placeholder="https://your-project.supabase.co" autocomplete="off">
+<label for="key">Publishable key</label><input id="key" type="password" autocomplete="off">
+<small>Never enter a secret/service-role key or database password.</small>
+<button id="read" type="button">Read as guest</button></section>
+<section><h2>Reviewer account</h2>
+<form id="login"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required>
+<label for="password">Account password</label><input id="password" type="password" autocomplete="current-password" required>
+<button type="submit">Sign in</button><button id="logout" type="button">Sign out</button></form>
+<small>Development account only. The session is held in memory and clears when this page closes. Expired sessions require sign-in again.</small></section>
+<section><h2>Publish fixture A</h2><p>TEST ONLY — publication check A. No real discount is being offered.</p>
+<button id="publish" type="button" disabled>Publish test offer</button>
+<small>Signing in does not grant review access. The database checks the designated reviewer before publishing.</small></section>
+<section><h2>Result</h2><p id="status" role="status" aria-live="polite">Not connected.</p><ul id="offers"></ul></section>
+</main><script>
+'use strict';
+let token = null, sessionProject = null, busy = false;
+const $ = id => document.getElementById(id);
+function configuration() {
+  const url = new URL($('url').value.trim());
+  if (url.protocol !== 'https:' || !url.hostname.endsWith('.supabase.co') || url.username || url.password || url.port || url.search || url.hash || url.pathname !== '/') throw Error('Use the HTTPS URL of your development Supabase project.');
+  const key = $('key').value.trim();
+  let allowed = key.startsWith('sb_publishable_');
+  if (!allowed) {
+    try { const part=key.split('.')[1]; const body=JSON.parse(atob(part.replace(/-/g,'+').replace(/_/g,'/'))); allowed=body.role==='anon'; } catch {}
+  }
+  if (!allowed) throw Error('Use a publishable key, not a secret/service-role key.');
+  return {url:url.origin,key};
+}
+async function request(path, body, authenticated=false) {
+  const {url,key} = configuration();
+  if (authenticated && (!token || sessionProject!==url)) throw Error('Sign in to this development project first.');
+  const headers = {'apikey':key,'Content-Type':'application/json'};
+  if (authenticated) headers.Authorization='Bearer '+token;
+  else if (!key.startsWith('sb_publishable_')) headers.Authorization='Bearer '+key;
+  const response = await fetch(url+path,{method:'POST',headers,body:JSON.stringify(body),redirect:'error',signal:AbortSignal.timeout(15000)});
+  if (!response.ok) throw Error('Request failed ('+response.status+'). Check setup and reviewer permissions.');
+  const text=await response.text();
+  return text ? JSON.parse(text) : null;
+}
+async function read() {
+  const data=await request('/rest/v1/rpc/ww_proof_catalog',{});
+  if (data.environment!=='DEV' || data.test_data!==true || !Array.isArray(data.offers)) throw Error('This is not the development proof catalog.');
+  $('offers').replaceChildren();
+  for (const offer of data.offers) {
+    if (!offer.offer.startsWith('TEST ONLY')) throw Error('Unexpected non-test offer.');
+    const li=document.createElement('li'); li.textContent=offer.restaurant_name+' — '+offer.address+' — '+offer.offer; $('offers').append(li);
+  }
+  $('status').textContent='Connected as guest: '+data.offers.length+' published test offer(s).';
+}
+async function perform(action) {
+  if (busy) return; busy=true;
+  document.querySelectorAll('button').forEach(button=>button.disabled=true);
+  try { await action(); } catch (error) { $('status').textContent=error.message; }
+  finally { busy=false; document.querySelectorAll('button').forEach(button=>button.disabled=false); $('publish').disabled=!token; }
+}
+$('read').onclick=()=>perform(read);
+$('login').onsubmit=event=>{event.preventDefault();perform(async()=>{
+  token=null; sessionProject=null;
+  const data=await request('/auth/v1/token?grant_type=password',{email:$('email').value.trim(),password:$('password').value});
+  token=data.access_token; sessionProject=configuration().url; $('password').value='';
+  $('status').textContent='Signed in. Reviewer access will be checked when publishing.';
+});};
+$('logout').onclick=()=>{token=null;sessionProject=null;$('password').value='';$('publish').disabled=true;$('status').textContent='Local session cleared.';};
+$('publish').onclick=()=>perform(async()=>{
+  await request('/rest/v1/rpc/ww_proof_publish',{p_version_id:'40000000-0000-4000-8000-000000000001'},true);
+  await read(); $('status').textContent='Test offer published; guest-visible catalog refreshed.';
+});
+</script></body></html>

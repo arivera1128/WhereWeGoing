@@ -27,7 +27,8 @@ fun PrototypeToolsPage(
     ratedPlaceCount: Int,
     onSelectDay: (Int?) -> Unit,
     onPreviewNewUser: () -> Unit,
-    onReset: () -> Unit
+    onReset: () -> Unit,
+    catalogStatus: String = ""
 ) {
     var confirmReset by remember { mutableStateOf(false) }
     val actualDay = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
@@ -35,6 +36,8 @@ fun PrototypeToolsPage(
     PageColumn {
         Text("Prototype testing tools", style = MaterialTheme.typography.headlineMedium)
         Text("These controls are available only in debug builds.")
+        SharedCatalogProofCard()
+        if(catalogStatus.isNotBlank()) Text(catalogStatus)
 
         Card(
             modifier = Modifier.fillMaxWidth(),
